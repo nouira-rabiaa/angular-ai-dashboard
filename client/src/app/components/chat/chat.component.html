@@ -1,0 +1,41 @@
+<div class="chat-container">
+  <h2>🤖 Angular 19 AI Assistant</h2>
+
+  <div class="messages-list">
+    @for (msg of messages(); track $index) {
+      <div class="message-bubble" [class.user]="msg.sender === 'user'" [class.ai]="msg.sender === 'ai'">
+        <div class="content">{{ msg.text }}</div>
+        @if (msg.tokens) {
+          <span class="token-badge">⚡ {{ msg.tokens }} tokens</span>
+        }
+      </div>
+    }
+
+    @if (isLoading()) {
+      <div class="message-bubble ai loading">
+        <p>L'IA réfléchit...</p>
+      </div>
+    }
+  </div>
+
+  <div class="input-area">
+    @if (liveTokenCount() !== null) {
+      <div class="token-counter">
+        Tokens estimés : <strong>{{ liveTokenCount() }}</strong>
+      </div>
+    }
+
+    <div class="input-group">
+      <textarea 
+        [(ngModel)]="userPrompt" 
+        (ngModelChange)="onInputChange()"
+        placeholder="Posez votre question à l'IA..."
+        rows="2"
+      ></textarea>
+      
+      <button (click)="sendMessage()" [disabled]="isLoading() || !userPrompt.trim()">
+        Envoyer
+      </button>
+    </div>
+  </div>
+</div>
