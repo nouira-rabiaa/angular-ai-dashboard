@@ -11,9 +11,17 @@
           <div class="content">{{ msg.text }}</div>
         }
 
-        @if (msg.tokens) {
-          <span class="token-badge">⚡ {{ msg.tokens }} tokens</span>
-        }
+        <div class="meta-info" style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.25rem;">
+          @if (msg.sentiment) {
+            <span class="token-badge" style="background: rgba(255,255,255,0.1);">
+              {{ msg.sentiment.label === 'POSITIVE' ? '😊' : '😟' }} {{ msg.sentiment.label }} ({{ (msg.sentiment.score * 100).toFixed(0) }}%)
+            </span>
+          }
+          
+          @if (msg.tokens) {
+            <span class="token-badge">⚡ {{ msg.tokens }} tokens</span>
+          }
+        </div>
       </div>
     }
 
