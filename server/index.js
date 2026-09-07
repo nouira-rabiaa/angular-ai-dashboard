@@ -2,8 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import Groq from 'groq-sdk';
+import express from 'express';
+import multer from 'multer';
+import pdfParse from 'pdf-parse';
 import { encoding_for_model } from 'tiktoken';
-
+const upload = multer({ limits: { fileSize: 5 * 1024 * 1024 } }); // Limite à 5 Mo
 // 1. Toujours charger dotenv EN PREMIER
 dotenv.config();
 
@@ -64,7 +67,34 @@ app.post('/api/chat', async (req, res) => {
         // Continue vers le modèle suivant si échec
       }
     }
+// Endpoint pour analyser un fichier PDF et extraire son contenu
+app.post('/api/document/parse', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Aucun fichier fourni' });
+    }
 
+    let extractedText = '';
+
+    if (req.file.mimetype === 'application/pdf') {
+      const data = await pdfParse(req.file.buffer);
+      extractedText = data.text;
+    } else if (req.file.mimetype === 'text/plain' || req.file.mimetype === 'text/csv') {
+      extractedText = req.file.buffer.toString('utf-8');
+    } else {
+      return res.status(400).json({ error: 'Format de fichier non supporté. Utilisez PDF, TXT ou CSV.' });
+    }
+
+    res.json({
+      filename: req.file.originalname,
+      text: extractedText,
+      characterCount: extractedText.length
+    });
+  } catch (error: any) {
+    console.error('Erreur traitement document:', error);
+    res.status(500).json({ error: 'Échec de l\'extraction du document' });
+  }
+});
     // Réponse de secours si la clé API a une restriction
     if (!reply) {
       reply = `[Mode Demo] Analyse pour "${prompt}" : Angular 19 offre de superbes performances grâce aux Signals et à l'architecture Standalone sans NgModules.`;
