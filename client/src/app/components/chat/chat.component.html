@@ -4,7 +4,13 @@
   <div class="messages-list">
     @for (msg of messages(); track $index) {
       <div class="message-bubble" [class.user]="msg.sender === 'user'" [class.ai]="msg.sender === 'ai'">
-        <div class="content">{{ msg.text }}</div>
+        
+        @if (msg.sender === 'ai') {
+          <markdown class="content" [data]="msg.text"></markdown>
+        } @else {
+          <div class="content">{{ msg.text }}</div>
+        }
+
         @if (msg.tokens) {
           <span class="token-badge">⚡ {{ msg.tokens }} tokens</span>
         }
