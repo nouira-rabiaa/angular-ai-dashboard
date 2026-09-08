@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../services/api.service';
 
@@ -11,6 +11,23 @@ import { ApiService } from '../../services/api.service';
 export class DashboardComponent implements OnInit {
   submissions = signal<any[]>([]);
   loading = signal<boolean>(true);
+  
+  // 🔍 Signal pour la recherche
+  searchQuery = signal<string>('');
+
+  // ⚡ Signal calculé qui filtre automatiquement les soumissions
+  filteredSubmissions = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    const list = this.submissions();
+    if (!query) return list;
+
+    return list.filter(sub => {
+      const idMatch = sub.id.toString().includes(query);
+      const dateMatch = sub.createdAt?.toLowerCase().includes(query);
+      const dataMatch = JSON.stringify(sub.data).toLowerCase().includes(query);
+      return idMatch || dateMatch || dataMatch;
+    });
+  });
 
   constructor(private apiService: ApiService) {}
 
@@ -31,32 +48,33 @@ export class DashboardComponent implements OnInit {
       }
     });
   }
-  // 📥 Fonction d'export CSV
+
+  // Mettre à jour la recherche depuis l'input
+  onSearchInput(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    this.searchQuery.set(value);
+  }
+
+  // 📥 Export CSV basé sur les résultats filtrés
   exportToCSV() {
-    const data = this.submissions();
+    const data = this.filteredSubmissions();
     if (data.length === 0) return;
 
-    // Extraire les en-têtes (ID, Date, et clés dynamiques du JSON)
     const csvRows = [];
-    
-    // En-têtes fixes + on peut rajouter un résumé du payload JSON
     const headers = ['ID', 'Date_Creation', 'Donnees_JSON'];
     csvRows.push(headers.join(','));
 
-    // Remplir les lignes
     for (const sub of data) {
-      // Nettoyer les guillemets pour ne pas casser le format CSV
       const jsonString = JSON.stringify(sub.data).replace(/"/g, '""');
       const row = [sub.id, `"${sub.createdAt}"`, `"${jsonString}"`];
       csvRows.push(row.join(','));
     }
 
-    // Créer le fichier virtuel et lancer le téléchargement
     const csvContent = 'data:text/csv;charset=utf-8,' + csvRows.join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `soumissions_formulaires_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `soumissions_filtrees_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

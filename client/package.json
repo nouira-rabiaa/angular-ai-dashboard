@@ -2,6 +2,9 @@
   "name": "client",
   "version": "0.0.0",
   "type": "module",
+  "styles": [
+  "src/styles.scss"  
+],
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
