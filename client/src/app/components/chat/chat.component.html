@@ -59,11 +59,24 @@
       <div class="message-bubble p-4 rounded-xl border transition-all" [class.user]="msg.sender === 'user'" [class.ai]="msg.sender === 'ai'" [ngClass]="msg.sender === 'user' ? 'bg-slate-800/60 border-slate-700 ml-8' : 'bg-slate-950 border-slate-800 mr-8'">
         
         <!-- Document joint éventuel -->
-        @if (msg.documentName) {
-          <div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.25rem;" class="text-indigo-300">
-            📄 Contexte RAG - Document analysé : <strong>{{ msg.documentName }}</strong>
-          </div>
-        }
+       <!-- RAG Trace & Vector Match Badge -->
+@if (msg.documentName) {
+  <div class="flex flex-wrap items-center gap-2 mt-3 pt-2 border-t border-slate-800 text-[11px]">
+    <!-- Indicateur animé -->
+    <span class="flex h-2 w-2 relative">
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+      <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+    </span>
+    
+    <span class="text-indigo-300 font-medium">Source RAG : <strong>{{ msg.documentName }}</strong></span>
+    
+    @if (msg.vectorMeta) {
+      <span class="bg-indigo-950/80 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800/60 font-mono">
+        Cosine Similarity: {{ msg.vectorMeta.score }}%
+      </span>
+    }
+  </div>
+}
 
         <!-- Contenu textuel -->
         @if (msg.sender === 'ai') {

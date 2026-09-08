@@ -12,6 +12,7 @@ interface Message {
   totalTokensUsed?: number;
   sentiment?: { label: string; score: number };
   documentName?: string;
+  vectorMeta?: { score: string }; 
   formSchema?: DynamicFormSchema;
 }
 
@@ -45,57 +46,48 @@ export class ChatComponent {
   });
 
   sendMessage() {
-    const text = this.userPrompt().trim();
-    if (!text || this.isLoading()) return;
+  const promptText = this.userPrompt().trim();
+  if (!promptText || this.isLoading()) return;
 
-    this.messages.update(msgs => [...msgs, { sender: 'user', text }]);
-    this.userPrompt.set('');
-    this.isLoading.set(true);
+  // 1. Ajouter le message de l'utilisateur dans le chat
+  this.messages.update(msgs => [...msgs, { sender: 'user', text: promptText }]);
+  this.userPrompt.set('');
+  this.isLoading.set(true);
 
-    const startTime = performance.now();
-    const lowerText = text.toLowerCase();
+  const startTime = performance.now();
 
-    if (lowerText.includes('formulaire') || lowerText.includes('form')) {
-      this.apiService.generateFormSchema(text).subscribe({
-        next: (res: any) => {
-          const endTime = performance.now();
-          const latency = Math.round(endTime - startTime);
-          
-          // Mise à jour propre des métriques
-          this.averageLatency.set(latency);
-          const tokens = res.tokens || 150; // Valeur par défaut si l'API ne renvoie pas encore les tokens exacts
-          this.totalTokensUsed.update(val => val + tokens);
+  // 2. Appel vers ton serveur Node.js (qui contient le RAG)
+  this.apiService.sendChatPrompt(promptText).subscribe({
+    next: (res: any) => {
+      const endTime = performance.now();
+      const latency = Math.round(endTime - startTime);
 
-          this.messages.update(msgs => [
-            ...msgs,
-            { 
-              sender: 'ai', 
-              text: 'Voici le formulaire généré sur mesure :', 
-              formSchema: res.schema,
-              totalTokensUsed: tokens
-            }
-          ]);
-          this.isLoading.set(false);
-        },
-        error: (err) => {
-          console.error('Erreur:', err);
-          this.successRate.set(85); // Exemple de baisse du taux de succès en cas d'erreur
-          this.isLoading.set(false);
+      // Mettre à jour les métriques globales
+      this.averageLatency.set(latency);
+      if (res.tokens) {
+        this.totalTokensUsed.update(val => val + res.tokens);
+      }
+
+      // 3. ICI : On récupère bien les données RAG renvoyées par le serveur (documentName et vectorMeta)
+      this.messages.update(msgs => [
+        ...msgs,
+        { 
+          sender: 'ai', 
+          text: res.reply, 
+          totalTokensUsed: res.tokens,
+          documentName: res.documentName, // <--- Transmet le nom du fichier source
+          vectorMeta: res.vectorMeta     // <--- Transmet le score Cosine Similarity
         }
-      });
-    } else {
-      setTimeout(() => {
-        const tokens = Math.ceil(text.length / 4) + 25;
-        this.totalTokensUsed.update(val => val + tokens);
-
-        this.messages.update(msgs => [
-          ...msgs,
-          { sender: 'ai', text: `Réponse pour : "${text}"`, totalTokensUsed: tokens }
-        ]);
-        this.isLoading.set(false);
-      }, 500);
+      ]);
+      
+this.isLoading.set(false);
+    },
+    error: (err) => {
+      console.error('Erreur chat:', err);
+      this.isLoading.set(false);
     }
-  }
+  });
+}
 
   onFormSubmit(formData: any) {
     console.log('Envoi des données du formulaire au serveur...', formData);
@@ -123,15 +115,32 @@ export class ChatComponent {
 
   onFileSelected(event: any) {
     const file = event.target.files?.[0];
-    if (file) {
-      this.attachedDocument.set(file);
-      this.isUploadingDoc.set(true);
-      
-      // Simulation d'un traitement d'embedding & chunking asynchrone
-      setTimeout(() => {
+    if (!file) return;
+
+    this.isUploadingDoc.set(true);
+
+    // Appel réel au serveur Node.js pour parser et vectoriser le document (RAG)
+    this.apiService.uploadDocument(file).subscribe({
+      next: (res: any) => {
+        console.log('✅ Document uploadé et vectorisé avec succès par le serveur :', res);
+        this.attachedDocument.set(file);
         this.isUploadingDoc.set(false);
-      }, 1000);
-    }
+        
+        // Optionnel : Ajouter un petit message système dans le chat pour confirmer
+        this.messages.update(msgs => [
+          ...msgs,
+          { 
+            sender: 'ai', 
+            text: `📄 Document **${res.filename}** analysé avec succès (${res.characterCount} caractères, ${res.chunksGenerated || 'plusieurs'} chunks vectorisés). Vous pouvez maintenant l'interroger !` 
+          }
+        ]);
+      },
+      error: (err) => {
+        console.error('❌ Erreur lors de l\'upload du document :', err);
+        this.isUploadingDoc.set(false);
+        alert('Échec du traitement du document par le serveur.');
+      }
+    });
   }
 
   removeDocument() {
