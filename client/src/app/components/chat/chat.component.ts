@@ -73,12 +73,27 @@ export class ChatComponent {
   }
 
   onFormSubmit(formData: any) {
-    console.log('Formulaire soumis :', formData);
-    this.messages.update(msgs => [
-      ...msgs,
-      { sender: 'ai', text: `Formulaire validé avec succès !\n\`\`\`json\n${JSON.stringify(formData, null, 2)}\n\`\`\`` }
-    ]);
-  }
+  console.log('Envoi des données du formulaire au serveur...', formData);
+  
+  this.apiService.submitDynamicForm(formData).subscribe({
+    next: (res) => {
+      this.messages.update(msgs => [
+        ...msgs,
+        { 
+          sender: 'ai', 
+          text: `✅ ${res.message}\n\`\`\`json\n${JSON.stringify(res.data, null, 2)}\n\`\`\`` 
+        }
+      ]);
+    },
+    error: (err) => {
+      console.error('Erreur lors de la soumission', err);
+      this.messages.update(msgs => [
+        ...msgs,
+        { sender: 'ai', text: '❌ Erreur lors de l\'enregistrement des données du formulaire.' }
+      ]);
+    }
+  });
+}
 
   onInputChange() {
     // Logique de tokens en direct si nécessaire

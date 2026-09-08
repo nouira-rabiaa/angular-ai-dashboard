@@ -39,8 +39,14 @@ export class ApiService {
   }
 
   
-// Dans la classe ApiService :
+
 generateFormSchema(prompt: string) {
   return this.http.post<{ schema: DynamicFormSchema }>(`${this.baseUrl}/generate-form`, { prompt });
+
+}
+
+
+submitDynamicForm(formData: any): Observable<any> {
+  return this.http.post<any>(`${this.baseUrl}/submit-form`, formData);
 }
 }
