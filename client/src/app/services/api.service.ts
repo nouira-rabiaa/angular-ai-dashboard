@@ -32,6 +32,7 @@ export class ApiService {
     );
   }
 
+ // 3. Upload et parsing du document pour le RAG (Appelle le serveur)
   uploadDocument(file: File): Observable<DocumentParseResponse> {
     const formData = new FormData();
     formData.append('file', file);
@@ -49,6 +50,7 @@ generateFormSchema(prompt: string) {
 submitDynamicForm(formData: any): Observable<any> {
   return this.http.post<any>(`${this.baseUrl}/submit-form`, formData);
 }
+
 // Récupérer toutes les soumissions de la base de données
 getSubmissions(): Observable<any[]> {
   return this.http.get<any[]>(`${this.baseUrl}/submissions`);
