@@ -3,120 +3,95 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MarkdownComponent } from 'ngx-markdown';
 import { ApiService } from '../../services/api.service';
-import { SentimentService, SentimentResult } from '../../services/sentiment.service';
+import { DynamicFormComponent } from '../dynamic-form/dynamic-form.component';
+import { DynamicFormSchema } from '../../models/dynamic-form.model';
 
 interface Message {
   sender: 'user' | 'ai';
-  text: string;
+  text?: string;
   tokens?: number;
-  sentiment?: SentimentResult;
+  sentiment?: { label: string; score: number };
   documentName?: string;
+  formSchema?: DynamicFormSchema;
 }
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, MarkdownComponent],
+  imports: [CommonModule, FormsModule, MarkdownComponent, DynamicFormComponent],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss'
 })
 export class ChatComponent {
   private apiService = inject(ApiService);
-  private sentimentService = inject(SentimentService);
 
-  userPrompt = '';
   messages = signal<Message[]>([]);
-  isLoading = this.apiService.isLoading;
-  liveTokenCount = this.apiService.lastTokenCount;
+  userPrompt = signal<string>('');
+  
+  isLoading = signal<boolean>(false);
+  isUploadingDoc = signal<boolean>(false);
+  attachedDocument = signal<File | null>(null);
+  liveTokenCount = signal<number | null>(null);
 
-  // État du document attaché
-  attachedDocument = signal<{ name: string; text: string } | null>(null);
-  isUploadingDoc = signal(false);
+  sendMessage() {
+    const text = this.userPrompt().trim();
+    if (!text || this.isLoading()) return;
+
+    this.messages.update(msgs => [...msgs, { sender: 'user', text }]);
+    this.userPrompt.set('');
+    this.isLoading.set(true);
+
+    const lowerText = text.toLowerCase();
+
+    if (lowerText.includes('formulaire') || lowerText.includes('form')) {
+      this.apiService.generateFormSchema(text).subscribe({
+        next: (res) => {
+          this.messages.update(msgs => [
+            ...msgs,
+            { 
+              sender: 'ai', 
+              text: 'Voici le formulaire généré sur mesure :', 
+              formSchema: res.schema 
+            }
+          ]);
+          this.isLoading.set(false);
+        },
+        error: (err) => {
+          console.error('Erreur:', err);
+          this.isLoading.set(false);
+        }
+      });
+    } else {
+      setTimeout(() => {
+        this.messages.update(msgs => [
+          ...msgs,
+          { sender: 'ai', text: `Réponse pour : "${text}"` }
+        ]);
+        this.isLoading.set(false);
+      }, 500);
+    }
+  }
+
+  onFormSubmit(formData: any) {
+    console.log('Formulaire soumis :', formData);
+    this.messages.update(msgs => [
+      ...msgs,
+      { sender: 'ai', text: `Formulaire validé avec succès !\n\`\`\`json\n${JSON.stringify(formData, null, 2)}\n\`\`\`` }
+    ]);
+  }
 
   onInputChange() {
-    if (this.userPrompt.trim().length > 0) {
-      this.apiService.countTokens(this.userPrompt).subscribe();
+    // Logique de tokens en direct si nécessaire
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files?.[0];
+    if (file) {
+      this.attachedDocument.set(file);
     }
   }
-  onFileSelected(event: Event) {
-  const input = event.target as HTMLInputElement;
-  if (!input.files || input.files.length === 0) return;
 
-  const file = input.files[0];
-  console.log('1. Fichier sélectionné :', file.name);
-
-  this.isUploadingDoc.set(true);
-
-  this.apiService.uploadDocument(file).subscribe({
-    next: (res) => {
-      console.log('2. Réponse API reçue :', res);
-      
-      // Force la mise à jour du Signal avec un nouvel objet
-      this.attachedDocument.set({
-        name: res.filename,
-        text: res.text
-      });
-
-      this.isUploadingDoc.set(false);
-      
-      // Réinitialiser le champ file input pour permettre d'uploader à nouveau
-      input.value = '';
-    },
-    error: (err) => {
-      console.error('Erreur lors de l\'upload du fichier :', err);
-      this.isUploadingDoc.set(false);
-    }
-  });
-}
   removeDocument() {
     this.attachedDocument.set(null);
-  }
-
-  async sendMessage() {
-    if (!this.userPrompt.trim() || this.isLoading()) return;
-
-    let fullPrompt = this.userPrompt;
-    const doc = this.attachedDocument();
-
-    // Injection RAG : ajout du contenu du fichier dans le prompt envoyé au LLM
-    if (doc) {
-      fullPrompt = `[Contexte du document "${doc.name}"]:\n${doc.text}\n\n[Question de l'utilisateur]:\n${this.userPrompt}`;
-    }
-
-    const currentText = this.userPrompt;
-    const currentTokens = this.liveTokenCount() ?? 0;
-
-    let sentimentResult: SentimentResult | undefined = undefined;
-    try {
-      const results = await this.sentimentService.analyze(currentText);
-      if (results && results.length > 0) {
-        sentimentResult = results[0];
-      }
-    } catch (e) {
-      console.warn('Erreur sentiment:', e);
-    }
-
-    this.messages.update(msgs => [
-      ...msgs, 
-      { 
-        sender: 'user', 
-        text: currentText, 
-        tokens: currentTokens,
-        sentiment: sentimentResult,
-        documentName: doc?.name
-      }
-    ]);
-
-    this.userPrompt = '';
-    this.attachedDocument.set(null); // Réinitialise après envoi
-
-    this.apiService.sendChatPrompt(fullPrompt).subscribe({
-      next: (res) => {
-        this.messages.update(msgs => [
-          ...msgs, 
-          { sender: 'ai', text: res.reply }
-        ]);
-      }
-    });
   }
 }

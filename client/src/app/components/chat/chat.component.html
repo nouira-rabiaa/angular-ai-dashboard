@@ -4,31 +4,51 @@
   <div class="messages-list">
     @for (msg of messages(); track $index) {
       <div class="message-bubble" [class.user]="msg.sender === 'user'" [class.ai]="msg.sender === 'ai'">
+        
+        <!-- Document joint éventuel -->
         @if (msg.documentName) {
           <div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.25rem;">
             📄 Document joint : <strong>{{ msg.documentName }}</strong>
           </div>
         }
 
+        <!-- Contenu textuel (Markdown pour l'IA, texte brut pour l'user) -->
         @if (msg.sender === 'ai') {
-          <markdown class="content" [data]="msg.text"></markdown>
+          @if (msg.text) {
+            <markdown class="content" [data]="msg.text"></markdown>
+          }
         } @else {
           <div class="content">{{ msg.text }}</div>
         }
 
-        <div class="meta-info" style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.25rem;">
+        <!-- Formulaire dynamique si l'IA en a généré un -->
+        @if (msg.formSchema) {
+          <div class="form-container" style="margin-top: 0.75rem;">
+            <app-dynamic-form 
+              [schema]="msg.formSchema" 
+              (formSubmitted)="onFormSubmit($event)">
+            </app-dynamic-form>
+          </div>
+        }
+
+        <!-- Métadonnées (Sentiment & Tokens) -->
+        <div class="meta-info" style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.5rem;">
           @if (msg.sentiment) {
-            <span class="token-badge" style="background: rgba(255,255,255,0.1);">
+            <span class="token-badge" style="background: rgba(255,255,255,0.1); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem;">
               {{ msg.sentiment.label === 'POSITIVE' ? '😊' : '😟' }} {{ msg.sentiment.label }} ({{ (msg.sentiment.score * 100).toFixed(0) }}%)
             </span>
           }
           @if (msg.tokens) {
-            <span class="token-badge">⚡ {{ msg.tokens }} tokens</span>
+            <span class="token-badge" style="padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem;">
+              ⚡ {{ msg.tokens }} tokens
+            </span>
           }
         </div>
+
       </div>
     }
 
+    <!-- Indicateur de chargement de l'IA -->
     @if (isLoading()) {
       <div class="message-bubble ai loading">
         <p>L'IA analyse le document et réfléchit...</p>
@@ -37,13 +57,14 @@
   </div>
 
   <div class="input-area">
-    <!-- Zone d'affichage du fichier sélectionné -->
+    <!-- Zone d'affichage du fichier en cours d'upload -->
     @if (isUploadingDoc()) {
       <div style="padding: 0.5rem; background: rgba(234, 179, 8, 0.2); border-radius: 6px; margin-bottom: 0.5rem; color: #fde047;">
         ⏳ Lecture et extraction du document en cours...
       </div>
     }
 
+    <!-- Document prêt à l'envoi -->
     @if (attachedDocument(); as doc) {
       <div style="padding: 0.5rem 0.75rem; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; border-radius: 6px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; color: #93c5fd;">
         <span>📎 Document prêt : <strong>{{ doc.name }}</strong></span>
@@ -51,8 +72,9 @@
       </div>
     }
 
+    <!-- Compteur de tokens en direct -->
     @if (liveTokenCount() !== null) {
-      <div class="token-counter">
+      <div class="token-counter" style="font-size: 0.8rem; margin-bottom: 0.25rem; opacity: 0.8;">
         Tokens estimés : <strong>{{ liveTokenCount() }}</strong>
       </div>
     }
@@ -64,15 +86,17 @@
         <input type="file" (change)="onFileSelected($event)" accept=".pdf,.txt,.csv" style="display: none;" [disabled]="isUploadingDoc()" />
       </label>
 
+      <!-- Utilisation de userPrompt() comme un signal Angular (nécessite l'appel de la fonction ou un getter, ou conversion en ngModel standard selon ton TS) -->
       <textarea 
-        [(ngModel)]="userPrompt" 
-        (ngModelChange)="onInputChange()"
-        placeholder="Posez une question ou interrogez votre PDF..."
+        [ngModel]="userPrompt()" 
+        (ngModelChange)="userPrompt.set($event)"
+        (keyup.enter)="sendMessage()"
+        placeholder="Posez une question, un formulaire ou interrogez votre PDF..."
         rows="2"
         style="flex: 1;"
       ></textarea>
       
-      <button (click)="sendMessage()" [disabled]="isLoading() || !userPrompt.trim()">
+      <button (click)="sendMessage()" [disabled]="isLoading() || !userPrompt().trim()">
         Envoyer
       </button>
     </div>

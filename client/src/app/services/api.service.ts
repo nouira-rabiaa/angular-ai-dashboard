@@ -38,7 +38,9 @@ export class ApiService {
     return this.http.post<DocumentParseResponse>(`${this.baseUrl}/document/parse`, formData);
   }
 
-  generateFormSchema(prompt: string): Observable<{ schema: DynamicFormSchema }> {
-  return this.http.post<{ schema: DynamicFormSchema }>(`${this.apiUrl}/generate-form`, { prompt });
+  
+// Dans la classe ApiService :
+generateFormSchema(prompt: string) {
+  return this.http.post<{ schema: DynamicFormSchema }>(`${this.baseUrl}/generate-form`, { prompt });
 }
 }
