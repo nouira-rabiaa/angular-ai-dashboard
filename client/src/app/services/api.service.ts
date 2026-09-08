@@ -1,3 +1,4 @@
+import { DynamicFormSchema } from '../models/dynamic-form.model';
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
@@ -36,4 +37,8 @@ export class ApiService {
     formData.append('file', file);
     return this.http.post<DocumentParseResponse>(`${this.baseUrl}/document/parse`, formData);
   }
+
+  generateFormSchema(prompt: string): Observable<{ schema: DynamicFormSchema }> {
+  return this.http.post<{ schema: DynamicFormSchema }>(`${this.apiUrl}/generate-form`, { prompt });
+}
 }

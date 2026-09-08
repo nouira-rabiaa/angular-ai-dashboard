@@ -1,0 +1,89 @@
+@if (schema && formGroup()) {
+  <div class="dynamic-form-card">
+    <div class="form-header">
+      <h3>⚡ {{ schema.title }}</h3>
+      @if (schema.description) {
+        <p class="description">{{ schema.description }}</p>
+      }
+    </div>
+
+    <form [formGroup]="formGroup()!" (ngSubmit)="onSubmit()" class="form-body">
+      @for (field of schema.fields; track field.name) {
+        <div class="form-group">
+          <label [for]="field.name">
+            {{ field.label }}
+            @if (field.required) { <span class="required">*</span> }
+          </label>
+
+          @switch (field.type) {
+            @case ('text') {
+              <input
+                type="text"
+                [id]="field.name"
+                [formControlName]="field.name"
+                [placeholder]="field.placeholder || ''"
+                class="form-control"
+              />
+            }
+            @case ('email') {
+              <input
+                type="email"
+                [id]="field.name"
+                [formControlName]="field.name"
+                [placeholder]="field.placeholder || 'exemple@domaine.com'"
+                class="form-control"
+              />
+            }
+            @case ('number') {
+              <input
+                type="number"
+                [id]="field.name"
+                [formControlName]="field.name"
+                [placeholder]="field.placeholder || ''"
+                class="form-control"
+              />
+            }
+            @case ('textarea') {
+              <textarea
+                [id]="field.name"
+                [formControlName]="field.name"
+                [placeholder]="field.placeholder || ''"
+                rows="3"
+                class="form-control"
+              ></textarea>
+            }
+            @case ('select') {
+              <select [id]="field.name" [formControlName]="field.name" class="form-control">
+                <option value="">-- Sélectionner --</option>
+                @for (opt of field.options; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            }
+            @case ('checkbox') {
+              <div class="checkbox-container">
+                <input type="checkbox" [id]="field.name" [formControlName]="field.name" />
+                <label [for]="field.name" class="inline-label">{{ field.placeholder || 'Oui' }}</label>
+              </div>
+            }
+          }
+
+          @if (formGroup()!.get(field.name)?.touched && formGroup()!.get(field.name)?.invalid) {
+            <div class="error-msg">
+              @if (formGroup()!.get(field.name)?.errors?.['required']) {
+                Ce champ est obligatoire.
+              }
+              @if (formGroup()!.get(field.name)?.errors?.['email']) {
+                Veuillez entrer un email valide.
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <button type="submit" [disabled]="formGroup()!.invalid" class="btn-submit">
+        Soumettre le formulaire
+      </button>
+    </form>
+  </div>
+}
