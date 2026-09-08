@@ -1,29 +1,82 @@
-<div class="chat-container">
-  <h2>🤖 Angular 19 AI Assistant + RAG</h2>
+<div class="chat-container flex flex-col h-full bg-slate-900 text-slate-100 p-6 rounded-2xl shadow-2xl border border-slate-800">
+  <!-- Header Enterprise & Signature -->
+  <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-800">
+    <div class="flex items-center space-x-3">
+      <span class="p-2 bg-indigo-600/20 text-indigo-400 rounded-lg border border-indigo-500/30">
+        🤖
+      </span>
+      <div>
+        <h2 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+          Angular 19 Enterprise AI Engine 
+          <span class="text-xs px-2 py-0.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full">RAG Enabled</span>
+        </h2>
+        <p class="text-xs text-slate-400">Dynamic Form Generation & LLM Contextual Pipeline</p>
+      </div>
+    </div>
+    <!-- Signature Professionnelle -->
+    <div class="text-right hidden sm:block">
+      <span class="text-xs font-medium text-slate-400">Architected by <strong class="text-indigo-400">RABIAA</strong></span>
+    </div>
+  </div>
 
-  <div class="messages-list">
+  <!-- Panneau de Métriques & Télémétrie Enterprise (Temps réel) -->
+  <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4 p-4 bg-slate-950/80 border border-slate-800 rounded-xl shadow-inner">
+    <div class="flex items-center space-x-3 p-3 bg-slate-900/60 rounded-lg border border-slate-800/80">
+      <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-md">⏱️</div>
+      <div>
+        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Latence Moyenne</p>
+        <p class="text-sm font-bold text-slate-100">{{ averageLatency() }} ms</p>
+      </div>
+    </div>
+
+    <div class="flex items-center space-x-3 p-3 bg-slate-900/60 rounded-lg border border-slate-800/80">
+      <div class="p-2 bg-amber-500/10 text-amber-400 rounded-md">⚡</div>
+      <div>
+        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Tokens Totaux</p>
+        <p class="text-sm font-bold text-slate-100">{{ totalTokensUsed() }} tk</p>
+      </div>
+    </div>
+
+    <div class="flex items-center space-x-3 p-3 bg-slate-900/60 rounded-lg border border-slate-800/80">
+      <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-md">💰</div>
+      <div>
+        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Coût Estimé (API)</p>
+        <p class="text-sm font-bold text-slate-100">${{ estimatedCost() }}</p>
+      </div>
+    </div>
+
+    <div class="flex items-center space-x-3 p-3 bg-slate-900/60 rounded-lg border border-slate-800/80">
+      <div class="p-2 bg-blue-500/10 text-blue-400 rounded-md">📊</div>
+      <div>
+        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Taux de Succès</p>
+        <p class="text-sm font-bold text-emerald-400">{{ successRate() }}%</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="messages-list flex-1 overflow-y-auto space-y-4 pr-2">
     @for (msg of messages(); track $index) {
-      <div class="message-bubble" [class.user]="msg.sender === 'user'" [class.ai]="msg.sender === 'ai'">
+      <div class="message-bubble p-4 rounded-xl border transition-all" [class.user]="msg.sender === 'user'" [class.ai]="msg.sender === 'ai'" [ngClass]="msg.sender === 'user' ? 'bg-slate-800/60 border-slate-700 ml-8' : 'bg-slate-950 border-slate-800 mr-8'">
         
         <!-- Document joint éventuel -->
         @if (msg.documentName) {
-          <div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.25rem;">
-            📄 Document joint : <strong>{{ msg.documentName }}</strong>
+          <div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.25rem;" class="text-indigo-300">
+            📄 Contexte RAG - Document analysé : <strong>{{ msg.documentName }}</strong>
           </div>
         }
 
-        <!-- Contenu textuel (Markdown pour l'IA, texte brut pour l'user) -->
+        <!-- Contenu textuel -->
         @if (msg.sender === 'ai') {
           @if (msg.text) {
-            <markdown class="content" [data]="msg.text"></markdown>
+            <markdown class="content text-slate-200" [data]="msg.text"></markdown>
           }
         } @else {
-          <div class="content">{{ msg.text }}</div>
+          <div class="content text-slate-200">{{ msg.text }}</div>
         }
 
-        <!-- Formulaire dynamique si l'IA en a généré un -->
+        <!-- Formulaire dynamique généré par l'IA -->
         @if (msg.formSchema) {
-          <div class="form-container" style="margin-top: 0.75rem;">
+          <div class="form-container mt-3 p-4 bg-slate-900/90 rounded-lg border border-slate-700">
             <app-dynamic-form 
               [schema]="msg.formSchema" 
               (formSubmitted)="onFormSubmit($event)">
@@ -32,15 +85,15 @@
         }
 
         <!-- Métadonnées (Sentiment & Tokens) -->
-        <div class="meta-info" style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.5rem;">
+        <div class="meta-info flex gap-2 justify-end mt-2">
           @if (msg.sentiment) {
-            <span class="token-badge" style="background: rgba(255,255,255,0.1); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem;">
+            <span class="token-badge bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-xs border border-slate-700">
               {{ msg.sentiment.label === 'POSITIVE' ? '😊' : '😟' }} {{ msg.sentiment.label }} ({{ (msg.sentiment.score * 100).toFixed(0) }}%)
             </span>
           }
-          @if (msg.tokens) {
-            <span class="token-badge" style="padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem;">
-              ⚡ {{ msg.tokens }} tokens
+          @if (msg.totalTokensUsed) {
+            <span class="token-badge bg-indigo-950/50 text-indigo-300 px-2 py-0.5 rounded text-xs border border-indigo-800/50">
+              ⚡ {{ msg.totalTokensUsed }} tokens
             </span>
           }
         </div>
@@ -50,54 +103,58 @@
 
     <!-- Indicateur de chargement de l'IA -->
     @if (isLoading()) {
-      <div class="message-bubble ai loading">
-        <p>L'IA analyse le document et réfléchit...</p>
+      <div class="message-bubble ai loading p-4 rounded-xl bg-slate-950 border border-slate-800 text-indigo-400 animate-pulse text-sm">
+        <p>🧠 Inférence LLM en cours & vectorisation RAG...</p>
       </div>
     }
   </div>
 
-  <div class="input-area">
+  <div class="input-area mt-4 pt-4 border-t border-slate-800">
     <!-- Zone d'affichage du fichier en cours d'upload -->
     @if (isUploadingDoc()) {
-      <div style="padding: 0.5rem; background: rgba(234, 179, 8, 0.2); border-radius: 6px; margin-bottom: 0.5rem; color: #fde047;">
-        ⏳ Lecture et extraction du document en cours...
+      <div class="p-2 bg-amber-500/10 border border-amber-500/30 rounded-lg mb-2 text-amber-300 text-xs flex items-center gap-2">
+        <span>⏳</span> Chunking et embedding du document en cours...
       </div>
     }
 
     <!-- Document prêt à l'envoi -->
     @if (attachedDocument(); as doc) {
-      <div style="padding: 0.5rem 0.75rem; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; border-radius: 6px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; color: #93c5fd;">
-        <span>📎 Document prêt : <strong>{{ doc.name }}</strong></span>
-        <button (click)="removeDocument()" style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-weight: bold; font-size: 1rem;">✕</button>
+      <div class="p-2.5 px-3 bg-blue-600/10 border border-blue-500/30 rounded-lg mb-2 flex justify-between items-center text-blue-300 text-xs">
+        <span>📎 Contexte actif : <strong>{{ doc.name }}</strong></span>
+        <button (click)="removeDocument()" class="text-rose-400 hover:text-rose-300 font-bold text-sm">✕</button>
       </div>
     }
 
     <!-- Compteur de tokens en direct -->
     @if (liveTokenCount() !== null) {
-      <div class="token-counter" style="font-size: 0.8rem; margin-bottom: 0.25rem; opacity: 0.8;">
-        Tokens estimés : <strong>{{ liveTokenCount() }}</strong>
+      <div class="token-counter text-xs mb-1.5 text-slate-400 text-right">
+        Contexte prompt - Tokens estimés : <strong class="text-slate-200">{{ liveTokenCount() }}</strong>
       </div>
     }
 
-    <div class="input-group" style="display: flex; gap: 0.5rem; align-items: center;">
+    <div class="input-group flex gap-3 items-center">
       <!-- Bouton d'upload de fichier -->
-      <label style="cursor: pointer; padding: 0.5rem 0.75rem; background: #374151; border-radius: 6px; font-size: 1.2rem; display: flex; align-items: center;" title="Joindre un fichier PDF/TXT">
+      <label class="cursor-pointer p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-lg flex items-center justify-center transition-all shadow-sm" title="Joindre un fichier PDF/TXT pour le RAG">
         📄
-        <input type="file" (change)="onFileSelected($event)" accept=".pdf,.txt,.csv" style="display: none;" [disabled]="isUploadingDoc()" />
+        <input type="file" (change)="onFileSelected($event)" accept=".pdf,.txt,.csv" class="hidden" [disabled]="isUploadingDoc()" />
       </label>
 
-      <!-- Utilisation de userPrompt() comme un signal Angular (nécessite l'appel de la fonction ou un getter, ou conversion en ngModel standard selon ton TS) -->
       <textarea 
         [ngModel]="userPrompt()" 
         (ngModelChange)="userPrompt.set($event)"
         (keyup.enter)="sendMessage()"
-        placeholder="Posez une question, un formulaire ou interrogez votre PDF..."
+        placeholder="Saisissez vos instructions pour la génération dynamique ou interrogez le contexte RAG..."
         rows="2"
-        style="flex: 1;"
+        class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
       ></textarea>
       
-      <button (click)="sendMessage()" [disabled]="isLoading() || !userPrompt().trim()">
-        Envoyer
+      <button 
+        (click)="sendMessage()" 
+        [disabled]="isLoading() || !userPrompt().trim()"
+        class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-3.5 rounded-xl text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
+      >
+        <span>Exécuter</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
       </button>
     </div>
   </div>
