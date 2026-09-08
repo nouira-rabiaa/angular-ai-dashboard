@@ -1,14 +1,9 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import Groq from 'groq-sdk';
-import express from 'express';
 import multer from 'multer';
-import pdfParse from 'pdf-parse';
+import Groq from 'groq-sdk';
 import { encoding_for_model } from 'tiktoken';
-const upload = multer({ limits: { fileSize: 5 * 1024 * 1024 } }); // Limite à 5 Mo
-// 1. Toujours charger dotenv EN PREMIER
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,95 +11,131 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// 2. Transmettre la clé explicitement au SDK
+const upload = multer({ limits: { fileSize: 10 * 1024 * 1024 } });
+
 const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY || 'dummy_key_for_init',
+  apiKey: process.env.GROQ_API_KEY
 });
 
-// Route 1 : Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Serveur BFF opérationnel' });
-});
-
-// Route 2 : Tiktoken
-app.post('/api/tokens/count', (req, res) => {
+// 1. Route Chat LLM (Modèles actifs confirmés de ton compte)
+app.post('/api/chat', async (req, res) => {
   try {
-    const { text, model = 'gpt-4o' } = req.body;
-    if (!text) return res.status(400).json({ error: 'Le champ "text" est requis.' });
+    const { prompt, context } = req.body;
+    if (!prompt) return res.status(400).json({ error: 'Prompt requis' });
 
-    const encoder = encoding_for_model(model);
-    const tokens = encoder.encode(text);
-    const tokenCount = tokens.length;
-    encoder.free();
+    let systemPrompt = "Tu es un assistant IA d'entreprise performant et concis.";
 
-    res.json({ text, tokenCount, model });
+    if (context && typeof context === 'string' && context.trim().length > 0) {
+      const truncatedContext = context.slice(0, 12000);
+      systemPrompt += `\n\n[CONTEXTE DOCUMENT JOINT]\n${truncatedContext}\n[FIN DU CONTEXTE]\nUtilise en priorité les informations du document ci-dessus pour répondre à la demande de l'utilisateur.`;
+    }
+
+    // Modèles actifs extraits directement du dump de ton API Groq
+    const activeModels = [
+      'openai/gpt-oss-120b',
+      'groq/compound',
+      'openai/gpt-oss-20b',
+      'qwen/qwen3.8-27b'
+    ];
+
+    let completion = null;
+    let lastError = null;
+
+    for (const model of activeModels) {
+      try {
+        completion = await groq.chat.completions.create({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt }
+          ],
+          model: model,
+          temperature: 0.7,
+          max_tokens: 1500
+        });
+
+        if (completion) {
+          console.log(`✅ Réponse générée avec succès via : ${model}`);
+          break;
+        }
+      } catch (err) {
+        lastError = err;
+        console.warn(`⚠️ Modèle ${model} indisponible, tentative suivante...`);
+      }
+    }
+
+    if (!completion) {
+      throw lastError || new Error("Aucun modèle n'a pu répondre.");
+    }
+
+    return res.json({ reply: completion.choices[0]?.message?.content || 'Aucune réponse.' });
+
   } catch (error) {
-    res.status(500).json({ error: 'Erreur tiktoken', details: error.message });
+    console.error('❌ Erreur Groq /api/chat :', error?.message || error);
+    return res.status(500).json({ error: 'Erreur génération LLM' });
   }
 });
 
-// Route 3 : Groq Proxy
-// Route 3 : Proxy sécurisé vers Groq
-// Route 3 : Proxy sécurisé vers Groq
-app.post('/api/chat', async (req, res) => {
+// 2. Route Tokens
+app.post('/api/tokens', (req, res) => {
   try {
-    const { prompt } = req.body;
-    if (!prompt) return res.status(400).json({ error: 'Le prompt est obligatoire.' });
+    const { text } = req.body;
+    if (!text) return res.json({ tokens: 0 });
 
-    // Liste des modèles supportés
-    const models = ['llama-3.3-70b-versatile', 'llama3-70b-8192', 'mixtral-8x7b-32768'];
-    let reply = null;
+    const enc = encoding_for_model('gpt-4o');
+    const tokens = enc.encode(text);
+    enc.free();
 
-    for (const model of models) {
-      try {
-        const completion = await groq.chat.completions.create({
-          messages: [{ role: 'user', content: prompt }],
-          model: model,
-        });
-        reply = completion.choices[0]?.message?.content;
-        if (reply) break;
-      } catch (e) {
-        // Continue vers le modèle suivant si échec
-      }
-    }
-// Endpoint pour analyser un fichier PDF et extraire son contenu
+    res.json({ tokens: tokens.length });
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur tokens' });
+  }
+});
+
+// 3. Route Upload & Parsing Document (RAG)
 app.post('/api/document/parse', upload.single('file'), async (req, res) => {
   try {
+    console.log('--- Traitement du document ---');
+
     if (!req.file) {
       return res.status(400).json({ error: 'Aucun fichier fourni' });
     }
 
+    console.log(`Fichier reçu : ${req.file.originalname} (${req.file.mimetype})`);
+
     let extractedText = '';
 
-    if (req.file.mimetype === 'application/pdf') {
+    if (req.file.mimetype === 'application/pdf' || req.file.originalname.toLowerCase().endsWith('.pdf')) {
+      // Import dynamique de pdf-parse
+      const pdfParseModule = await import('pdf-parse/lib/pdf-parse.js');
+      const pdfParse = pdfParseModule.default || pdfParseModule;
+      
       const data = await pdfParse(req.file.buffer);
       extractedText = data.text;
-    } else if (req.file.mimetype === 'text/plain' || req.file.mimetype === 'text/csv') {
+    } else if (
+      req.file.mimetype === 'text/plain' ||
+      req.file.mimetype === 'text/csv' ||
+      req.file.originalname.endsWith('.csv') ||
+      req.file.originalname.endsWith('.txt')
+    ) {
       extractedText = req.file.buffer.toString('utf-8');
     } else {
-      return res.status(400).json({ error: 'Format de fichier non supporté. Utilisez PDF, TXT ou CSV.' });
+      return res.status(400).json({ error: 'Format non supporté (PDF, TXT, CSV uniquement).' });
     }
 
-    res.json({
+    const cleanText = extractedText.trim();
+    console.log(`✅ Extraction réussie (${cleanText.length} caractères)`);
+
+    return res.json({
       filename: req.file.originalname,
-      text: extractedText,
-      characterCount: extractedText.length
+      text: cleanText,
+      characterCount: cleanText.length
     });
-  } catch (error: any) {
-    console.error('Erreur traitement document:', error);
-    res.status(500).json({ error: 'Échec de l\'extraction du document' });
-  }
-});
-    // Réponse de secours si la clé API a une restriction
-    if (!reply) {
-      reply = `[Mode Demo] Analyse pour "${prompt}" : Angular 19 offre de superbes performances grâce aux Signals et à l'architecture Standalone sans NgModules.`;
-    }
-
-    res.json({ reply });
   } catch (error) {
-    res.status(500).json({ error: 'Erreur Serveur', details: error.message });
+    console.error("Erreur parsing document :", error);
+    return res.status(500).json({ error: "Échec de l'extraction du document PDF." });
   }
 });
+
 app.listen(PORT, () => {
   console.log(`🚀 Serveur BFF démarré sur http://localhost:${PORT}`);
 });

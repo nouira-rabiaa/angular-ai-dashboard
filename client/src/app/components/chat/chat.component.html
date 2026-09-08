@@ -1,10 +1,15 @@
 <div class="chat-container">
-  <h2>🤖 Angular 19 AI Assistant</h2>
+  <h2>🤖 Angular 19 AI Assistant + RAG</h2>
 
   <div class="messages-list">
     @for (msg of messages(); track $index) {
       <div class="message-bubble" [class.user]="msg.sender === 'user'" [class.ai]="msg.sender === 'ai'">
-        
+        @if (msg.documentName) {
+          <div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.25rem;">
+            📄 Document joint : <strong>{{ msg.documentName }}</strong>
+          </div>
+        }
+
         @if (msg.sender === 'ai') {
           <markdown class="content" [data]="msg.text"></markdown>
         } @else {
@@ -17,7 +22,6 @@
               {{ msg.sentiment.label === 'POSITIVE' ? '😊' : '😟' }} {{ msg.sentiment.label }} ({{ (msg.sentiment.score * 100).toFixed(0) }}%)
             </span>
           }
-          
           @if (msg.tokens) {
             <span class="token-badge">⚡ {{ msg.tokens }} tokens</span>
           }
@@ -27,24 +31,45 @@
 
     @if (isLoading()) {
       <div class="message-bubble ai loading">
-        <p>L'IA réfléchit...</p>
+        <p>L'IA analyse le document et réfléchit...</p>
       </div>
     }
   </div>
 
   <div class="input-area">
+    <!-- Zone d'affichage du fichier sélectionné -->
+    @if (isUploadingDoc()) {
+      <div style="padding: 0.5rem; background: rgba(234, 179, 8, 0.2); border-radius: 6px; margin-bottom: 0.5rem; color: #fde047;">
+        ⏳ Lecture et extraction du document en cours...
+      </div>
+    }
+
+    @if (attachedDocument(); as doc) {
+      <div style="padding: 0.5rem 0.75rem; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; border-radius: 6px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; color: #93c5fd;">
+        <span>📎 Document prêt : <strong>{{ doc.name }}</strong></span>
+        <button (click)="removeDocument()" style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-weight: bold; font-size: 1rem;">✕</button>
+      </div>
+    }
+
     @if (liveTokenCount() !== null) {
       <div class="token-counter">
         Tokens estimés : <strong>{{ liveTokenCount() }}</strong>
       </div>
     }
 
-    <div class="input-group">
+    <div class="input-group" style="display: flex; gap: 0.5rem; align-items: center;">
+      <!-- Bouton d'upload de fichier -->
+      <label style="cursor: pointer; padding: 0.5rem 0.75rem; background: #374151; border-radius: 6px; font-size: 1.2rem; display: flex; align-items: center;" title="Joindre un fichier PDF/TXT">
+        📄
+        <input type="file" (change)="onFileSelected($event)" accept=".pdf,.txt,.csv" style="display: none;" [disabled]="isUploadingDoc()" />
+      </label>
+
       <textarea 
         [(ngModel)]="userPrompt" 
         (ngModelChange)="onInputChange()"
-        placeholder="Posez votre question à l'IA..."
+        placeholder="Posez une question ou interrogez votre PDF..."
         rows="2"
+        style="flex: 1;"
       ></textarea>
       
       <button (click)="sendMessage()" [disabled]="isLoading() || !userPrompt.trim()">
