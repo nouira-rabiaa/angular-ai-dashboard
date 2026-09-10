@@ -55,64 +55,21 @@
   </div>
 
   <div class="messages-list flex-1 overflow-y-auto space-y-4 pr-2">
-    @for (msg of messages(); track $index) {
-      <div class="message-bubble p-4 rounded-xl border transition-all" [class.user]="msg.sender === 'user'" [class.ai]="msg.sender === 'ai'" [ngClass]="msg.sender === 'user' ? 'bg-slate-800/60 border-slate-700 ml-8' : 'bg-slate-950 border-slate-800 mr-8'">
-        
-        <!-- Document joint éventuel -->
-       <!-- RAG Trace & Vector Match Badge -->
-@if (msg.documentName) {
-  <div class="flex flex-wrap items-center gap-2 mt-3 pt-2 border-t border-slate-800 text-[11px]">
-    <!-- Indicateur animé -->
-    <span class="flex h-2 w-2 relative">
-      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-      <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-    </span>
-    
-    <span class="text-indigo-300 font-medium">Source RAG : <strong>{{ msg.documentName }}</strong></span>
-    
-    @if (msg.vectorMeta) {
-      <span class="bg-indigo-950/80 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800/60 font-mono">
-        Cosine Similarity: {{ msg.vectorMeta.score }}%
-      </span>
+ @for (msg of messages(); track $index) {
+  <div class="message" [class.user]="msg.sender === 'user'">
+    @if (msg.text) {
+      <p style="white-space: pre-wrap; margin: 0;">{{ msg.text }}</p>
+    }
+
+    @if (msg.formSchema) {
+      <app-dynamic-form 
+        [schema]="msg.formSchema" 
+        (formSubmit)="onFormSubmit($event)">
+      </app-dynamic-form>
     }
   </div>
 }
 
-        <!-- Contenu textuel -->
-        @if (msg.sender === 'ai') {
-          @if (msg.text) {
-            <markdown class="content text-slate-200" [data]="msg.text"></markdown>
-          }
-        } @else {
-          <div class="content text-slate-200">{{ msg.text }}</div>
-        }
-
-        <!-- Formulaire dynamique généré par l'IA -->
-        @if (msg.formSchema) {
-          <div class="form-container mt-3 p-4 bg-slate-900/90 rounded-lg border border-slate-700">
-            <app-dynamic-form 
-              [schema]="msg.formSchema" 
-              (formSubmitted)="onFormSubmit($event)">
-            </app-dynamic-form>
-          </div>
-        }
-
-        <!-- Métadonnées (Sentiment & Tokens) -->
-        <div class="meta-info flex gap-2 justify-end mt-2">
-          @if (msg.sentiment) {
-            <span class="token-badge bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-xs border border-slate-700">
-              {{ msg.sentiment.label === 'POSITIVE' ? '😊' : '😟' }} {{ msg.sentiment.label }} ({{ (msg.sentiment.score * 100).toFixed(0) }}%)
-            </span>
-          }
-          @if (msg.totalTokensUsed) {
-            <span class="token-badge bg-indigo-950/50 text-indigo-300 px-2 py-0.5 rounded text-xs border border-indigo-800/50">
-              ⚡ {{ msg.totalTokensUsed }} tokens
-            </span>
-          }
-        </div>
-
-      </div>
-    }
 
     <!-- Indicateur de chargement de l'IA -->
     @if (isLoading()) {
