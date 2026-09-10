@@ -19,7 +19,7 @@ interface Message {
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, MarkdownComponent, DynamicFormComponent],
+  imports: [CommonModule, FormsModule, DynamicFormComponent], 
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss'
 })
@@ -37,7 +37,7 @@ export class ChatComponent {
   totalTokensUsed = signal<number>(1248);
   averageLatency = signal<number>(342); // en millisecondes
   successRate = signal<number>(100);    // en pourcentage
-  estimatedCost = computed(() => (this.totalTokensUsed() * 0.000002).toFixed(4)); // Calcul basé sur un tarif moyen LLM
+  estimatedCost = computed(() => (this.totalTokensUsed() * 0.000002).toFixed(4));
   
   // Compteur de tokens en direct pour le prompt en cours de saisie
   liveTokenCount = computed(() => {
@@ -46,72 +46,111 @@ export class ChatComponent {
   });
 
   sendMessage() {
-  const promptText = this.userPrompt().trim();
-  if (!promptText || this.isLoading()) return;
+    const promptText = this.userPrompt().trim();
+    if (!promptText || this.isLoading()) return;
 
-  // 1. Ajouter le message de l'utilisateur dans le chat
-  this.messages.update(msgs => [...msgs, { sender: 'user', text: promptText }]);
-  this.userPrompt.set('');
-  this.isLoading.set(true);
+    // 1. Ajouter le message de l'utilisateur dans le chat
+    this.messages.update(msgs => [...msgs, { sender: 'user', text: promptText }]);
+    this.userPrompt.set('');
+    this.isLoading.set(true);
 
-  const startTime = performance.now();
+    const startTime = performance.now();
 
-  // 2. Appel vers ton serveur Node.js (qui contient le RAG)
-  this.apiService.sendChatPrompt(promptText).subscribe({
+    const normalizedPrompt = promptText
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    const isFormRequest =
+      /\b(form|formulaire|formulaire)\b/.test(normalizedPrompt) ||
+      normalizedPrompt.includes('cree un formulaire') ||
+      normalizedPrompt.includes('genere un formulaire') ||
+      normalizedPrompt.includes('creer un formulaire');
+
+    if (isFormRequest) {
+      // 2A. Appel vers la route dédiée aux schémas de formulaires JSON
+      this.apiService.generateFormSchema(promptText).subscribe({
+        next: (res: any) => {
+          const latency = Math.round(performance.now() - startTime);
+          this.averageLatency.set(latency);
+
+          const formSchema = res.schema || res;
+
+          // On injecte formSchema pour activer <app-dynamic-form> dans le HTML
+          this.messages.update(msgs => [
+            ...msgs,
+            { 
+              sender: 'ai', 
+              text: `Voici le formulaire généré selon votre demande :`,
+              formSchema: formSchema 
+            }
+          ]);
+          this.isLoading.set(false);
+        },
+        error: (err) => {
+          console.error('Erreur génération formulaire:', err);
+          this.isLoading.set(false);
+        }
+      });
+
+    } else {
+      // 2B. Appel classique vers le Chat RAG (/api/chat)
+      this.apiService.sendChatPrompt(promptText).subscribe({
+        next: (res: any) => {
+          const latency = Math.round(performance.now() - startTime);
+          this.averageLatency.set(latency);
+
+          if (res.tokens) {
+            this.totalTokensUsed.update(val => val + res.tokens);
+          }
+
+          this.messages.update(msgs => [
+            ...msgs,
+            { 
+              sender: 'ai', 
+              text: res.reply, 
+              totalTokensUsed: res.tokens,
+              documentName: res.documentName,
+              vectorMeta: res.vectorMeta
+            }
+          ]);
+          this.isLoading.set(false);
+        },
+        error: (err) => {
+          console.error('Erreur chat:', err);
+          this.isLoading.set(false);
+        }
+      });
+    }
+  }
+
+  onFormSubmit(formData: any) {
+  console.log('Envoi des données du formulaire au serveur...', formData);
+  
+  this.apiService.submitDynamicForm(formData).subscribe({
     next: (res: any) => {
-      const endTime = performance.now();
-      const latency = Math.round(endTime - startTime);
+      // 🟢 Transformation propre du JSON en texte structuré
+      const dataEntries = res.data ? Object.entries(res.data) : [];
+      const formattedDetails = dataEntries.map(([key, value]) => `• **${key}** : ${value}`).join('\n');
 
-      // Mettre à jour les métriques globales
-      this.averageLatency.set(latency);
-      if (res.tokens) {
-        this.totalTokensUsed.update(val => val + res.tokens);
-      }
-
-      // 3. ICI : On récupère bien les données RAG renvoyées par le serveur (documentName et vectorMeta)
       this.messages.update(msgs => [
         ...msgs,
         { 
           sender: 'ai', 
-          text: res.reply, 
-          totalTokensUsed: res.tokens,
-          documentName: res.documentName, // <--- Transmet le nom du fichier source
-          vectorMeta: res.vectorMeta     // <--- Transmet le score Cosine Similarity
+          text: `✅ ${res.message}\n\n**Données enregistrées :**\n${formattedDetails}` 
         }
       ]);
-      
-this.isLoading.set(false);
     },
     error: (err) => {
-      console.error('Erreur chat:', err);
-      this.isLoading.set(false);
+      console.error('Erreur lors de la soumission', err);
+      this.successRate.update(rate => Math.max(0, rate - 5));
+      this.messages.update(msgs => [
+        ...msgs,
+        { sender: 'ai', text: '❌ Erreur lors de l\'enregistrement des données du formulaire.' }
+      ]);
     }
   });
 }
-
-  onFormSubmit(formData: any) {
-    console.log('Envoi des données du formulaire au serveur...', formData);
-    
-    this.apiService.submitDynamicForm(formData).subscribe({
-      next: (res: any) => {
-        this.messages.update(msgs => [
-          ...msgs,
-          { 
-            sender: 'ai', 
-            text: `✅ ${res.message}\n\`\`\`json\n${JSON.stringify(res.data, null, 2)}\n\`\`\`` 
-          }
-        ]);
-      },
-      error: (err) => {
-        console.error('Erreur lors de la soumission', err);
-        this.successRate.update(rate => Math.max(0, rate - 5));
-        this.messages.update(msgs => [
-          ...msgs,
-          { sender: 'ai', text: '❌ Erreur lors de l\'enregistrement des données du formulaire.' }
-        ]);
-      }
-    });
-  }
 
   onFileSelected(event: any) {
     const file = event.target.files?.[0];
@@ -119,14 +158,12 @@ this.isLoading.set(false);
 
     this.isUploadingDoc.set(true);
 
-    // Appel réel au serveur Node.js pour parser et vectoriser le document (RAG)
     this.apiService.uploadDocument(file).subscribe({
       next: (res: any) => {
-        console.log('✅ Document uploadé et vectorisé avec succès par le serveur :', res);
+        console.log('✅ Document uploadé et vectorisé avec succès :', res);
         this.attachedDocument.set(file);
         this.isUploadingDoc.set(false);
         
-        // Optionnel : Ajouter un petit message système dans le chat pour confirmer
         this.messages.update(msgs => [
           ...msgs,
           { 

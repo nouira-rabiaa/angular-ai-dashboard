@@ -1,37 +1,36 @@
-import { Component, Input, OnChanges, SimpleChanges, inject, output, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormGroup } from '@angular/forms';
+import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { DynamicFormSchema } from '../../models/dynamic-form.model';
-import { DynamicFormService } from '../../services/dynamic-form.service';
 
 @Component({
   selector: 'app-dynamic-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './dynamic-form.component.html',
-  styleUrl: './dynamic-form.component.scss'
+  styleUrl: './dynamic-form.component.scss',
+  encapsulation: ViewEncapsulation.None // 🟢 Force l'application globale des styles du formulaire
 })
-export class DynamicFormComponent implements OnChanges {
-  private formService = inject(DynamicFormService);
-
-  @Input() schema: DynamicFormSchema | null = null;
-  formSubmitted = output<any>();
+export class DynamicFormComponent {
+  @Input() schema!: DynamicFormSchema;
+  @Output() formSubmit = new EventEmitter<any>();
 
   formGroup = signal<FormGroup | null>(null);
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['schema'] && this.schema) {
-      const group = this.formService.createFormGroup(this.schema);
-      this.formGroup.set(group);
+  ngOnChanges() {
+    if (this.schema && this.schema.fields) {
+      const group: any = {};
+      this.schema.fields.forEach(field => {
+        group[field.name] = new FormControl('', field.required ? Validators.required : []);
+      });
+      this.formGroup.set(new FormGroup(group));
     }
   }
 
-  onSubmit(): void {
+  onSubmit() {
     const fg = this.formGroup();
     if (fg && fg.valid) {
-      this.formSubmitted.emit(fg.value);
-    } else if (fg) {
-      fg.markAllAsTouched();
+      this.formSubmit.emit(fg.value);
     }
   }
 }
