@@ -1,0 +1,123 @@
+.dynamic-form-card {
+  background-color: #1e293b; // Fond sombre assorti à ton dashboard (Slate 800)
+  color: #f8fafc; // Texte clair par défaut
+  border: 1px solid #334155; // Bordure subtile (Slate 700)
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  margin-top: 12px;
+  margin-bottom: 12px;
+  width: 100%;
+  max-width: 650px;
+
+  .form-header {
+    margin-bottom: 20px;
+    
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #f1f5f9; // Titre blanc éclatant
+      margin-bottom: 6px;
+    }
+
+    .description {
+      font-size: 0.85rem;
+      color: #94a3b8; // Gris clair pour la description
+      line-height: 1.4;
+    }
+  }
+
+  .form-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #e2e8f0; // Label bien visible
+
+        .required {
+          color: #f87171; // Étoile rouge/rose clair
+          margin-left: 2px;
+        }
+      }
+
+      .form-control {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        border: 1px solid #475569;
+        border-radius: 8px;
+        background-color: #0f172a; // Fond de champ très sombre (Slate 900)
+        color: #f8fafc; // Texte saisi en blanc/clair
+        outline: none;
+        transition: all 0.2s ease;
+
+        &::placeholder {
+          color: #64748b;
+        }
+
+        &:focus {
+          border-color: #6366f1; // Bordure indigo au focus
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+        }
+      }
+
+      select.form-control {
+        cursor: pointer;
+      }
+
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 4px;
+
+        input[type="checkbox"] {
+          width: 18px;
+          height: 18px;
+          accent-color: #6366f1;
+          cursor: pointer;
+        }
+
+        .inline-label {
+          font-weight: 400;
+          color: #cbd5e1;
+          cursor: pointer;
+        }
+      }
+
+      .error-msg {
+        font-size: 0.75rem;
+        color: #f87171;
+        margin-top: 2px;
+      }
+    }
+
+    .btn-submit {
+      margin-top: 12px;
+      background-color: #6366f1; // Bouton Indigo professionnel
+      color: #ffffff;
+      font-weight: 600;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &:hover:not(:disabled) {
+        background-color: #4f46e5;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
