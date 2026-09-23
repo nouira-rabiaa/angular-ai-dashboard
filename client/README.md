@@ -59,11 +59,17 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
 ## 🧪 Unit Testing
 
-Unit tests are implemented with **Jest** and `jest-preset-angular`.
+Unit tests are implemented with Jest and jest-preset-angular to ensure high performance and fast execution (~1.7s execution time).
 
-```bash
-# Run tests
+# Run unit tests locally
 npm test
 
-# Run tests with coverage
+# Run unit tests with coverage report
 npm test -- --coverage
+
+
+⚙️ Continuous Integration (CI/CD)
+
+This repository uses GitHub Actions (.github/workflows/ci.yml) to automatically validate unit tests on Node.js 22 upon every push or pull request to the main branch.
+
+For more information on using the Angular CLI, visit the Angular CLI Overview and Command Reference page.
