@@ -11,8 +11,9 @@ export interface Submission {
   created_at?: string;
   chunks_count?: number;
   status?: string;
-  confidenceScore?: number; // Nouveau : Score de pertinence RAG (ex: 0.94 pour 94%)
-  chunksList?: string[];    // Nouveau : Extraits exacts récupérés par le moteur sémantique
+  confidenceScore?: number;
+  chunksList?: string[];
+  isReindexing?: boolean; // Nouveau : Indique si le worker tourne pour cette ligne
 }
 
 @Component({
@@ -163,5 +164,29 @@ export class DashboardComponent implements OnInit {
   scrollToRegistre(): void {
     window.scrollTo({ top: 500, behavior: 'smooth' });
   }
+// Déclencher la ré-indexation à la volée (Appel BFF / Worker)
+  triggerReindex(sub: Submission): void {
+    // 1. Activer l'état de chargement sur la soumission ciblée
+    this.submissions.update(list => 
+      list.map(item => item.id === sub.id ? { ...item, isReindexing: true } : item)
+    );
 
+    // 2. Simulation d'un appel réseau asynchrone vers le BFF Node.js (ex: 2 secondes)
+    setTimeout(() => {
+      this.submissions.update(list => 
+        list.map(item => {
+          if (item.id === sub.id) {
+            return {
+              ...item,
+              isReindexing: false,
+              status: 'Indexed (Updated)',
+              confidenceScore: Math.min(0.99, (item.confidenceScore || 0.5) + 0.15) // Améliore le score après ré-indexation
+            };
+          }
+          return item;
+        })
+      );
+      console.log(`Re-indexation réussie pour la soumission #${sub.id}`);
+    }, 2000);
+  }
 }
