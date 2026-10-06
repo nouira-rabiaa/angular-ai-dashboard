@@ -1,318 +1,392 @@
-<div class="w-full bg-white text-slate-800 p-4 md:p-6 flex flex-col space-y-6">
+<div class="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
   
-  <!-- 🚨 Bandeau d'alerte global (Toast) -->
-  @if (errorService.currentError()) {
-    <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-xl flex justify-between items-center shadow-sm transition-all">
-      <div class="flex items-center gap-3">
-        <span class="text-lg">🚨</span>
-        <span class="text-sm font-medium">{{ errorService.currentError() }}</span>
-      </div>
-      <button 
-        (click)="errorService.clearError()" 
-        class="text-red-400 hover:text-red-700 text-sm font-bold px-2 py-1 rounded transition">
-        ✕
-      </button>
-    </div>
-  }
-
-  <!-- En-tête du Dashboard -->
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-    <div>
-      <h1 class="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Tableau de Bord IA & Historique</h1>
-      <p class="text-xs md:text-sm text-slate-500">Vue d'ensemble de l'engine, des indexations et des soumissions SQLite.</p>
-    </div>
+  <!-- 🔹 EN-TÊTE PRINCIPAL -->
+  <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-xs">
     <div class="flex items-center gap-3">
-      @if (filteredSubmissions().length > 0) {
-        <button 
-          (click)="exportToCSV()" 
-          class="inline-flex items-center justify-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition shadow-sm">
-          📊 Exporter ({{ filteredSubmissions().length }})
-        </button>
-      }
-      <button 
-        (click)="loadSubmissions()" 
-        class="inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition shadow-sm">
-        🔄 Actualiser
+      <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-sm shadow-indigo-200">
+        ⚡
+      </div>
+      <div>
+        <h1 class="text-base font-bold text-slate-900 tracking-tight">Tableau de Bord IA & Historique</h1>
+        <p class="text-xs text-slate-500">Vue d'ensemble de l'engine, des indexations et des soumissions SQLite.</p>
+      </div>
+    </div>
+
+    <!-- Actions Globales -->
+    <div class="flex items-center gap-3">
+      <button (click)="exportToCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition flex items-center gap-2 shadow-sm shadow-emerald-100">
+        <span>📥 Exporter ({{ submissions().length }})</span>
+      </button>
+      <button (click)="loadSubmissions()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition flex items-center gap-2 shadow-sm shadow-indigo-100">
+        <span>🔄 Actualiser</span>
       </button>
     </div>
-  </div>
+  </header>
 
-  <!-- 📊 1. SECTION DES KPI GLOBAUX -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    
-    <div class="bg-white border border-slate-200 p-4 rounded-2xl flex items-center justify-between shadow-sm">
-      <div>
-        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Docs Vectorisés</p>
-        <h4 class="text-lg md:text-xl font-bold text-slate-900 mt-0.5">142</h4>
-      </div>
-      <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-lg">📄</div>
-    </div>
+  <!-- 🔹 CONTENU PRINCIPAL -->
+  <main class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
 
-    <div class="bg-white border border-slate-200 p-4 rounded-2xl flex items-center justify-between shadow-sm">
-      <div>
-        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Requêtes IA (Mois)</p>
-        <h4 class="text-lg md:text-xl font-bold text-slate-900 mt-0.5">1,248</h4>
-      </div>
-      <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-lg">⚡</div>
-    </div>
-
-    <div class="bg-white border border-slate-200 p-4 rounded-2xl flex items-center justify-between shadow-sm">
-      <div>
-        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Coût API Estimé</p>
-        <h4 class="text-lg md:text-xl font-bold text-slate-900 mt-0.5">$3.45</h4>
-      </div>
-      <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg">💰</div>
-    </div>
-
-    <div class="bg-white border border-slate-200 p-4 rounded-2xl flex items-center justify-between shadow-sm">
-      <div>
-        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Statut Pipeline</p>
-        <h4 class="text-sm md:text-base font-bold text-emerald-600 mt-1 flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Connecté
-        </h4>
-      </div>
-      <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg">🟢</div>
-    </div>
-
-  </div>
-
-  <!-- 📈 2. SECTION DES GRAPHIQUES & ANALYSES -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    
-    <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col justify-between">
-      <div class="flex items-center justify-between mb-4">
+    <!-- 📊 1. CARTES KPI -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- KPI 1 -->
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
         <div>
-          <h3 class="text-sm font-bold text-slate-900 tracking-wide">Répartition des Usages IA</h3>
-          <p class="text-xs text-slate-500">Volume de requêtes par type de pipeline</p>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Docs Vectorisés</p>
+          <h3 class="text-2xl font-black text-slate-900 mt-1">142</h3>
         </div>
-        <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-100">Ce mois</span>
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">📁</div>
       </div>
 
-      <div class="space-y-3.5 my-2">
+      <!-- KPI 2 -->
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
         <div>
-          <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
-            <span>RAG & Indexation Documents</span>
-            <span class="text-indigo-600">45%</span>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Requêtes IA (Mois)</p>
+          <h3 class="text-2xl font-black text-slate-900 mt-1">1,248</h3>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">⚡</div>
+      </div>
+
+      <!-- KPI 3 -->
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Coût API Estimé</p>
+          <h3 class="text-2xl font-black text-slate-900 mt-1">$3.45</h3>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">💰</div>
+      </div>
+
+      <!-- KPI 4 -->
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Statut Pipeline</p>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-sm font-bold text-slate-900">Connecté</span>
           </div>
-          <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-            <div class="bg-indigo-600 h-full rounded-full" style="width: 45%"></div>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-lg">🟢</div>
+      </div>
+
+    </div>
+
+    <!-- 📈 2. GRAPHIQUES & ANALYTICS -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Utilisation IA -->
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs lg:col-span-2 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Répartition des Usages IA</h3>
+            <p class="text-xs text-slate-500">Volume de requêtes par type de pipeline</p>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 rounded-lg text-slate-600">Ce mois</span>
+        </div>
+
+        <div class="space-y-3 pt-2">
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="text-slate-700">RAG & Indexation Documents</span>
+              <span class="text-indigo-600">45%</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+              <div class="bg-indigo-600 h-full rounded-full" style="width: 45%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="text-slate-700">Génération de Formulaires</span>
+              <span class="text-emerald-600">30%</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+              <div class="bg-emerald-500 h-full rounded-full" style="width: 30%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="text-slate-700">Requêtes Directes LLM</span>
+              <span class="text-amber-500">25%</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+              <div class="bg-amber-400 h-full rounded-full" style="width: 25%"></div>
+            </div>
           </div>
         </div>
 
-        <div>
-          <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
-            <span>Génération de Formulaires</span>
-            <span class="text-emerald-600">30%</span>
-          </div>
-          <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-            <div class="bg-emerald-500 h-full rounded-full" style="width: 30%"></div>
-          </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
-            <span>Requêtes Directes LLM</span>
-            <span class="text-amber-600">25%</span>
-          </div>
-          <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-            <div class="bg-amber-500 h-full rounded-full" style="width: 25%"></div>
-          </div>
+        <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs text-slate-500">
+          <span>Total analysé : <strong class="text-slate-800">1,248 requêtes</strong></span>
+          <span class="text-emerald-600 font-bold">↑ +12.4% vs m-1</span>
         </div>
       </div>
 
-      <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-        <span>Total analysé : <strong class="text-slate-700">1,248 requêtes</strong></span>
-        <span class="text-emerald-600 font-semibold">↑ +12.4% vs m-1</span>
+      <!-- Performance & Latence -->
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-900">Performance & Latence LLM</h3>
+            <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 rounded-lg text-slate-600">7 derniers jours</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-4">Temps de réponse moyen (en ms) par jour</p>
+
+          <!-- Barres simulées de latence -->
+          <div class="grid grid-cols-5 gap-2 items-end h-32 pt-4 px-2 border-b border-slate-100">
+            <div class="flex flex-col items-center gap-1">
+              <span class="text-[10px] font-bold text-slate-600">410ms</span>
+              <div class="w-full bg-indigo-100 rounded-t-lg h-[65%]"></div>
+              <span class="text-[10px] text-slate-400">Lun</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+              <span class="text-[10px] font-bold text-slate-600">380ms</span>
+              <div class="w-full bg-indigo-200 rounded-t-lg h-[55%]"></div>
+              <span class="text-[10px] text-slate-400">Mar</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+              <span class="text-[10px] font-bold text-slate-600">450ms</span>
+              <div class="w-full bg-indigo-600 rounded-t-lg h-[80%]"></div>
+              <span class="text-[10px] text-slate-400">Mer</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+              <span class="text-[10px] font-bold text-slate-600">320ms</span>
+              <div class="w-full bg-indigo-100 rounded-t-lg h-[45%]"></div>
+              <span class="text-[10px] text-slate-400">Jeu</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+              <span class="text-[10px] font-bold text-slate-600">342ms</span>
+              <div class="w-full bg-indigo-300 rounded-t-lg h-[50%]"></div>
+              <span class="text-[10px] text-slate-400">Ven</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center pt-3 text-xs">
+          <span class="text-slate-500">Moyenne de la semaine : <strong class="text-slate-800">375 ms</strong></span>
+          <span class="text-emerald-600 font-bold">Optimal (&lt; 500ms)</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ⚡ 4. ACTIONS RAPIDES -->
+    <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
+      <h3 class="text-sm font-bold text-slate-900 tracking-wide mb-3">Actions Rapides & Workspaces</h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <!-- Action 1 -->
+        <a routerLink="/generator" class="p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-indigo-50/50 hover:border-indigo-100 transition-all flex items-center justify-between group cursor-pointer text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">✨</div>
+            <div>
+              <h4 class="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Lancer le Générateur</h4>
+              <p class="text-[11px] text-slate-500">Créer un formulaire dynamique par IA</p>
+            </div>
+          </div>
+          <span class="text-slate-400 group-hover:text-indigo-600">→</span>
+        </a>
+
+        <!-- Action 2 -->
+        <a routerLink="/documents" class="p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-blue-50/50 hover:border-blue-100 transition-all flex items-center justify-between group cursor-pointer text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold">📁</div>
+            <div>
+              <h4 class="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Ingérer un Document</h4>
+              <p class="text-[11px] text-slate-500">Ajouter un PDF/TXT à la base RAG</p>
+            </div>
+          </div>
+          <span class="text-slate-400 group-hover:text-blue-600">→</span>
+        </a>
+
+        <!-- Action 3 -->
+        <button (click)="scrollToRegistre()" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-emerald-50/50 hover:border-emerald-100 transition-all flex items-center justify-between group cursor-pointer text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">🔍</div>
+            <div>
+              <h4 class="text-xs font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">Explorer les Logs</h4>
+              <p class="text-[11px] text-slate-500">Consulter l'historique d'inférence</p>
+            </div>
+          </div>
+          <span class="text-slate-400 group-hover:text-emerald-600">↓</span>
+        </button>
+
       </div>
     </div>
 
-    <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col justify-between">
-      <div class="flex items-center justify-between mb-4">
+    <!-- 📋 3. REGISTRE DES SOUMISSIONS & RAG -->
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+      
+      <!-- En-tête du Tableau & Recherche -->
+      <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-slate-50/50">
         <div>
-          <h3 class="text-sm font-bold text-slate-900 tracking-wide">Performance & Latence LLM</h3>
-          <p class="text-xs text-slate-500">Temps de réponse moyen (en ms) par jour</p>
+          <h3 class="text-sm font-bold text-slate-900">Registre des Soumissions & RAG</h3>
+          <p class="text-xs text-slate-500">Historique complet synchronisé avec SQLite et scores de pertinence</p>
         </div>
-        <span class="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-lg border border-slate-200">7 derniers jours</span>
-      </div>
 
-      <div class="flex items-end justify-between h-32 pt-6 px-2 border-b border-slate-100 pb-2">
-        <div class="flex flex-col items-center gap-1.5 flex-1 group">
-          <span class="text-[10px] font-bold text-indigo-600">410ms</span>
-          <div class="w-8 bg-indigo-100 group-hover:bg-indigo-600 transition-colors rounded-t-lg h-[75%]"></div>
-          <span class="text-[11px] text-slate-400 font-medium">Lun</span>
-        </div>
-        <div class="flex flex-col items-center gap-1.5 flex-1 group">
-          <span class="text-[10px] font-bold text-indigo-600">380ms</span>
-          <div class="w-8 bg-indigo-100 group-hover:bg-indigo-600 transition-colors rounded-t-lg h-[65%]"></div>
-          <span class="text-[11px] text-slate-400 font-medium">Mar</span>
-        </div>
-        <div class="flex flex-col items-center gap-1.5 flex-1 group">
-          <span class="text-[10px] font-bold text-indigo-600">450ms</span>
-          <div class="w-8 bg-indigo-100 group-hover:bg-indigo-600 transition-colors rounded-t-lg h-[85%]"></div>
-          <span class="text-[11px] text-slate-400 font-medium">Mer</span>
-        </div>
-        <div class="flex flex-col items-center gap-1.5 flex-1 group">
-          <span class="text-[10px] font-bold text-indigo-600">320ms</span>
-          <div class="w-8 bg-indigo-100 group-hover:bg-indigo-600 transition-colors rounded-t-lg h-[55%]"></div>
-          <span class="text-[11px] text-slate-400 font-medium">Jeu</span>
-        </div>
-        <div class="flex flex-col items-center gap-1.5 flex-1 group">
-          <span class="text-[10px] font-bold text-indigo-600">342ms</span>
-          <div class="w-8 bg-indigo-600 rounded-t-lg h-[60%]"></div>
-          <span class="text-[11px] text-slate-700 font-bold">Ven</span>
+        <!-- Barre de Recherche -->
+        <div class="relative w-full sm:w-80">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">🔍</span>
+          <input 
+            type="text" 
+            [value]="searchTerm()"
+            (input)="onSearchChange($event)"
+            placeholder="Rechercher dans l'ID, la date ou le contenu..." 
+            class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
         </div>
       </div>
 
-      <div class="pt-3 flex items-center justify-between text-xs text-slate-400">
-        <span>Moyenne de la semaine : <strong class="text-slate-700">375 ms</strong></span>
-        <span class="text-indigo-600 font-semibold">Optimal (&lt; 500ms)</span>
-      </div>
-    </div>
+      <!-- Tableau des données -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              <th class="px-6 py-3.5">ID</th>
+              <th class="px-6 py-3.5">Type / Horodatage</th>
+              <th class="px-6 py-3.5">Contenu (Payload ou Fichier RAG) & Score RAG</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @for (sub of filteredSubmissions(); track sub.id) {
+              <tr class="hover:bg-slate-50/60 transition">
+                
+                <!-- ID -->
+                <td class="px-6 py-4 text-xs font-bold text-indigo-600 whitespace-nowrap">
+                  #{{ sub.id }}
+                </td>
 
-  </div>
-
-  <!-- 🔍 3. SECTION HISTORIQUE & REGISTRE DES SOUMISSIONS -->
-  <div class="space-y-4 pt-4 border-t border-slate-100">
-    <div class="flex items-center justify-between">
-      <h3 class="text-sm font-bold text-slate-900 tracking-wide">Registre des Soumissions & RAG</h3>
-      <span class="text-xs text-slate-400">Synchronisé avec SQLite</span>
-    </div>
-
-    <!-- Barre de Recherche -->
-    @if (submissions().length > 0) {
-      <div class="bg-white px-4 py-3 rounded-xl shadow-sm border border-slate-200 flex items-center gap-3">
-        <span class="text-slate-400 text-lg">🔍</span>
-        <input 
-          type="text" 
-          [value]="searchQuery()" 
-          (input)="onSearchInput($event)"
-          placeholder="Rechercher dans l'ID, la date ou le contenu..." 
-          class="w-full bg-transparent border-none focus:outline-none text-sm text-slate-700 placeholder-slate-400"
-        />
-        @if (searchQuery()) {
-          <button 
-            (click)="searchQuery.set('')" 
-            class="text-xs text-slate-500 hover:text-slate-700 px-2.5 py-1 bg-slate-100 rounded-md transition">
-            Effacer
-          </button>
-        }
-      </div>
-    }
-
-    <!-- États : Chargement / Vide / Résultats -->
-    @if (loading()) {
-      <div class="flex justify-center items-center py-16 bg-white rounded-xl shadow-sm border border-slate-200">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-        <span class="ml-3 text-slate-500 font-medium">Chargement du registre...</span>
-      </div>
-    } @else if (submissions().length === 0) {
-      <div class="bg-white p-10 rounded-xl shadow-sm border border-slate-200 text-center">
-        <div class="text-3xl mb-2">📭</div>
-        <h4 class="text-sm font-semibold text-slate-700">Aucune soumission enregistrée</h4>
-        <p class="text-xs text-slate-400 mt-1">Générez un formulaire ou uploadez un document pour les voir apparaître ici.</p>
-      </div>
-    } @else if (filteredSubmissions().length === 0) {
-      <div class="bg-white p-10 rounded-xl shadow-sm border border-slate-200 text-center">
-        <div class="text-3xl mb-2">🔎</div>
-        <h4 class="text-sm font-semibold text-slate-700">Aucun résultat trouvé</h4>
-        <p class="text-xs text-slate-400 mt-1">Essayez de modifier votre recherche "{{ searchQuery() }}".</p>
-      </div>
-    } @else {
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200">
-            <thead class="bg-slate-50">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ID</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type / Horodatage</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Contenu (Payload ou Fichier RAG)</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-slate-200">
-              @for (sub of filteredSubmissions(); track sub.id) {
-                <tr class="hover:bg-slate-50/80 transition">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-indigo-600">
-                    #{{ sub.id }}
-                  </td>
-                  
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                    @if (sub.type && sub.type !== 'form') {
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mb-1">
-                        📄 Fichier {{ sub.type | uppercase }}
-                      </span><br>
+                <!-- Type & Horodatage -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex flex-col gap-1">
+                    @if (sub.type === 'form') {
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 w-fit border border-emerald-200">
+                        ✨ Formulaire
+                      </span>
                     } @else {
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 mb-1">
-                        📝 Formulaire
-                      </span><br>
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 w-fit border border-blue-200">
+                        📄 Fichier PDF
+                      </span>
                     }
-                    <span class="text-xs">{{ sub.createdAt || sub.created_at }}</span>
-                  </td>
+                    <span class="text-[11px] text-slate-400">{{ sub.createdAt || sub.created_at }}</span>
+                  </div>
+                </td>
 
-                  <td class="px-6 py-4 text-sm text-slate-700">
+                <!-- Contenu & Score de Confiance RAG (Niveau Senior) -->
+                <td class="px-6 py-4 text-sm text-slate-700">
+                  <div class="flex flex-col gap-2.5">
+                    
+                    <!-- Badge de Score de Confiance RAG & Bouton Inspecteur -->
+                    @if (sub.confidenceScore !== undefined) {
+                      <div class="flex flex-wrap items-center gap-2">
+                        @if (sub.confidenceScore >= 0.85) {
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            🟢 Score : {{ (sub.confidenceScore * 100).toFixed(0) }}% (High Confidence)
+                          </span>
+                        } @else if (sub.confidenceScore >= 0.60) {
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                            🟡 Score : {{ (sub.confidenceScore * 100).toFixed(0) }}% (Moderate)
+                          </span>
+                        } @else {
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 animate-pulse">
+                            ⚠️ Risque d'hallucination (&lt; 60%)
+                          </span>
+                        }
+
+                        @if (sub.chunksList && sub.chunksList.length > 0) {
+                          <button 
+                            (click)="openChunkInspector(sub)" 
+                            class="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-2 transition cursor-pointer">
+                            Inspecter les Chunks ({{ sub.chunksList.length }})
+                          </button>
+                        }
+                      </div>
+                    }
+
+                    <!-- Payload ou Fichier -->
                     @if (sub.type && sub.type !== 'form') {
-                      <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs space-y-1">
-                        <div><strong>Nom du fichier :</strong> {{ sub.title }}</div>
-                        <div><strong>Chunks générés :</strong> {{ sub.chunks_count }}</div>
-                        <div><strong>Statut :</strong> <span class="text-emerald-600 font-semibold">{{ sub.status }}</span></div>
+                      <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs space-y-1">
+                        <div><strong>Fichier :</strong> {{ sub.title }}</div>
+                        <div><strong>Chunks indexés :</strong> {{ sub.chunks_count }}</div>
                       </div>
                     } @else {
-                      <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs font-mono text-slate-800 overflow-x-auto max-h-32">
+                      <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs font-mono text-slate-800 overflow-x-auto max-h-24">
                         <pre class="whitespace-pre-wrap m-0">{{ sub.title }}</pre>
                       </div>
                     }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </td>
+
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3" class="px-6 py-10 text-center text-slate-400 text-xs italic">
+                  Aucune soumission trouvée dans le registre SQLite.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
-    }
-  </div>
 
-  <!-- ⚡ 4. ACTIONS RAPIDES -->
-  <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-    <h3 class="text-sm font-bold text-slate-900 tracking-wide mb-3">Actions Rapides & Workspaces</h3>
-    
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      
-      <!-- Action 1 : Générateur (Déjà fonctionnel) -->
-      <a routerLink="/generator" class="p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-indigo-50/50 hover:border-indigo-100 transition-all flex items-center justify-between group cursor-pointer text-left">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">✨</div>
-          <div>
-            <h4 class="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Lancer le Générateur</h4>
-            <p class="text-[11px] text-slate-500">Créer un formulaire dynamique par IA</p>
-          </div>
-        </div>
-        <span class="text-slate-400 group-hover:text-indigo-600">→</span>
-      </a>
-
-      <!-- Action 2 : Ingérer un Document (Redirige vers /documents ou lance une action) -->
-      <a routerLink="/documents" class="p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-blue-50/50 hover:border-blue-100 transition-all flex items-center justify-between group cursor-pointer text-left">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold">📁</div>
-          <div>
-            <h4 class="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Ingérer un Document</h4>
-            <p class="text-[11px] text-slate-500">Ajouter un PDF/TXT à la base RAG</p>
-          </div>
-        </div>
-        <span class="text-slate-400 group-hover:text-blue-600">→</span>
-      </a>
-
-      <!-- Action 3 : Explorer les Logs (Redirige vers /logs ou fait défiler vers le tableau) -->
-      <button (click)="scrollToRegistre()" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-emerald-50/50 hover:border-emerald-100 transition-all flex items-center justify-between group cursor-pointer text-left">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">🔍</div>
-          <div>
-            <h4 class="text-xs font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">Explorer les Logs</h4>
-            <p class="text-[11px] text-slate-500">Consulter l'historique d'inférence</p>
-          </div>
-        </div>
-        <span class="text-slate-400 group-hover:text-emerald-600">↓</span>
-      </button>
+      <!-- Pied de tableau -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
+        <span>Affichage de {{ filteredSubmissions().length }} éléments</span>
+        <span>Synchronisé avec SQLite</span>
+      </div>
 
     </div>
-  </div>
+
+  </main>
+
+  <!-- 🔍 MODALE D'INSPECTION DES CHUNKS RAG -->
+  @if (selectedSubmissionForInspection(); as activeSub) {
+    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-150">
+        
+        <!-- En-tête de la modale -->
+        <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Inspection du Moteur Sémantique (RAG Chunks)</h3>
+            <p class="text-xs text-slate-500">Soumission #{{ activeSub.id }} — Contexte injecté dans le LLM</p>
+          </div>
+          <button 
+            (click)="closeChunkInspector()" 
+            class="w-8 h-8 rounded-lg bg-slate-200/60 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center transition cursor-pointer">
+            ✕
+          </button>
+        </div>
+
+        <!-- Corps de la modale -->
+        <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+          <div class="flex items-center justify-between bg-slate-100 p-3 rounded-xl text-xs">
+            <span class="font-semibold text-slate-700">Indicateur de Confiance Global :</span>
+            <span class="font-bold text-indigo-600">{{ activeSub.confidenceScore ? (activeSub.confidenceScore * 100) + '%' : 'N/A' }}</span>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Fragments extraits (Chunks) :</h4>
+            @if (activeSub.chunksList && activeSub.chunksList.length > 0) {
+              @for (chunk of activeSub.chunksList; track $index) {
+                <div class="p-3 bg-indigo-50/40 border border-indigo-100 rounded-xl text-xs font-mono text-slate-700 leading-relaxed">
+                  {{ chunk }}
+                </div>
+              }
+            } @else {
+              <p class="text-xs text-slate-400 italic">Aucun chunk textuel associé à cette entrée.</p>
+            }
+          </div>
+        </div>
+
+        <!-- Pied de page de la modale -->
+        <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+          <button 
+            (click)="closeChunkInspector()" 
+            class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-medium transition shadow-xs cursor-pointer">
+            Fermer l'inspecteur
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
 
 </div>
