@@ -13,7 +13,9 @@ export interface Submission {
   status?: string;
   confidenceScore?: number;
   chunksList?: string[];
-  isReindexing?: boolean; // Nouveau : Indique si le worker tourne pour cette ligne
+  isReindexing?: boolean;
+  tokensCount?: number;   // Nouveau : Nombre de tokens pour cette soumission
+  estimatedCost?: number; // Nouveau : Coût estimé en $
 }
 
 @Component({
@@ -82,6 +84,8 @@ export class DashboardComponent implements OnInit {
             createdAt: '2026-10-06 10:15:00',
             status: 'completed',
             confidenceScore: 0.92,
+            tokensCount: 1240,
+            estimatedCost: 0.0037,
             chunksList: [
               "Chunk #1 (Score: 0.95): Enterprise RAG pipelines require secure SQLite logging and low latency vector lookups.",
               "Chunk #2 (Score: 0.89): Budget allocations for AI integrations typically range between 50k and 100k for mid-size SAS companies."
@@ -95,6 +99,8 @@ export class DashboardComponent implements OnInit {
             createdAt: '2026-10-05 16:42:10',
             status: 'Indexed',
             confidenceScore: 0.96,
+            tokensCount: 3450,
+            estimatedCost: 0.0103,
             chunksList: [
               "Chunk #12 (Score: 0.98): All cloud communications must enforce TLS 1.3 encryption by default.",
               "Chunk #15 (Score: 0.94): Vector database access is restricted via internal BFF proxy authentication tokens."
@@ -106,13 +112,14 @@ export class DashboardComponent implements OnInit {
             title: '{\n  "projectName": "GenUI Dashboard",\n  "framework": "Angular 19 / Tailwind v4"\n}',
             createdAt: '2026-10-04 09:30:22',
             status: 'completed',
-            confidenceScore: 0.58, // Exemple de score bas (risque d'hallucination)
+            confidenceScore: 0.58,
+            tokensCount: 520,
+            estimatedCost: 0.0015,
             chunksList: [
               "Chunk #3 (Score: 0.58): Legacy frontend components running on older Angular versions without signals support."
             ]
           }
         ];
-        
         this.submissions.set(mockData);
         this.loading.set(false);
       } catch (err) {

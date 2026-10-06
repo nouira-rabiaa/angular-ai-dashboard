@@ -285,8 +285,9 @@
                   <div class="flex flex-col gap-2.5">
                     
                     <!-- Badge de Score de Confiance RAG & Bouton Inspecteur -->
-                    @if (sub.confidenceScore !== undefined) {
-                      <div class="flex flex-wrap items-center gap-2">
+                   <!-- Badge de Score de Confiance RAG & Badge FinOps (Tokens / Coût) -->
+                    <div class="flex flex-wrap items-center gap-2">
+                      @if (sub.confidenceScore !== undefined) {
                         @if (sub.confidenceScore >= 0.85) {
                           <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             🟢 Score : {{ (sub.confidenceScore * 100).toFixed(0) }}% (High Confidence)
@@ -300,16 +301,25 @@
                             ⚠️ Risque d'hallucination (&lt; 60%)
                           </span>
                         }
+                      }
 
-                        @if (sub.chunksList && sub.chunksList.length > 0) {
-                          <button 
-                            (click)="openChunkInspector(sub)" 
-                            class="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-2 transition cursor-pointer">
-                            Inspecter les Chunks ({{ sub.chunksList.length }})
-                          </button>
-                        }
-                      </div>
-                    }
+                      <!-- 💰 Badge FinOps : Tokens & Coût unitaire -->
+                      @if (sub.tokensCount) {
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                          <span>⚡ {{ sub.tokensCount.toLocaleString() }} tokens</span>
+                          <span class="text-slate-400">•</span>
+                          <span class="text-emerald-700 font-bold">${{ sub.estimatedCost?.toFixed(4) }}</span>
+                        </span>
+                      }
+
+                      @if (sub.chunksList && sub.chunksList.length > 0) {
+                        <button 
+                          (click)="openChunkInspector(sub)" 
+                          class="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-2 transition cursor-pointer">
+                          Inspecter les Chunks ({{ sub.chunksList.length }})
+                        </button>
+                      }
+                    </div>
 
                     <!-- Payload ou Fichier -->
                     @if (sub.type && sub.type !== 'form') {
@@ -367,11 +377,16 @@
 
         <!-- Corps de la modale -->
         <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-          <div class="flex items-center justify-between bg-slate-100 p-3 rounded-xl text-xs">
-            <span class="font-semibold text-slate-700">Indicateur de Confiance Global :</span>
-            <span class="font-bold text-indigo-600">{{ activeSub.confidenceScore ? (activeSub.confidenceScore * 100) + '%' : 'N/A' }}</span>
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-slate-100 p-3 rounded-xl text-xs flex flex-col">
+              <span class="font-semibold text-slate-700">Indicateur de Confiance :</span>
+              <span class="font-bold text-indigo-600 mt-1">{{ activeSub.confidenceScore ? (activeSub.confidenceScore * 100) + '%' : 'N/A' }}</span>
+            </div>
+            <div class="bg-slate-100 p-3 rounded-xl text-xs flex flex-col">
+              <span class="font-semibold text-slate-700">Consommation FinOps :</span>
+              <span class="font-bold text-emerald-600 mt-1">{{ activeSub.tokensCount || 0 }} tokens (${{ activeSub.estimatedCost?.toFixed(4) || '0.0000' }})</span>
+            </div>
           </div>
-
           <div class="space-y-2">
             <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Fragments extraits (Chunks) :</h4>
             @if (activeSub.chunksList && activeSub.chunksList.length > 0) {
