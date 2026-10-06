@@ -1,6 +1,7 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../services/api.service';
+import { ErrorService } from '../../services/error.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -9,6 +10,7 @@ import { ApiService } from '../../services/api.service';
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
+  public errorService = inject(ErrorService);
   submissions = signal<any[]>([]);
   loading = signal<boolean>(true);
   
