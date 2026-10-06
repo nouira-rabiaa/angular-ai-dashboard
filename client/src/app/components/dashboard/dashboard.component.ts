@@ -11,6 +11,8 @@ export interface Submission {
   created_at?: string;
   chunks_count?: number;
   status?: string;
+  confidenceScore?: number; // Nouveau : Score de pertinence RAG (ex: 0.94 pour 94%)
+  chunksList?: string[];    // Nouveau : Extraits exacts récupérés par le moteur sémantique
 }
 
 @Component({
@@ -21,10 +23,35 @@ export interface Submission {
 })
 export class DashboardComponent implements OnInit {
   
+    // Signal pour la modale d'inspection des chunks
+  selectedSubmissionForInspection = signal<Submission | null>(null);
   // ─── ÉTATS & SIGNALS POUR L'HISTORIQUE ET LE BFF ───
   submissions = signal<Submission[]>([]);
   loading = signal<boolean>(false);
   searchQuery = signal<string>('');
+
+  // 🔍 Signaux pour la recherche dans le registre
+  searchTerm = signal<string>('');
+
+  // Signal filtré basé sur la recherche
+  filteredSubmissions = computed(() => {
+    const term = this.searchTerm().toLowerCase().trim();
+    const subs = this.submissions();
+    if (!term) return subs;
+
+    return subs.filter(sub => 
+      String(sub.id).toLowerCase().includes(term) ||
+      (sub.title && sub.title.toLowerCase().includes(term)) ||
+      (sub.createdAt && sub.createdAt.toLowerCase().includes(term)) ||
+      (sub.created_at && sub.created_at.toLowerCase().includes(term))
+    );
+  });
+
+  // Gestionnaire de l'input de recherche
+  onSearchChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.searchTerm.set(value);
+  }
 
   // Service d'erreur simulé / géré localement (ou via ton ErrorService global si tu l'injectes)
   errorService = {
@@ -32,23 +59,6 @@ export class DashboardComponent implements OnInit {
     clearError: () => this.errorService.currentError.set(null),
     setError: (msg: string) => this.errorService.currentError.set(msg)
   };
-
-  // ─── COMPUTED POUR LA RECHERCHE EN TEMPS RÉEL ───
-  filteredSubmissions = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
-    const list = this.submissions();
-    
-    if (!query) return list;
-
-    return list.filter(sub => {
-      const idMatch = String(sub.id).toLowerCase().includes(query);
-      const titleMatch = String(sub.title || '').toLowerCase().includes(query);
-      const typeMatch = String(sub.type || '').toLowerCase().includes(query);
-      const dateMatch = String(sub.createdAt || sub.created_at || '').toLowerCase().includes(query);
-      
-      return idMatch || titleMatch || typeMatch || dateMatch;
-    });
-  });
 
   ngOnInit(): void {
     this.loadSubmissions();
@@ -69,7 +79,12 @@ export class DashboardComponent implements OnInit {
             type: 'form',
             title: '{\n  "companyName": "TechCorp SAS",\n  "budget": "50000-100000",\n  "useCase": "RAG Enterprise Pipeline"\n}',
             createdAt: '2026-10-06 10:15:00',
-            status: 'completed'
+            status: 'completed',
+            confidenceScore: 0.92,
+            chunksList: [
+              "Chunk #1 (Score: 0.95): Enterprise RAG pipelines require secure SQLite logging and low latency vector lookups.",
+              "Chunk #2 (Score: 0.89): Budget allocations for AI integrations typically range between 50k and 100k for mid-size SAS companies."
+            ]
           },
           {
             id: 103,
@@ -77,14 +92,23 @@ export class DashboardComponent implements OnInit {
             title: 'Architecture_Securite_Cloud_2026.pdf',
             chunks_count: 24,
             createdAt: '2026-10-05 16:42:10',
-            status: 'Indexed'
+            status: 'Indexed',
+            confidenceScore: 0.96,
+            chunksList: [
+              "Chunk #12 (Score: 0.98): All cloud communications must enforce TLS 1.3 encryption by default.",
+              "Chunk #15 (Score: 0.94): Vector database access is restricted via internal BFF proxy authentication tokens."
+            ]
           },
           {
             id: 102,
             type: 'form',
             title: '{\n  "projectName": "GenUI Dashboard",\n  "framework": "Angular 19 / Tailwind v4"\n}',
             createdAt: '2026-10-04 09:30:22',
-            status: 'completed'
+            status: 'completed',
+            confidenceScore: 0.58, // Exemple de score bas (risque d'hallucination)
+            chunksList: [
+              "Chunk #3 (Score: 0.58): Legacy frontend components running on older Angular versions without signals support."
+            ]
           }
         ];
         
@@ -97,6 +121,13 @@ export class DashboardComponent implements OnInit {
     }, 400);
   }
 
+  openChunkInspector(sub: Submission): void {
+    this.selectedSubmissionForInspection.set(sub);
+  }
+
+  closeChunkInspector(): void {
+    this.selectedSubmissionForInspection.set(null);
+  }
   // ─── GESTION DE LA RECHERCHE ───
   onSearchInput(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
@@ -132,4 +163,5 @@ export class DashboardComponent implements OnInit {
   scrollToRegistre(): void {
     window.scrollTo({ top: 500, behavior: 'smooth' });
   }
+
 }
