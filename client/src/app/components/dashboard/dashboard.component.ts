@@ -35,6 +35,8 @@ export class DashboardComponent implements OnInit {
 
   // 🔍 Signaux pour la recherche dans le registre
   searchTerm = signal<string>('');
+// 🔐 Signal pour le rôle actif (RBAC)
+  userRole = signal<'admin' | 'contributor' | 'reader'>('admin');
 
   // Signal filtré basé sur la recherche
   filteredSubmissions = computed(() => {
@@ -55,7 +57,11 @@ export class DashboardComponent implements OnInit {
     const value = (event.target as HTMLInputElement).value;
     this.searchTerm.set(value);
   }
-
+ // Méthode pour changer de rôle depuis le sélecteur
+  onRoleChange(event: Event): void {
+    const selected = (event.target as HTMLSelectElement).value as 'admin' | 'contributor' | 'reader';
+    this.userRole.set(selected);
+  }
   // Service d'erreur simulé / géré localement (ou via ton ErrorService global si tu l'injectes)
   errorService = {
     currentError: signal<string | null>(null),
