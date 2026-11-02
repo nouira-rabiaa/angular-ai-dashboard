@@ -1,0 +1,105 @@
+<section class="mx-auto w-full max-w-6xl space-y-6 px-3 py-5 text-slate-800 sm:px-6 lg:py-7" aria-labelledby="guided-demo-title">
+  <header class="flex flex-col gap-5 border-b border-slate-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
+    <div class="max-w-3xl">
+      <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-700">Visite guidée · 3 à 5 minutes</p>
+      <h1 id="guided-demo-title" class="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">Guided Demo</h1>
+      <p class="mt-2 text-sm leading-6 text-slate-600">Découvrez les parcours réels du produit. Aucun fichier, prompt, formulaire ou appel IA n’est lancé par cette visite.</p>
+    </div>
+    <a routerLink="/generator" class="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-indigo-500">
+      Quitter la démo
+    </a>
+  </header>
+
+  <section class="space-y-3" aria-label="Progression de la visite guidée">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <p class="text-sm font-bold text-slate-900">Étape {{ progressValue() }} sur {{ steps.length }} <span class="font-normal text-slate-600">· {{ currentStep().title }}</span></p>
+      <p class="text-xs text-slate-600" aria-live="polite">{{ statusLabel(stepStatuses()[currentStep().id]) }}</p>
+    </div>
+    <div class="h-2 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label="Progression de la démonstration" [attr.aria-valuemin]="1" [attr.aria-valuemax]="steps.length" [attr.aria-valuenow]="progressValue()" [attr.aria-valuetext]="'Étape ' + progressValue() + ' sur ' + steps.length + ', ' + statusLabel(stepStatuses()[currentStep().id])">
+      <div class="h-full rounded-full bg-indigo-600 transition-[width] duration-300 motion-reduce:transition-none" [style.width.%]="progressPercent()"></div>
+    </div>
+    <nav aria-label="Étapes de la démonstration" class="grid grid-cols-3 gap-2 sm:grid-cols-6">
+      @for (step of steps; track step.id; let index = $index) {
+        <button type="button" (click)="selectStep(index)" [attr.aria-current]="currentStepIndex() === index ? 'step' : null" [attr.aria-label]="'Étape ' + (index + 1) + ': ' + step.title + ', ' + statusLabel(stepStatuses()[step.id])" class="min-h-10 rounded-lg border px-2 py-2 text-left text-[10px] font-semibold leading-4 outline-none transition focus-visible:ring-2 focus-visible:ring-indigo-500" [class.border-indigo-300]="currentStepIndex() === index" [class.bg-indigo-50]="currentStepIndex() === index" [class.text-indigo-800]="currentStepIndex() === index" [class.border-slate-200]="currentStepIndex() !== index" [class.bg-white]="currentStepIndex() !== index" [class.text-slate-600]="currentStepIndex() !== index">
+          <span class="block text-[9px] uppercase tracking-wide text-slate-600">0{{ index + 1 }} · {{ statusLabel(stepStatuses()[step.id]) }}</span>
+          <span class="mt-0.5 block">{{ step.title }}</span>
+        </button>
+      }
+    </nav>
+  </section>
+
+  <section class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(17rem,0.8fr)]" aria-label="Étape courante et consignes">
+    <article class="min-w-0 border-t-2 border-indigo-600 bg-white px-4 py-5 shadow-sm sm:px-6 sm:py-7">
+      <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-700">Étape 0{{ progressValue() }}</p>
+      <h2 #stepHeading tabindex="-1" class="mt-2 text-xl font-bold text-slate-950 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 sm:text-2xl">{{ currentStep().title }}</h2>
+
+      <div class="mt-6 space-y-5">
+        <section aria-labelledby="business-explanation-title">
+          <h3 id="business-explanation-title" class="text-xs font-bold uppercase tracking-wide text-slate-600">Valeur métier</h3>
+          <p class="mt-2 text-sm leading-6 text-slate-800">{{ currentStep().businessExplanation }}</p>
+        </section>
+        <section aria-labelledby="technical-explanation-title" class="border-t border-slate-100 pt-4">
+          <h3 id="technical-explanation-title" class="text-xs font-bold uppercase tracking-wide text-slate-600">Ce qui se passe réellement</h3>
+          <p class="mt-2 text-sm leading-6 text-slate-700">{{ currentStep().technicalExplanation }}</p>
+        </section>
+        <section aria-labelledby="user-instruction-title" class="border-l-2 border-sky-500 bg-sky-50/70 px-4 py-3">
+          <h3 id="user-instruction-title" class="text-xs font-bold uppercase tracking-wide text-sky-900">À vous de jouer</h3>
+          <p class="mt-1 text-sm leading-6 text-slate-700">{{ currentStep().userInstruction }}</p>
+        </section>
+      </div>
+
+      @if (currentStep().destinationRoute) {
+        <div class="mt-5 flex flex-wrap items-center gap-3">
+          <a [href]="currentStep().destinationRoute" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'Ouvrir la fonctionnalité dans un nouvel onglet: ' + currentStep().title" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-semibold text-white outline-none transition hover:bg-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+            Ouvrir la fonctionnalité <span aria-hidden="true">↗</span>
+          </a>
+          <span class="text-[11px] text-slate-600">Nouvel onglet · cette étape reste ouverte ici</span>
+        </div>
+      }
+
+      @if (currentStep().id === 'conclusion') {
+        <section class="mt-6 border-t border-slate-200 pt-5" aria-labelledby="roadmap-title">
+          <h3 id="roadmap-title" class="text-xs font-bold uppercase tracking-wide text-slate-600">Feuille de route · planifiée, non implémentée</h3>
+          <ul class="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-700">
+            <li><span class="font-semibold">Prévision des coûts IA</span> <span class="text-slate-600">· planifiée</span></li>
+            <li><span class="font-semibold">Intégration n8n</span> <span class="text-slate-600">· planifiée</span></li>
+          </ul>
+        </section>
+      }
+    </article>
+
+    <aside class="h-fit border border-slate-200 bg-white p-4 sm:p-5" aria-labelledby="completion-title">
+      <h3 id="completion-title" class="text-sm font-bold text-slate-900">Critère de complétion</h3>
+      <p class="mt-2 text-sm leading-6 text-slate-700">{{ currentStep().completionCriteria }}</p>
+      <div class="mt-4 border-t border-slate-100 pt-4">
+        <p class="text-xs font-semibold text-slate-700">Appel IA en direct potentiellement requis</p>
+        <p class="mt-1 text-xs text-slate-600">{{ currentStep().liveAiCallMayBeRequired ? 'Oui · seulement après votre action explicite dans la fonctionnalité.' : 'Non · cette étape ne nécessite pas d’appel IA.' }}</p>
+      </div>
+      <div class="mt-5 border-t border-slate-100 pt-4">
+        <p class="text-xs font-semibold text-slate-700">État de cette étape</p>
+        <p class="mt-1 text-sm text-slate-700" role="status" aria-live="polite">{{ statusLabel(stepStatuses()[currentStep().id]) }}</p>
+        @if (stepStatuses()[currentStep().id] !== 'user-confirmed' && stepStatuses()[currentStep().id] !== 'technically-verified') {
+          <button type="button" (click)="confirmCurrentStep()" class="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-3 text-xs font-semibold text-emerald-800 outline-none transition hover:bg-emerald-100 focus-visible:ring-2 focus-visible:ring-emerald-500">
+            Je confirme cette étape
+          </button>
+        }
+        <p class="mt-2 text-[10px] leading-4 text-slate-600">La confirmation est déclarée par vous. Aucune action n’est marquée comme techniquement vérifiée par cette visite.</p>
+      </div>
+    </aside>
+  </section>
+
+  <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
+    <button type="button" (click)="previousStep()" [disabled]="isFirstStep()" class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-40">
+      Précédent
+    </button>
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="button" (click)="restart()" class="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-slate-600 outline-none transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-500">
+        Recommencer
+      </button>
+      <button type="button" (click)="nextStep()" [disabled]="isLastStep()" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-xs font-semibold text-white outline-none transition hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-40">
+        Suivant
+      </button>
+    </div>
+  </footer>
+  <p class="text-[11px] text-slate-600">Les étapes et confirmations restent temporairement dans cet onglet. Aucun prompt, fichier ou résultat métier n’est enregistré par le Guided Demo.</p>
+</section>

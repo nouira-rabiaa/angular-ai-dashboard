@@ -1,110 +1,197 @@
-import { Component, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, OnDestroy, Output, SimpleChanges, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import {
+  LucideBot,
+  LucideLayoutDashboard,
+  LucidePanelLeftClose,
+  LucidePanelLeftOpen,
+  LucideSparkles,
+  LucideWorkflow
+} from '@lucide/angular';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    LucideBot,
+    LucideLayoutDashboard,
+    LucidePanelLeftClose,
+    LucidePanelLeftOpen,
+    LucideSparkles,
+    LucideWorkflow
+  ],
   template: `
-    <aside 
-      [class.w-64]="isOpen()" 
-      [class.w-20]="!isOpen()"
-      class="bg-slate-900 text-slate-300 h-screen transition-all duration-300 flex flex-col justify-between border-r border-slate-800 shadow-2xl sticky top-0">
-      
-      <div class="overflow-y-auto flex-1 overflow-x-hidden">
-        
-        <!-- ⚡ En-tête Pro -->
-        <div class="h-16 flex items-center justify-between px-4 border-b border-slate-800">
-          @if (isOpen()) {
-            <div class="flex items-center space-x-3">
-              <span class="text-xl">⚡</span>
-              <span class="text-white font-semibold text-sm tracking-wide">Data & AI Workspace</span>
+    @if (mobileOpen) {
+      <button type="button" class="fixed inset-0 z-40 bg-slate-950/60 lg:hidden" aria-label="Fermer la navigation" (click)="closeMobile()"></button>
+    }
+    <aside
+      [class.w-72]="expanded || mobileOpen"
+      [class.w-[5.5rem]]="!expanded && !mobileOpen"
+      [class.-translate-x-full]="!mobileOpen"
+      [class.invisible]="!mobileOpen"
+      class="fixed inset-y-0 left-0 z-50 flex h-dvh flex-col border-r border-white/10 bg-[#0B1222] text-slate-300 shadow-2xl transition-[width,transform] duration-300 motion-reduce:transition-none lg:visible lg:sticky lg:top-0 lg:z-30 lg:h-screen lg:translate-x-0"
+      [attr.role]="mobileOpen ? 'dialog' : null"
+      [attr.aria-modal]="mobileOpen ? 'true' : null"
+      [attr.aria-label]="mobileOpen ? 'Navigation principale' : null"
+      (keydown)="onMobileDialogKeydown($event)">
+      <div class="flex h-full min-h-0 flex-col">
+        <div class="flex h-[5.25rem] shrink-0 items-center gap-3 border-b border-white/10 px-5">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-950/40">
+            <svg lucideBot class="h-5 w-5"></svg>
+          </div>
+          @if (expanded || mobileOpen) {
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-bold tracking-wide text-white">AI Control Center</p>
+              <p class="mt-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">Operations console</p>
             </div>
-          } @else {
-            <span class="text-xl mx-auto">⚡</span>
           }
+          <button type="button" data-mobile-focus class="ml-auto rounded-lg p-2 text-slate-400 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 lg:hidden" aria-label="Fermer le menu" (click)="closeMobile()">
+            <svg lucidePanelLeftClose class="h-4 w-4"></svg>
+          </button>
         </div>
 
-        <!-- 📂 Catégories du Menu -->
-        <div class="p-4 space-y-6">
-          
-          <!-- SECTION 1 : PRINCIPAL -->
+        <nav class="min-h-0 flex-1 space-y-7 overflow-y-auto px-3 py-6" aria-label="Navigation principale">
           <div>
-            @if (isOpen()) {
-              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-3">Principal</p>
-            }
-            <div class="space-y-1">
-              <a routerLink="/dashboard" 
-                 routerLinkActive="bg-indigo-600 text-white font-semibold shadow-md"
-                 class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 transition text-sm">
-                <span class="text-lg">📊</span>
-                @if (isOpen()) { <span>Dashboard BDD</span> }
+            @if (expanded || mobileOpen) { <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Workspace</p> }
+            <div class="space-y-1.5">
+              <a routerLink="/dashboard" aria-label="Dashboard BDD" data-mobile-focus routerLinkActive="!bg-indigo-500/15 !text-indigo-200 !shadow-[inset_0_0_0_1px_rgba(129,140,248,0.22)]" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-400 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+                <svg lucideLayoutDashboard class="h-[18px] w-[18px] shrink-0 text-slate-500 transition group-hover:text-indigo-300"></svg>
+                @if (expanded || mobileOpen) { <span class="truncate">Dashboard BDD</span> }
               </a>
-              <a routerLink="/generator" 
-                 routerLinkActive="bg-indigo-600 text-white font-semibold shadow-md" 
-                 [routerLinkActiveOptions]="{exact: true}"
-                 class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 transition text-sm">
-                <span class="text-lg">✨</span>
-                @if (isOpen()) { <span>Générateur IA</span> }
+              <a routerLink="/generator" aria-label="Générateur IA" data-mobile-focus routerLinkActive="!bg-indigo-500/15 !text-indigo-200 !shadow-[inset_0_0_0_1px_rgba(129,140,248,0.22)]" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-400 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+                <svg lucideSparkles class="h-[18px] w-[18px] shrink-0 text-slate-500 transition group-hover:text-violet-300"></svg>
+                @if (expanded || mobileOpen) { <span class="truncate">Générateur IA</span> }
+              </a>
+              <a routerLink="/guided-demo" aria-label="Guided Demo" data-mobile-focus routerLinkActive="!bg-indigo-500/15 !text-indigo-200 !shadow-[inset_0_0_0_1px_rgba(129,140,248,0.22)]" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-400 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+                <svg lucideWorkflow class="h-[18px] w-[18px] shrink-0 text-slate-500 transition group-hover:text-emerald-300"></svg>
+                @if (expanded || mobileOpen) { <span class="truncate">Guided Demo</span> }
+              </a>
+              <a routerLink="/architecture" aria-label="Architecture Explorer" data-mobile-focus routerLinkActive="!bg-indigo-500/15 !text-indigo-200 !shadow-[inset_0_0_0_1px_rgba(129,140,248,0.22)]" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-400 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+                <svg lucideWorkflow class="h-[18px] w-[18px] shrink-0 text-slate-500 transition group-hover:text-indigo-300"></svg>
+                @if (expanded || mobileOpen) { <span class="truncate">Architecture Explorer</span> }
+              </a>
+              <a routerLink="/agent-workspace" aria-label="Agent Workspace" data-mobile-focus routerLinkActive="!bg-indigo-500/15 !text-indigo-200 !shadow-[inset_0_0_0_1px_rgba(129,140,248,0.22)]" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-400 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+                <svg lucideBot class="h-[18px] w-[18px] shrink-0 text-slate-500 transition group-hover:text-cyan-300"></svg>
+                @if (expanded || mobileOpen) { <span class="truncate">Agent Workspace</span> }
               </a>
             </div>
           </div>
+        </nav>
 
-          <!-- SECTION 2 : MOTEUR RAG & DOCUMENTS -->
-          <div>
-            @if (isOpen()) {
-              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-3">Moteur RAG</p>
-            }
-            <div class="space-y-1">
-              <a routerLink="/rag/documents" 
-                 routerLinkActive="bg-indigo-600 text-white font-semibold shadow-md"
-                 class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 transition text-sm">
-                <span class="text-lg">📂</span>
-                @if (isOpen()) { <span>Documents & Ingestion</span> }
-              </a>
-              <a routerLink="/rag/vectorstore" 
-                 routerLinkActive="bg-indigo-600 text-white font-semibold shadow-md"
-                 class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 transition text-sm">
-                <span class="text-lg">🧠</span>
-                @if (isOpen()) { <span>Base Vectorielle</span> }
-              </a>
-            </div>
-          </div>
-
-          <!-- SECTION 3 : SYSTÈMES & MONITORING -->
-          <div>
-            @if (isOpen()) {
-              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-3">Système</p>
-            }
-            <div class="space-y-1">
-              <a routerLink="/system/logs" 
-                 routerLinkActive="bg-indigo-600 text-white font-semibold shadow-md"
-                 class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 transition text-sm">
-                <span class="text-lg">🛡️</span>
-                @if (isOpen()) { <span>Logs & Erreurs</span> }
-              </a>
-            </div>
-          </div>
-
+        <div class="hidden shrink-0 border-t border-white/10 p-3 lg:block">
+          <button type="button" data-desktop-focus (click)="toggleExpanded()" [attr.aria-expanded]="expanded" [attr.aria-label]="expanded ? 'Réduire le menu latéral' : 'Développer le menu latéral'" class="flex min-h-11 w-full items-center justify-center gap-3 rounded-xl px-3 text-xs font-semibold text-slate-400 outline-none transition hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300">
+            @if (expanded) { <svg lucidePanelLeftClose class="h-4 w-4"></svg><span>Réduire le menu</span> }
+            @else { <svg lucidePanelLeftOpen class="h-4 w-4"></svg> }
+          </button>
         </div>
-      </div>
-
-      <!-- 🎛️ Bouton de réduction / expansion en bas -->
-      <div class="p-4 border-t border-slate-800">
-        <button 
-          (click)="toggle()" 
-          class="w-full flex items-center justify-center py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition text-sm font-medium shadow-sm">
-          <span>{{ isOpen() ? '◀ Réduire' : '▶' }}</span>
-        </button>
       </div>
     </aside>
   `
 })
-export class SidebarComponent {
-  isOpen = signal<boolean>(true);
+export class SidebarComponent implements OnChanges, OnDestroy {
+  private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private focusReturnTarget: HTMLElement | null = null;
+  private focusFrame: number | null = null;
 
-  toggle() {
-    this.isOpen.update(val => !val);
+  @Input() expanded = true;
+  @Input() mobileOpen = false;
+  @Output() expandedChange = new EventEmitter<boolean>();
+  @Output() mobileOpenChange = new EventEmitter<boolean>();
+
+  ngOnChanges(changes: SimpleChanges): void {
+    const mobileOpenChange = changes['mobileOpen'];
+    if (!mobileOpenChange) return;
+
+    if (mobileOpenChange.currentValue) {
+      if (!mobileOpenChange.previousValue) {
+        const activeElement = document.activeElement;
+        this.focusReturnTarget = activeElement instanceof HTMLElement ? activeElement : null;
+      }
+      this.scheduleFocus(() => this.focusFirstMobileControl());
+      return;
+    }
+
+    if (mobileOpenChange.previousValue) {
+      this.scheduleFocus(() => this.restoreFocus());
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.focusFrame !== null && typeof cancelAnimationFrame !== 'undefined') {
+      cancelAnimationFrame(this.focusFrame);
+    }
+  }
+
+  @HostListener('window:resize')
+  closeMobileDrawerAtDesktopWidth(): void {
+    if (this.mobileOpen && window.matchMedia('(min-width: 64rem)').matches) {
+      this.closeMobile();
+    }
+  }
+
+  toggleExpanded(): void {
+    this.expandedChange.emit(!this.expanded);
+  }
+
+  closeMobile(): void {
+    if (this.mobileOpen) this.mobileOpenChange.emit(false);
+  }
+
+  onMobileDialogKeydown(event: KeyboardEvent): void {
+    if (!this.mobileOpen) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closeMobile();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+
+    const controls = this.mobileFocusableElements();
+    if (!controls.length) {
+      event.preventDefault();
+      return;
+    }
+
+    const activeIndex = controls.indexOf(document.activeElement as HTMLElement);
+    if (event.shiftKey && activeIndex <= 0) {
+      event.preventDefault();
+      controls[controls.length - 1].focus();
+    } else if (!event.shiftKey && (activeIndex === -1 || activeIndex === controls.length - 1)) {
+      event.preventDefault();
+      controls[0].focus();
+    }
+  }
+
+  private mobileFocusableElements(): HTMLElement[] {
+    const controls = this.elementRef.nativeElement.querySelectorAll('[data-mobile-focus]') as NodeListOf<HTMLElement>;
+    return Array.from(controls).filter(element => {
+      const style = getComputedStyle(element);
+      return !element.matches(':disabled') && style.display !== 'none' && style.visibility !== 'hidden';
+    });
+  }
+
+  private focusFirstMobileControl(): void {
+    this.mobileFocusableElements()[0]?.focus();
+  }
+
+  private restoreFocus(): void {
+    const returnTarget = this.focusReturnTarget;
+    const isVisible = returnTarget?.isConnected &&
+      getComputedStyle(returnTarget).display !== 'none' &&
+      getComputedStyle(returnTarget).visibility !== 'hidden';
+    if (isVisible) returnTarget.focus();
+    else (this.elementRef.nativeElement.querySelector('[data-desktop-focus]') as HTMLElement | null)?.focus();
+    this.focusReturnTarget = null;
+  }
+
+  private scheduleFocus(focus: () => void): void {
+    if (typeof requestAnimationFrame === 'undefined') return;
+    if (this.focusFrame !== null) cancelAnimationFrame(this.focusFrame);
+    this.focusFrame = requestAnimationFrame(() => {
+      this.focusFrame = null;
+      focus();
+    });
   }
 }

@@ -1,0 +1,107 @@
+<section class="mx-auto w-full max-w-[1500px] space-y-6 px-3 py-5 text-slate-800 sm:px-6 lg:py-7" aria-labelledby="architecture-title">
+  <header class="rounded-3xl border border-white bg-gradient-to-br from-white via-white to-indigo-50/80 p-5 shadow-[0_16px_50px_-36px_rgba(30,41,59,0.42)] sm:p-7">
+    <p class="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-indigo-700"><svg lucideWorkflow class="h-3.5 w-3.5"></svg> Architecture Explorer</p>
+    <h1 id="architecture-title" class="mt-3 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Explorez les flux réels du système</h1>
+    <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Une carte interactive des parcours réellement présents: génération de formulaires, recherche lexicale PDF, observabilité locale et Agent Workspace.</p>
+  </header>
+
+  <section class="space-y-4" aria-labelledby="flow-selector-title">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-600">Parcours</p><h2 id="flow-selector-title" class="mt-1 text-base font-bold text-slate-900">Choisir un flux métier</h2></div>
+      <span class="text-xs text-slate-600">Les nœuds et connexions sont mis en évidence selon le flux choisi.</span>
+    </div>
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-4" role="group" aria-label="Sélection du flux d’architecture">
+      @for (flow of flows; track flow.id) {
+        <button type="button" (click)="selectFlow(flow)" [attr.aria-label]="'Choisir le flux ' + flow.title" [attr.aria-pressed]="selectedFlowId() === flow.id"
+          class="min-h-24 rounded-2xl border p-4 text-left outline-none transition duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-indigo-400 motion-reduce:transform-none motion-reduce:transition-none"
+          [class.border-indigo-300]="selectedFlowId() === flow.id" [class.bg-indigo-50]="selectedFlowId() === flow.id" [class.shadow-md]="selectedFlowId() === flow.id" [class.shadow-indigo-100]="selectedFlowId() === flow.id"
+          [class.border-slate-200]="selectedFlowId() !== flow.id" [class.bg-white]="selectedFlowId() !== flow.id">
+          <span class="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-600">Flux 0{{ $index + 1 }}</span>
+          <span class="mt-2 block text-sm font-bold text-slate-900">{{ flow.title }}</span>
+          <span class="mt-1 block text-xs leading-5 text-slate-600">{{ flow.purpose }}</span>
+        </button>
+      }
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.8fr)_minmax(18rem,0.8fr)]" aria-label="Diagramme et détails du système">
+    <div class="min-w-0 space-y-5">
+      <div class="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_14px_45px_-35px_rgba(15,23,42,0.45)]">
+        <div class="flex flex-col gap-2 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-600">Carte du système</p><h2 class="mt-1 text-sm font-bold text-slate-900">{{ activeFlow().title }}</h2></div>
+          <span class="inline-flex items-center gap-2 text-[10px] font-semibold text-slate-600"><span class="h-2 w-2 rounded-full bg-indigo-500"></span> Composants et connexions du flux sélectionné</span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 p-4 md:grid-cols-2 2xl:grid-cols-4" aria-label="Composants du système par couche">
+          @for (layer of layers; track layer.id) {
+            <section class="min-w-0 rounded-2xl border border-slate-200/80 bg-slate-50/70 p-3" [attr.aria-labelledby]="'layer-' + layer.id">
+              <div class="mb-3 flex items-start justify-between gap-2">
+                <div><h3 [id]="'layer-' + layer.id" class="text-[11px] font-bold uppercase tracking-wide text-slate-700">{{ layer.name }}</h3><p class="mt-0.5 text-[10px] text-slate-600">{{ layer.summary }}</p></div>
+                <span class="rounded-lg border px-2 py-1 text-[9px] font-bold" [class]="layerTone(layer.id)">{{ nodesForLayer(layer.id).length }}</span>
+              </div>
+              <div class="space-y-2">
+                @for (node of nodesForLayer(layer.id); track node.id) {
+                  <button type="button" (click)="selectNode(node)" [attr.aria-label]="'Sélectionner ' + node.name" [attr.aria-pressed]="selectedNodeId() === node.id" aria-describedby="selected-node-details"
+                    class="w-full rounded-xl border p-3 text-left outline-none transition duration-150 focus-visible:ring-2 focus-visible:ring-indigo-400 motion-reduce:transition-none"
+                    [class.border-indigo-300]="isNodeInFlow(node.id)" [class.bg-white]="isNodeInFlow(node.id)" [class.shadow-sm]="isNodeInFlow(node.id)"
+                    [class.border-slate-300]="!isNodeInFlow(node.id)" [class.bg-slate-100]="!isNodeInFlow(node.id)"
+                    [class.ring-2]="selectedNodeId() === node.id" [class.ring-indigo-400]="selectedNodeId() === node.id">
+                    <span class="block text-xs font-bold" [class.text-slate-900]="isNodeInFlow(node.id)" [class.text-slate-700]="!isNodeInFlow(node.id)">{{ node.name }}</span>
+                    <span class="mt-1 block break-words text-[10px] font-medium text-slate-600">{{ node.technology }}</span>
+                    <span class="mt-1 block text-[10px] leading-4 text-slate-600">{{ node.responsibility }}</span>
+                    @if (!isNodeInFlow(node.id)) {
+                      <span class="mt-1 block text-[10px] font-semibold text-slate-600">Hors du flux sélectionné</span>
+                    }
+                  </button>
+                }
+              </div>
+            </section>
+          }
+        </div>
+
+        <section class="border-t border-slate-100 px-5 py-4" aria-labelledby="connections-title">
+          <div class="flex flex-wrap items-baseline justify-between gap-2"><h3 id="connections-title" class="text-xs font-bold text-slate-800">Connexions du flux · {{ activeFlow().edgeIds.length }}</h3><span class="text-[10px] text-slate-600">Description textuelle accessible du diagramme</span></div>
+          <ol class="mt-3 grid grid-cols-1 gap-2 lg:grid-cols-2">
+            @for (edge of flowEdges(); track edge.id) {
+              <li class="rounded-xl border border-indigo-100 bg-indigo-50/50 p-3">
+                <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-slate-800"><span>{{ nodeName(edge.sourceNodeId) }}</span><span class="text-indigo-500" aria-hidden="true">→</span><span>{{ nodeName(edge.targetNodeId) }}</span><span class="rounded-full bg-white px-2 py-0.5 text-[9px] font-bold uppercase text-indigo-700">{{ edge.connectionType }}</span></p>
+                <p class="mt-1 text-[11px] leading-5 text-slate-700">{{ edge.description }}</p>
+              </li>
+            }
+          </ol>
+        </section>
+      </div>
+
+      <section class="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_14px_45px_-35px_rgba(15,23,42,0.45)]" aria-labelledby="flow-steps-title">
+        <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-600">Du besoin au résultat</p>
+        <h2 id="flow-steps-title" class="mt-1 text-base font-bold text-slate-900">{{ activeFlow().title }}</h2>
+        <p class="mt-1 text-sm text-slate-600">{{ activeFlow().purpose }}</p>
+        <ol class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          @for (step of activeFlow().steps; track $index) {
+            <li class="flex gap-3 rounded-2xl bg-slate-50 p-4">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">{{ $index + 1 }}</span>
+              <div><h3 class="text-xs font-bold text-slate-900">{{ step.title }}</h3><p class="mt-1 text-xs leading-5 text-slate-700">{{ step.explanation }}</p></div>
+            </li>
+          }
+        </ol>
+      </section>
+    </div>
+
+    <aside id="selected-node-details" class="h-fit rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_14px_45px_-35px_rgba(15,23,42,0.45)]" aria-labelledby="node-details-title" aria-live="polite">
+      <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-600">Inspection du composant</p>
+      <h2 id="node-details-title" class="mt-2 text-lg font-bold text-slate-950">{{ selectedNode().name }}</h2>
+      <span class="mt-2 inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold" [class]="layerTone(selectedNode().layerId)">{{ selectedNode().layerId }}</span>
+      <dl class="mt-5 space-y-4 text-xs">
+        <div><dt class="font-semibold text-slate-600">Technologie</dt><dd class="mt-1 leading-5 text-slate-800">{{ selectedNode().technology }}</dd></div>
+        <div><dt class="font-semibold text-slate-600">Responsabilité</dt><dd class="mt-1 leading-5 text-slate-800">{{ selectedNode().responsibility }}</dd></div>
+        <div><dt class="font-semibold text-slate-600">Description vérifiée</dt><dd class="mt-1 leading-5 text-slate-700">{{ selectedNode().description }}</dd></div>
+        <div><dt class="font-semibold text-slate-600">Présent dans le flux</dt><dd class="mt-1 text-slate-700">{{ isNodeInFlow(selectedNodeId()) ? 'Oui · flux sélectionné' : 'Non · autre parcours' }}</dd></div>
+      </dl>
+    </aside>
+  </section>
+
+  <section class="grid grid-cols-1 gap-4 lg:grid-cols-2" aria-label="État des capacités et feuille de route">
+    <article class="rounded-3xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/80 to-white p-5 shadow-sm"><div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span><h2 class="text-sm font-bold text-emerald-950">Capacités implémentées</h2></div><ul class="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-700 sm:grid-cols-2"><li>SQLite FTS5 lexical, sans embeddings</li><li>Citations reliées aux chunks retrouvés</li><li>Historique d’inférence metadata-only</li><li>Agent distinct à outils lecture seule</li></ul></article>
+    <article class="rounded-3xl border border-amber-200/80 bg-gradient-to-br from-amber-50/80 to-white p-5 shadow-sm"><div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span><h2 class="text-sm font-bold text-amber-950">Pistes futures · non implémentées</h2></div><ul class="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-700 sm:grid-cols-2"><li>Intégration n8n</li><li>Prévision des coûts IA</li><li>Authentification et multi-tenancy</li><li>Embeddings / recherche sémantique</li></ul></article>
+  </section>
+</section>
