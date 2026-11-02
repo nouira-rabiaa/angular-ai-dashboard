@@ -23,7 +23,7 @@ Obtain rates from the provider's current pricing documentation before configurin
 
 The server applies additive numbered SQL migrations from `server/migrations/` after creating the existing document tables. Migration `001_inference_history.sql` creates `inference_history` and `inference_steps` plus indexes; it does not delete or rewrite existing form, document, or chunk records. The migration runner records applied filenames in `schema_migrations` and executes each migration transactionally. Inference rows contain metadata and ordered timings only. They never contain prompts, replies, excerpts, form payloads, headers, keys, or raw provider errors. A telemetry insert failure is logged with a generic message and does not fail an otherwise completed chat response. Partial traces from valid failed chat requests are also recorded; a disappearing document reference is set to null by the foreign key.
 
-Dashboard telemetry endpoints are disabled unless `DASHBOARD_TELEMETRY_LOCAL_ONLY=true`. The Express server binds to `127.0.0.1` by default and refuses non-loopback `HOST` values. In production, the telemetry opt-in must also be explicitly true, and the bind must remain loopback. Do not expose this unauthenticated demo through a reverse proxy, tunnel, public container port, or shared network interface. CORS is not authorization. The old `/api/submissions` and `/api/dashboard/history` endpoints remain for compatibility, but form rows now return the neutral title `Form submission`, never `form_data`.
+Dashboard telemetry endpoints are disabled unless `DASHBOARD_TELEMETRY_LOCAL_ONLY=true`. The Express server binds to `127.0.0.1` by default and refuses non-loopback `HOST` values. In production, the telemetry opt-in must also be explicitly true, and the bind must remain loopback. Do not expose this unauthenticated demo through a reverse proxy, tunnel, public container port, or shared network interface. CORS is not authorization. The old `/api/submissions` and `/api/dashboard/history` endpoints are retired and return HTTP 410 without stored data.
 
 Read-only Dashboard endpoints:
 
@@ -35,3 +35,7 @@ Read-only Dashboard endpoints:
 - `GET /api/dashboard/form-submissions?limit=25&offset=0&q=2026-10` returns only submission ID, date and status. Search accepts a numeric ID or ISO date prefix; form payloads are intentionally excluded.
 
 Date ranges are limited to 366 days and page sizes to 100. Unknown cost stays null; aggregate costs include only priced requests and report priced/unpriced counts separately. These measures reduce data exposure but do not replace authentication or multi-tenancy. The Dashboard must remain a local-only demo until a later phase supplies server-side identity and authorization.
+
+## Phase 4 FinOps
+
+The guarded `/api/dashboard/finops` endpoints reuse this history and configured pricing for calendar-day projections, simulations and separate observed/projected budget alerts. Migration `002_finops_budget.sql` adds a shared monthly budget without rewriting inference history. See [FINOPS.md](FINOPS.md) for formulas, sample requirements, API validation and coverage limits.

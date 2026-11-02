@@ -1,3 +1,4 @@
+import { FinopsComponent } from '../finops/finops.component';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -45,7 +46,7 @@ export interface CiStatus {
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, RouterLink,
+    CommonModule, FormsModule, RouterLink, FinopsComponent,
     LucideActivity, LucideArrowDownToLine, LucideCalendarDays,
     LucideChartNoAxesCombined, LucideChevronLeft, LucideChevronRight,
     LucideCircleCheck, LucideCircleDollarSign, LucideDatabase,

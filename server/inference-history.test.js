@@ -62,7 +62,8 @@ test('additive idempotent migration preserves legacy submissions and documents',
 
   assert.equal(db.prepare('SELECT COUNT(*) AS count FROM form_submissions').get().count, 1);
   assert.equal(db.prepare('SELECT filename FROM documents_history').get().filename, 'legacy.pdf');
-  assert.equal(db.prepare('SELECT COUNT(*) AS count FROM schema_migrations').get().count, 1);
+  assert.equal(db.prepare('SELECT COUNT(*) AS count FROM schema_migrations').get().count, 2);
+  assert.ok(db.prepare("SELECT version FROM schema_migrations WHERE version = '002_finops_budget.sql'").get());
   assert.equal(db.prepare('SELECT COUNT(*) AS count FROM inference_history').get().count, 0);
   db.close();
 });

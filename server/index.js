@@ -7,6 +7,7 @@ import Database from 'better-sqlite3';
 import { createAgentRouteHandler, createAgentRunner } from './agent.js';
 import { createChatHandler } from './chat-handler.js';
 import { createDashboardHandlers, registerDashboardRoutes } from './dashboard-routes.js';
+import { createFinopsHandlers, registerFinopsRoutes } from './finops.js';
 import { runMigrations } from './migration-runner.js';
 import { validateLocalDemoBinding } from './local-demo-security.js';
 import { createCorsPolicy, parseCorsAllowedOrigins } from './cors-policy.js';
@@ -67,7 +68,9 @@ const handleAgentRun = createAgentRouteHandler(runAgent);
 
 registerLegacyHistoryRoutes(app);
 
-registerDashboardRoutes(app, createDashboardHandlers(db, { localOnlyEnabled: localTelemetryEnabled }));
+const dashboardHandlers = createDashboardHandlers(db, { localOnlyEnabled: localTelemetryEnabled });
+registerDashboardRoutes(app, dashboardHandlers);
+registerFinopsRoutes(app, createFinopsHandlers(db), dashboardHandlers.middleware);
 
 // 1. Route Chat LLM avec support RAG
 app.post('/api/chat', createChatHandler({ groq, db }));

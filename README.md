@@ -2,81 +2,100 @@
 
 > Conçu et développé par **Rabiaa NOUIRA**
 
-An enterprise-grade AI dashboard featuring a real-time **RAG (Retrieval-Augmented Generation)** pipeline, **FinOps telemetry**, **dynamic form generation**, and client-side intelligence, built with **Angular 19** and a **Node.js BFF (Backend-For-Frontend)** architecture.
-
----
+Dashboard Angular 19 et BFF Node.js/Express : RAG lexical avec citations, génération de formulaires et suivi/prévision des coûts IA. Démonstration locale sans authentification utilisateur. La Phase 5 (agent de support client) n’est pas implémentée par la Phase 4.
 
 ## 🏗️ Architecture & Technical Stack
 
-[ Angular 19 (Standalone & Signals) ] <---> [ Node.js / Express BFF ] <---> [ LLM API / Groq / OpenAI ]
-|                                         |
-[ Transformers.js ]                         [ Vector RAG / SQLite ]
+- **Frontend :** Angular 19 standalone, Signals, Reactive Forms, Tailwind CSS, cinq routes chargées à la demande.
+- **Backend :** Express, Groq, Multer, pdf-parse, better-sqlite3.
+- **RAG :** PDF/TXT/CSV → texte → segments de 400 caractères maximum → SQLite FTS5 `MATCH`, classement BM25 → contexte Groq. Aucun embedding ni recherche vectorielle. Les citations valident des références de passages, pas l’exactitude factuelle des réponses.
+- **Observabilité :** tokens retournés par Groq, durées mesurées côté serveur et coûts estimés à partir des tarifs configurés. `/api/tokens` utilise séparément tiktoken; le service Transformers.js de sentiment n’est pas consommé par les parcours actuels.
 
-* **Front-End :** Angular 19 (Standalone Components, Signals pour une réactivité granulaire), SCSS modulaire.
-* **Back-End (BFF) :** Node.js, Express, Multer (gestion des flux binaires multipart), Better-SQLite3.
-* **AI & Intelligence Pipeline :** 
-  * *RAG & Vector Search :* Découpage intelligent (*Chunking*), calcul de similarité vectorielle (**Cosine Similarity**).
-  * *Token Tracking & Optimization :* **tiktoken** pour le décompte précis des tokens et l'analyse des coûts.
-  * *Client-Side ML :* **Transformers.js** pour l'exécution de modèles directement dans le navigateur (WebAssembly/WebGPU).
-
----
+Voir [ARCHITECTURE](docs/ARCHITECTURE.md), [TECHNIQUES](docs/TECHNIQUES.md) et [FinOps Phase 4](docs/FINOPS.md).
 
 ## ✨ Key Features & Deep Dive
 
-### 1. RAG Pipeline & Semantic Search
-* **Ingestion de documents :** Support des formats PDF et CSV via un système de parsing asynchrone sécurisé par le BFF.
-* **Recherche Sémantique & Similarité Cosinus :** Calcul mathématique de la pertinence contextuelle pour injecter uniquement les fragments de texte pertinents au LLM, éliminant ainsi les hallucinations.
-* **Traçabilité UI :** Affichage en temps réel de badges visuels de similarité (ex: `Cosine Similarity: 71.3%`) directement dans l'interface de chat.
+### 1. RAG Pipeline & Recherche Lexicale
 
-### 2. Real-Time FinOps & Observability Dashboard
-* **Indicateurs de production pilotés par Angular Signals :**
-  * **Latence Moyenne (ms) :** Suivi de la réactivité de bout en bout de l'inférence.
-  * **Consommation de Tokens :** Suivi granulaire via *tiktoken*.
-  * **Coût Estimé ($) :** Calcul dynamique en temps réel du coût des requêtes API.
-  * **Taux de Succès (%) :** Indicateur de résilience et de haute disponibilité.
+Les passages sont persistés dans SQLite, avec une portée par document ou tous documents. Le serveur envoie jusqu’à quatre passages à Groq et renvoie les sources citées/non citées. Sans passage retrouvé, il demande une réponse générale, sans prétendre à un fondement documentaire. Les anciens libellés UI évoquant la vectorisation ne décrivent pas le pipeline réel.
+
+### 2. FinOps & Prévision des dépenses — Phase 4
+
+Dans **Dashboard → Vue d’ensemble**, le suivi existant permet de filtrer les périodes, consulter les tokens/coûts par requête et l’historique journalier. Le panneau FinOps ajoute :
+
+- Coût observé **estimé** du mois UTC, couverture tarifée et sous-totaux par modèle.
+- Projections sur 7 jours, 30 jours et fin de mois; comparaison graphique de l’historique et des coûts quotidiens projetés, avec tableau accessible.
+- Budget mensuel partagé persisté dans SQLite et alertes locales à **80 % / 100 %**, séparées entre observé et projeté.
+- Simulation sans appel IA : requêtes/jour, tokens moyens d’entrée/sortie, modèle aux tarifs configurés et budget de scénario.
+- États chargement, erreur, historique vide, **Données insuffisantes** et coûts indisponibles. Aucun tarif par défaut ni coût inconnu remplacé par zéro.
+
+**Formule :** moyenne journalière des coûts des jours UTC terminés (fenêtre maximale de 30 jours), puis multiplication par l’horizon. Minimum : 7 jours calendaires, 10 requêtes tarifées, 3 jours actifs et 100 % de couverture de coût dans l’échantillon. La fin de mois tient compte du mois civil et évite de compter deux fois le jour courant. Les détails, limites et règles de couverture figurent dans [FINOPS.md](docs/FINOPS.md).
+
+Les estimations ne sont **jamais** une facture. La couverture est limitée aux traces `/api/chat` persistées, sans garantie de couvrir tous les appels ou tentatives Groq. Aucune notification externe n’est envoyée.
 
 ### 3. Dynamic Form Generation & SQLite Persistence
-* **Génération de formulaires à la volée :** L'IA analyse les requêtes textuelles (ex: "génère un formulaire de contact") et retourne un schéma JSON structuré.
-* **Rendu Dynamique :** Angular interprète ce schéma pour instancier les composants de formulaires de manière dynamique.
-* **Persistance Sécurisée :** Enregistrement structuré des données validées dans une base de données **SQLite** en utilisant des requêtes préparées (*Prepared Statements*) pour contrer les injections SQL.
 
----
+La génération retourne un schéma JSON interprété par Angular. La soumission est une action distincte, persistée avec des paramètres SQL liés. Les formulaires ne récupèrent pas automatiquement le contexte RAG. L’Agent Workspace existant reste distinct du chat et n’est pas un agent de support client Phase 5.
 
 ## 🛡️ Best Practices & Engineering Standards
 
-* **Separation of Concerns (SoC) :** Isolation stricte des responsabilités entre les services HTTP Angular, les routes du BFF Node.js et la logique de persistance.
-* **Defensive UI/UX :** Gestion rigoureuse des états de chargement (`isLoading = signal(false)`) garantie à la fois dans les blocs de succès et d'erreur pour éviter les bugs de boutons figés (*double-click prevention*).
-* **Sécurisation des secrets :** Masquage des clés d'API sensibles derrière la couche BFF Node.js.
-
----
+- Clé Groq côté serveur; pas de clé nécessaire pour les calculs FinOps ou leurs tests.
+- BFF lié au loopback; télémétrie et FinOps activés uniquement par configuration explicite. CORS n’est pas une authentification : ne pas exposer cette démonstration par tunnel ou reverse proxy public.
+- Paramètres numériques validés côté serveur. Budget partagé entre utilisateurs de la même base locale, sans isolation multi-utilisateur.
+- Aucune modification du pipeline FTS5/BM25 par la Phase 4; migration additive `002_finops_budget.sql`.
 
 ## 🛠️ Getting Started Locally
 
-### Prerequisites
-* Node.js (v18+ recommandé)
-* Angular CLI (v19)
-* Clé API fournisseur LLM (Groq / OpenAI)
+Utiliser Node.js 24 (comme la CI). Depuis la racine :
 
-### 1. Clone the repository
 ```bash
-git clone [https://github.com/nouira-rabiaa/angular-ai-dashboard.git](https://github.com/nouira-rabiaa/angular-ai-dashboard.git)
-cd angular-ai-dashboard
-2. Configure and Run the Backend (BFF)
-Bash
+npm ci
+(cd client && npm ci --legacy-peer-deps)
+(cd server && npm ci)
+```
+
+Configurer `server/.env` localement (ne pas le committer) :
+
+```dotenv
+GROQ_API_KEY=<votre-cle-locale>
+DASHBOARD_TELEMETRY_LOCAL_ONLY=true
+HOST=127.0.0.1
+PORT=3000
+```
+
+Ajouter `GROQ_MODEL_PRICING` avec les identifiants exacts et tarifs USD **vérifiés par vos soins** par million de tokens d’entrée/sortie, conformément à [la configuration](docs/FINOPS.md#configuration). Sans tarifs valides, les simulations sont indisponibles; les coûts historiques déjà persistés restent consultables. Redémarrer le BFF après une modification de configuration.
+
+Dans deux terminaux :
+
+```bash
+# Terminal backend
 cd server
-npm install
-# Crée un fichier .env avec tes variables :
-# PORT=3000
-# API_KEY=ta_cle_api_ici
-node server.js
-3. Run the Angular Front-End
-Bash
-cd ../client
-npm install
-ng serve
-Ouvre ton navigateur à l'adresse : http://localhost:4200.
-👨‍💻 Author
-Rabiaa NOUIRA
-Enterprise Full-Stack & AI Engineer
-📝 License
-Ce projet est open-source et mis à disposition sous la licence MIT.
+npm start
+```
+
+```bash
+# Terminal frontend
+cd client
+npm start
+```
+
+Ouvrir `http://localhost:4200/dashboard`. SQLite est créé au démarrage dans le répertoire de travail du serveur; les migrations s’appliquent automatiquement. Aucun ancien fichier de données n’est nécessaire.
+
+Pour utiliser FinOps : consulter la couverture et les projections, enregistrer un budget positif (champ vide pour le désactiver), puis sélectionner un modèle tarifé et lancer une simulation. Le budget de scénario est indépendant du budget persistant. Le panneau FinOps utilise le mois courant et sa fenêtre fixe, indépendamment du filtre de période des métriques existantes.
+
+### Validation sans appels IA payants
+
+```bash
+(cd server && npm test)
+(cd client && npm test -- --runInBand)
+(cd client && npm run build)
+git diff --check
+```
+
+## 👨‍💻 Author
+
+Rabiaa NOUIRA — Enterprise Full-Stack & AI Engineer
+
+## 📝 License
+
+MIT.

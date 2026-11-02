@@ -1,0 +1,80 @@
+<section aria-labelledby="finops-title" class="space-y-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+  <header class="flex flex-wrap items-center justify-between gap-3">
+    <div><p class="text-xs font-semibold uppercase text-indigo-700">FinOps · USD · UTC</p><h2 id="finops-title" class="mt-1 text-lg font-bold text-slate-900">Prévision des coûts IA</h2></div>
+    <button type="button" (click)="load()" [disabled]="state() === 'loading'" class="rounded-xl border px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 disabled:opacity-50">Actualiser FinOps</button>
+  </header>
+  <p class="text-xs text-slate-600">Estimations des appels RAG /api/chat enregistrés, jamais des montants facturés. Les autres appels IA et les coûts des tentatives échouées ne sont pas intégralement couverts.</p>
+  @if (state() === 'loading') { <p role="status">Chargement FinOps…</p> }
+  @else if (state() === 'error') { <p role="alert" class="text-rose-800">FinOps indisponible. Vérifiez l’activation de la télémétrie locale et réessayez.</p> }
+  @else {
+  @if (summary(); as data) {
+    <p class="text-xs text-slate-600">Mois UTC en cours : {{ data.monthStart }} → {{ data.today }}. Indépendant du filtre de période des métriques.</p>
+    @if (!data.sample.requestCount && !data.monthRequestCount) { <p role="status">Aucun historique de coûts enregistré.</p> }
+    @if (data.status === 'insufficient_data') { <p role="status" class="text-amber-900">Données insuffisantes : au moins 7 jours terminés, 10 requêtes tarifées et 3 jours actifs sont nécessaires.</p> }
+    @if (data.status === 'unavailable') { <p role="status" class="text-amber-900">Prévision indisponible : certains coûts historiques ne sont pas calculables. Aucun coût manquant n’est remplacé par zéro.</p> }
+    <p class="text-xs text-slate-600">Échantillon : {{ data.sample.days }} jours calendaires terminés ({{ data.sample.from || 'aucun début' }} → {{ data.sample.to }}), {{ data.sample.activeDays }} jours actifs, {{ data.sample.pricedRequestCount }} / {{ data.sample.requestCount }} requêtes tarifées. Hypothèse : activité et tarifs stables; les jours sans requête enregistrée comptent pour zéro.</p>
+    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <article class="rounded-2xl bg-emerald-50 p-4"><h3 class="text-xs font-semibold text-emerald-900">Coût observé estimé · mois</h3><p class="mt-2 font-bold">{{ cost(data.observedMonthUsd) }}</p><p class="mt-1 text-xs">{{ data.monthPricedRequestCount }} / {{ data.monthRequestCount }} tarifées · {{ data.monthCoverageComplete ? 'couverture complète des traces' : 'sous-total partiel uniquement' }}</p></article>
+      <article class="rounded-2xl bg-indigo-50 p-4"><h3 class="text-xs font-semibold">Projection sur 7 jours</h3><p class="mt-2 font-bold">{{ cost(data.projected7DaysUsd) }}</p></article>
+      <article class="rounded-2xl bg-indigo-50 p-4"><h3 class="text-xs font-semibold">Projection sur 30 jours</h3><p class="mt-2 font-bold">{{ cost(data.projected30DaysUsd) }}</p></article>
+      <article class="rounded-2xl bg-sky-50 p-4"><h3 class="text-xs font-semibold">Estimation de fin de mois</h3><p class="mt-2 font-bold">{{ cost(data.projectedMonthEndUsd) }}</p></article>
+    </div>
+    <section aria-labelledby="finops-chart-title" class="rounded-2xl border p-4">
+      <h3 id="finops-chart-title" class="font-semibold">Coûts quotidiens historiques et projetés</h3>
+      <p class="mt-1 text-xs text-slate-600">Vert : historique estimé · pointillés indigo : projection quotidienne constante. Consultez les valeurs exactes dans le tableau.</p>
+      @if (chart().length) {
+        <svg class="mt-3 h-48 w-full" viewBox="0 0 620 190" role="img" aria-label="Coûts quotidiens estimés et projections en USD; valeurs dans le tableau ci-dessous">
+          <line x1="30" x2="590" y1="155" y2="155" stroke="#cbd5e1" />
+          <text x="2" y="175" class="fill-slate-700 text-[10px]">0 USD</text>
+          <text x="30" y="188" class="fill-slate-700 text-[10px]">{{ chart()[0].date }}</text>
+          <text x="590" y="188" text-anchor="end" class="fill-slate-700 text-[10px]">{{ chart()[chart().length - 1].date }}</text>
+          @for (segment of segments(false); track $index) { <polyline [attr.points]="segment" fill="none" stroke="#047857" stroke-width="2" /> }
+          @for (segment of segments(true); track $index) { <polyline [attr.points]="segment" fill="none" stroke="#4338ca" stroke-width="2" stroke-dasharray="5 4" /> }
+          @for (point of chart(); track point.date) {
+            @if (point.y !== null) { <circle [attr.cx]="point.x" [attr.cy]="point.y" r="2" [attr.fill]="point.projected ? '#4338ca' : '#047857'"><title>{{ point.date }} : {{ cost(point.estimatedCostUsd) }} · {{ point.projected ? 'projeté' : 'observé estimé' }}</title></circle> }
+          }
+        </svg>
+        <details class="mt-2"><summary class="cursor-pointer text-sm font-semibold">Valeurs et dates du graphique</summary><div class="max-h-64 overflow-auto"><table class="mt-2 w-full text-left text-xs"><caption class="sr-only">Coûts quotidiens en USD</caption><thead><tr><th scope="col">Date UTC</th><th scope="col">Type</th><th scope="col">Coût estimé</th></tr></thead><tbody>@for (point of chart(); track point.date) { <tr><th scope="row" class="py-1">{{ point.date }}</th><td>{{ point.projected ? 'Projection' : 'Historique' }}</td><td>{{ cost(point.estimatedCostUsd) }}</td></tr> }</tbody></table></div></details>
+      } @else { <p class="mt-3 text-sm">Aucune série de coûts disponible.</p> }
+    </section>
+    <details class="rounded-2xl border p-4"><summary class="cursor-pointer font-semibold">Coûts estimés par modèle · mois courant</summary>
+      <div class="overflow-auto"><table class="mt-3 w-full text-left text-xs"><thead><tr><th scope="col">Modèle</th><th scope="col">Tarifées / total</th><th scope="col">Sous-total connu USD</th></tr></thead><tbody>@for (model of data.models; track model.model) { <tr><th scope="row" class="py-2">{{ model.model || 'Indisponible' }}</th><td>{{ model.pricedRequestCount }} / {{ model.requestCount }}</td><td>{{ cost(model.estimatedCostUsd) }}</td></tr> }</tbody></table></div>
+    </details>
+    <section aria-labelledby="finops-budget-title" class="space-y-3 rounded-2xl border p-4">
+      <h3 id="finops-budget-title" class="font-semibold">Budget mensuel partagé · USD</h3>
+      <form #budgetForm="ngForm" (ngSubmit)="saveBudget()" class="flex flex-wrap items-end gap-3">
+        <label class="text-sm">Budget (vide pour désactiver)<input name="monthlyBudget" type="number" min="0.00000001" max="1000000000" step="any" [(ngModel)]="budget" class="mt-1 block w-48 rounded-xl border p-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500" /></label>
+        <button [disabled]="saving() || budgetForm.invalid" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 disabled:opacity-50">{{ saving() ? 'Enregistrement…' : 'Enregistrer le budget' }}</button>
+      </form>
+      <p role="status" class="text-sm">{{ budgetMessage() }}</p>
+      @for (item of [{ title: 'Observé estimé', status: data.observedBudget }, { title: 'Projection fin de mois', status: data.projectedBudget }]; track item.title) {
+        <div><p class="text-sm font-semibold">{{ item.title }} : {{ alert(item.status) }} @if (item.status.percent !== null) { · {{ item.status.percent | number:'1.0-1' }} % }</p>
+          @if (item.status.percent !== null) { <progress class="mt-1 h-3 w-full" max="100" [value]="progress(item.status)" [attr.aria-label]="'Consommation du budget : ' + item.title"></progress> }
+        </div>
+      }
+      @if (!data.monthCoverageComplete) { <p class="text-xs text-amber-900">Les alertes observées reposent sur un minimum connu. L’absence d’alerte ne prouve pas le respect du budget.</p> }
+      <p class="text-xs text-slate-600">Enregistré dans SQLite pour les mois suivants jusqu’à modification. Aucune notification externe.</p>
+    </section>
+    <section aria-labelledby="finops-simulator-title" class="space-y-3 rounded-2xl border p-4">
+      <h3 id="finops-simulator-title" class="font-semibold">Simulateur budgétaire</h3>
+      @if (!data.pricing.length) { <p role="status">Simulation indisponible : aucun tarif valide configuré dans GROQ_MODEL_PRICING.</p> }
+      @else {
+        <form #scenarioForm="ngForm" (ngSubmit)="simulate()" class="grid gap-3 text-sm sm:grid-cols-2">
+          <label>Modèle<select name="model" [(ngModel)]="scenario.model" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" required class="mt-1 block w-full rounded-xl border p-2">@for (price of data.pricing; track price.model) { <option [value]="price.model">{{ price.model }} · entrée {{ price.inputUsdPerMillion }} / sortie {{ price.outputUsdPerMillion }} USD par million</option> }</select></label>
+          <label>Requêtes par jour<input name="requestsPerDay" type="number" min="0" max="1000000" step="1" required [(ngModel)]="scenario.requestsPerDay" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" class="mt-1 block w-full rounded-xl border p-2" /></label>
+          <label>Tokens moyens d’entrée<input name="inputTokens" type="number" min="0" max="10000000" step="any" required [(ngModel)]="scenario.inputTokens" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" class="mt-1 block w-full rounded-xl border p-2" /></label>
+          <label>Tokens moyens de sortie<input name="outputTokens" type="number" min="0" max="10000000" step="any" required [(ngModel)]="scenario.outputTokens" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" class="mt-1 block w-full rounded-xl border p-2" /></label>
+          <label>Budget du scénario USD (optionnel)<input name="scenarioBudget" type="number" min="0.00000001" max="1000000000" step="any" [(ngModel)]="scenario.monthlyBudgetUsd" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" class="mt-1 block w-full rounded-xl border p-2" /></label>
+          <button [disabled]="scenarioForm.invalid || simulationState() === 'loading'" class="self-end rounded-xl bg-indigo-600 px-4 py-2 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 disabled:opacity-50">Simuler sans appel IA</button>
+        </form>
+      }
+      @if (simulationState() === 'loading') { <p role="status">Calcul de la simulation…</p> }
+      @if (simulationState() === 'error') { <p role="alert">Simulation impossible : vérifiez les valeurs et réessayez.</p> }
+      @if (simulation(); as result) {
+        @if (result.status === 'unavailable') { <p role="status">Simulation indisponible : tarif non configuré ou résultat non calculable.</p> }
+        @else { <div role="status" class="space-y-1 text-sm"><p>Coût estimé par requête : {{ cost(result.costPerRequestUsd) }}</p><p>Coût mensuel projeté : {{ cost(result.monthlyCostUsd) }} ({{ result.monthDays }} jours dans le mois UTC courant)</p>@if (result.budget; as status) { <p>Budget simulé : {{ alert(status) }}</p> }</div> }
+      }
+    </section>
+  }
+  }
+</section>
