@@ -1,482 +1,140 @@
-<div class="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
-  
-  <!-- 🔹 EN-TÊTE PRINCIPAL -->
-  <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-sm shadow-indigo-200">
-        ⚡
-      </div>
-      <div>
-        <h1 class="text-base font-bold text-slate-900 tracking-tight">Tableau de Bord IA & Historique</h1>
-        <p class="text-xs text-slate-500">Vue d'ensemble de l'engine, des indexations et des soumissions SQLite.</p>
-      </div>
+<section class="mx-auto w-full max-w-[1500px] space-y-6 px-3 py-5 text-slate-800 sm:px-6 lg:py-7" aria-labelledby="dashboard-title">
+  <header class="flex flex-col gap-5 rounded-3xl border border-white bg-gradient-to-br from-white via-white to-indigo-50/70 p-5 shadow-[0_16px_50px_-36px_rgba(30,41,59,0.42)] sm:flex-row sm:items-center sm:justify-between sm:p-7">
+    <div>
+      <p class="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-[10px] font-bold uppercase text-indigo-700"><svg lucideSparkles class="h-3.5 w-3.5"></svg> Opérations IA</p>
+      <h1 id="dashboard-title" class="mt-3 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Centre de contrôle IA</h1>
+      <p class="mt-1 text-sm text-slate-500">Exécutions RAG, documents indexés et activité des formulaires.</p>
     </div>
-
-    <!-- Actions Globales -->
-    <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-      <span class="text-[11px] font-bold text-slate-500 uppercase">Rôle :</span>
-      <select 
-        [value]="userRole()" 
-        (change)="onRoleChange($event)"
-        class="bg-white border border-slate-200 text-slate-800 text-xs rounded-lg px-2 py-1 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer">
-        <option value="admin">🛡 Admin RAG (Tous les droits)</option>
-        <option value="contributor">✍️ Contributeur (Écriture)</option>
-        <option value="reader">👁️ Lecteur (Lecture seule)</option>
-      </select>
-    </div>
-      <button (click)="exportToCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition flex items-center gap-2 shadow-sm shadow-emerald-100">
-        <span>📥 Exporter ({{ submissions().length }})</span>
-      </button>
-      <button (click)="loadSubmissions()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition flex items-center gap-2 shadow-sm shadow-indigo-100">
-        <span>🔄 Actualiser</span>
-      </button>
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/80 px-3 py-2 shadow-sm">
+        <span class="h-2.5 w-2.5 rounded-full" [class.bg-emerald-500]="ciStatus().status === 'success'" [class.bg-rose-500]="ciStatus().status === 'failure'" [class.bg-amber-400]="ciStatus().status === 'running'" [class.bg-slate-400]="ciStatus().status === 'unknown'"></span>
+        <span class="text-xs font-semibold text-slate-700">{{ ciStatus().loading ? 'Vérification…' : ciStatus().message }}</span>
+        @if (ciStatus().runNumber) { <span class="text-[10px] text-slate-400">#{{ ciStatus().runNumber }} · {{ ciStatus().branch }}</span> }
+      </div>
+      <a [href]="githubActionsUrl()" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"><svg lucideChartNoAxesCombined class="h-4 w-4"></svg> GitHub Actions ↗</a>
     </div>
   </header>
 
-  <!-- 🔹 CONTENU PRINCIPAL -->
-  <main class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
+  <nav class="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-sm" aria-label="Sections du tableau de bord" role="tablist">
+    @for (view of views; track view.id) {
+      <button type="button" role="tab" [attr.aria-selected]="activeView() === view.id" (click)="selectView(view.id)"
+        class="whitespace-nowrap rounded-xl px-3.5 py-2.5 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-indigo-400 sm:text-sm"
+        [class.bg-indigo-600]="activeView() === view.id" [class.text-white]="activeView() === view.id" [class.shadow-md]="activeView() === view.id" [class.shadow-indigo-200]="activeView() === view.id"
+        [class.text-slate-500]="activeView() !== view.id" [class.hover:bg-slate-50]="activeView() !== view.id" [class.hover:text-slate-900]="activeView() !== view.id">
+        {{ view.label }}
+      </button>
+    }
+  </nav>
 
-    <!-- 📊 1. CARTES KPI -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      
-      <!-- KPI 1 -->
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-        <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Docs Vectorisés</p>
-          <h3 class="text-2xl font-black text-slate-900 mt-1">142</h3>
-        </div>
-        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">📁</div>
+  @if (activeView() === 'overview') {
+    <section role="tabpanel" aria-label="Overview" class="space-y-5">
+      <div class="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+        <label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Du <input #rangeFrom type="date" [value]="dateRange().from" class="mt-1 block rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-normal text-slate-700"></label>
+        <label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Au <input #rangeTo type="date" [value]="dateRange().to" class="mt-1 block rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-normal text-slate-700"></label>
+        <button type="button" (click)="setDateRange(rangeFrom.value, rangeTo.value)" class="inline-flex min-h-9 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-semibold text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"><svg lucideCalendarDays class="h-4 w-4"></svg> Appliquer</button>
+        <span class="text-[11px] text-slate-400">Mesures réelles des requêtes RAG conservées.</span>
       </div>
 
-      <!-- KPI 2 -->
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-        <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Requêtes IA (Mois)</p>
-          <h3 class="text-2xl font-black text-slate-900 mt-1">1,248</h3>
+      @if (overviewState() === 'loading') {
+        <p role="status" class="rounded-2xl border border-slate-200 bg-white py-12 text-center text-sm text-slate-500 shadow-sm">Chargement des métriques…</p>
+      } @else if (overviewState() === 'error') {
+        <div role="alert" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">Métriques indisponibles. Vérifiez que l’API de démonstration locale est activée.</div>
+      } @else if (metrics()) {
+        @let metric = metrics()!;
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+          <article class="group relative overflow-hidden rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 via-white to-white p-5 shadow-[0_12px_35px_-24px_rgba(91,33,182,0.55)] transition duration-200 hover:-translate-y-0.5 hover:shadow-lg motion-reduce:transform-none motion-reduce:transition-none"><div class="flex items-start justify-between"><div><p class="text-xs font-semibold text-violet-700">Requêtes IA</p><p class="mt-3 text-3xl font-bold tabular-nums text-slate-950">{{ metric.requestCount.toLocaleString('fr-FR') }}</p><p class="mt-1 text-[11px] text-slate-500">Période sélectionnée</p></div><span class="rounded-xl bg-violet-100 p-3 text-violet-700"><svg lucideSparkles class="h-5 w-5"></svg></span></div></article>
+          <article class="group relative overflow-hidden rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-white p-5 shadow-[0_12px_35px_-24px_rgba(217,119,6,0.45)] transition duration-200 hover:-translate-y-0.5 hover:shadow-lg motion-reduce:transform-none motion-reduce:transition-none"><div class="flex items-start justify-between"><div><p class="text-xs font-semibold text-amber-700">Latence moyenne</p><p class="mt-3 text-3xl font-bold tabular-nums text-slate-950">{{ metric.averageLatencyMs === null ? 'Indisponible' : (metric.averageLatencyMs.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' ms') }}</p><p class="mt-1 text-[11px] text-slate-500">Mesure serveur</p></div><span class="rounded-xl bg-amber-100 p-3 text-amber-700"><svg lucideTimer class="h-5 w-5"></svg></span></div></article>
+          <article class="group relative overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-white p-5 shadow-[0_12px_35px_-24px_rgba(5,150,105,0.45)] transition duration-200 hover:-translate-y-0.5 hover:shadow-lg motion-reduce:transform-none motion-reduce:transition-none"><div class="flex items-start justify-between"><div><p class="text-xs font-semibold text-emerald-700">Coût estimé · USD</p><p class="mt-3 text-3xl font-bold tabular-nums text-slate-950">{{ formatCost(metric.estimatedCostUsd) }}</p><p class="mt-1 text-[11px] text-slate-500">{{ metric.pricedRequestCount }} tarifées · {{ metric.unpricedRequestCount }} sans tarif</p></div><span class="rounded-xl bg-emerald-100 p-3 text-emerald-700"><svg lucideCircleDollarSign class="h-5 w-5"></svg></span></div></article>
+          <article class="group relative overflow-hidden rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50 via-white to-white p-5 shadow-[0_12px_35px_-24px_rgba(225,29,72,0.4)] transition duration-200 hover:-translate-y-0.5 hover:shadow-lg motion-reduce:transform-none motion-reduce:transition-none"><div class="flex items-start justify-between"><div><p class="text-xs font-semibold text-slate-600">Exécutions</p><p class="mt-3 text-3xl font-bold tabular-nums text-slate-950">{{ metric.successCount.toLocaleString('fr-FR') }} <span class="text-base text-emerald-600">OK</span></p><p class="mt-1 text-[11px] text-slate-500">{{ metric.errorCount }} erreur(s) · {{ metric.noMatchCount }} sans résultat</p></div><span class="rounded-xl bg-rose-100 p-3 text-rose-700"><svg lucideActivity class="h-5 w-5"></svg></span></div></article>
         </div>
-        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">⚡</div>
-      </div>
-
-      <!-- KPI 3 -->
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-        <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Coût API Estimé</p>
-          <h3 class="text-2xl font-black text-slate-900 mt-1">$3.45</h3>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+          <article class="flex items-center gap-4 rounded-2xl border border-sky-100 bg-gradient-to-br from-sky-50 via-white to-white p-4 shadow-[0_12px_35px_-24px_rgba(2,132,199,0.4)]"><span class="rounded-xl bg-sky-100 p-3 text-sky-700"><svg lucideDatabase class="h-5 w-5"></svg></span><div><p class="text-xs font-semibold text-sky-800">Documents indexés</p><p class="mt-1 text-xl font-bold tabular-nums">{{ documentTotal().toLocaleString('fr-FR') }}</p></div></article>
+          <article class="flex items-center gap-4 rounded-2xl border border-cyan-100 bg-gradient-to-br from-cyan-50 via-white to-white p-4 shadow-[0_12px_35px_-24px_rgba(8,145,178,0.4)]"><span class="rounded-xl bg-cyan-100 p-3 text-cyan-700"><svg lucideLayers class="h-5 w-5"></svg></span><div><p class="text-xs font-semibold text-cyan-800">Chunks indexés</p><p class="mt-1 text-xl font-bold tabular-nums">{{ documentChunksTotal().toLocaleString('fr-FR') }}</p></div></article>
+          <article class="flex items-center gap-4 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white p-4 shadow-[0_12px_35px_-24px_rgba(37,99,235,0.4)]"><span class="rounded-xl bg-blue-100 p-3 text-blue-700"><svg lucideArrowDownToLine class="h-5 w-5"></svg></span><div><p class="text-xs font-semibold text-blue-800">Tokens entrants</p><p class="mt-1 text-xl font-bold tabular-nums">{{ formatTokens(metric.inputTokens) }}</p></div></article>
+          <article class="flex items-center gap-4 rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-white p-4 shadow-[0_12px_35px_-24px_rgba(79,70,229,0.4)]"><span class="rounded-xl bg-indigo-100 p-3 text-indigo-700"><svg lucideSparkles class="h-5 w-5"></svg></span><div><p class="text-xs font-semibold text-indigo-800">Tokens sortants</p><p class="mt-1 text-xl font-bold tabular-nums">{{ formatTokens(metric.outputTokens) }}</p></div></article>
         </div>
-        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">💰</div>
-      </div>
-
-      <!-- KPI 4 -->
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-        <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Statut Pipeline</p>
-          <div class="flex items-center gap-2 mt-1">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="text-sm font-bold text-slate-900">Connecté</span>
-          </div>
-        </div>
-        <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-lg">🟢</div>
-      </div>
-
-    </div>
-<!-- 🚀 STATUT PIPELINE CI/CD (Réel via GitHub API) -->
-    <div class="bg-white border border-slate-200 px-5 py-4 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div class="flex items-center gap-3.5">
-        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg shadow-sm shadow-emerald-100">
-          ✓
-        </div>
-        <div>
-          <div class="flex flex-wrap items-center gap-2">
-            <h4 class="text-xs font-bold text-slate-900 tracking-wide">Pipeline CI/CD (GitHub Actions)</h4>
-            
-            @if (ciStatus().status === 'success') {
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                ● {{ ciStatus().message }}
-              </span>
-            } @else if (ciStatus().status === 'running') {
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
-                ● Build en cours...
-              </span>
+        <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_12px_40px_-32px_rgba(30,41,59,0.5)] sm:p-6">
+          <div class="flex flex-wrap items-baseline justify-between gap-2"><div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-600">Tendance réelle</p><h2 class="mt-1 text-base font-bold text-slate-900">Activité et latence quotidienne</h2></div><span class="text-[11px] text-slate-500">Le coût non tarifé reste indisponible.</span></div>
+          @if (timeseriesState() === 'loading') { <p role="status" class="py-6 text-center text-xs text-slate-500">Chargement des métriques quotidiennes…</p> }
+          @else if (timeseriesState() === 'error') { <p role="alert" class="py-6 text-center text-xs text-rose-700">Métriques quotidiennes indisponibles.</p> }
+          @else if (timeseries().length) {
+            @if (timeseries().length === 1) {
+              <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3"><div class="rounded-xl bg-slate-50 p-3"><p class="text-[10px] font-semibold uppercase text-slate-500">Date</p><p class="mt-1 text-sm font-bold">{{ chartXLabel(timeseries()[0].date) }}</p></div><div class="rounded-xl bg-amber-50 p-3"><p class="text-[10px] font-semibold uppercase text-amber-700">Latence</p><p class="mt-1 text-sm font-bold">{{ timeseries()[0].averageLatencyMs === null ? 'Indisponible' : (timeseries()[0].averageLatencyMs!.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' ms') }}</p></div><div class="rounded-xl bg-indigo-50 p-3"><p class="text-[10px] font-semibold uppercase text-indigo-700">Requêtes</p><p class="mt-1 text-sm font-bold">{{ timeseries()[0].requestCount.toLocaleString('fr-FR') }}</p></div></div>
             } @else {
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">
-                ✕ Build Échoué
-              </span>
+              <div class="mt-4 overflow-x-auto"><svg class="h-56 min-w-[480px] w-full overflow-visible" viewBox="0 0 640 220" role="img" aria-label="Courbe de latence issue des mesures quotidiennes">
+                <defs><linearGradient id="latency-area" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#6366f1" stop-opacity=".2"></stop><stop offset="100%" stop-color="#6366f1" stop-opacity="0"></stop></linearGradient></defs>
+                <line x1="24" y1="180" x2="620" y2="180" stroke="#e2e8f0" stroke-dasharray="3 5"></line><line x1="24" y1="125" x2="620" y2="125" stroke="#e2e8f0" stroke-dasharray="3 5"></line><line x1="24" y1="70" x2="620" y2="70" stroke="#e2e8f0" stroke-dasharray="3 5"></line>
+                @if (timeseries().length > 1) {
+                  <polygon [attr.points]="latencyChartArea(timeseries())" fill="url(#latency-area)"></polygon>
+                  <polyline [attr.points]="latencyChartPoints(timeseries())" fill="none" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                }
+                @for (point of timeseries(); track point.date; let index = $index) {
+                  <circle [attr.cx]="chartPosition(index, timeseries().length) * 5.92" [attr.cy]="180 - chartHeight(point.averageLatencyMs, timeseries()) * 1.35" r="5" fill="#4f46e5" stroke="white" stroke-width="3"><title>{{ chartXLabel(point.date) }} · {{ point.averageLatencyMs === null ? 'Indisponible' : (point.averageLatencyMs + ' ms') }} · {{ point.requestCount }} requêtes</title></circle>
+                  @if (index === 0 || index === timeseries().length - 1 || index % 5 === 0) { <text [attr.x]="chartPosition(index, timeseries().length) * 5.92" y="210" text-anchor="middle" class="fill-slate-400 text-[10px]">{{ chartXLabel(point.date) }}</text> }
+                }
+              </svg></div>
             }
-          </div>
-          <p class="text-xs text-slate-500 mt-0.5">
-            Branche : <code class="text-indigo-600 font-semibold">{{ ciStatus().branch || 'main' }}</code> 
-            @if (ciStatus().runNumber) {
-              <span>• Build #{{ ciStatus().runNumber }}</span>
-            }
-          </p>
+            <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-100 pt-3 text-[11px] text-slate-500"><span class="inline-flex items-center gap-1.5"><i class="h-2 w-2 rounded-full bg-indigo-500"></i> Latence mesurée</span><span class="inline-flex items-center gap-1.5"><i class="h-2 w-2 rounded-full bg-sky-500"></i> {{ totalRequests(timeseries()).toLocaleString('fr-FR') }} requêtes</span><span class="inline-flex items-center gap-1.5"><i class="h-2 w-2 rounded-full bg-emerald-500"></i> {{ totalPricedRequests(timeseries()) }} tarifées</span></div>
+          } @else { <p class="py-8 text-center text-xs text-slate-500">Aucune donnée d’exécution sur cette période.</p> }
         </div>
-      </div>
-
-     <div class="flex items-center gap-3">
-        <a 
-          [href]="getGitHubActionsUrl()" 
-          target="_blank"
-          rel="noopener noreferrer"
-          class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-2">
-          <span>Ouvrir GitHub Actions ↗</span>
-        </a>
-      </div>
-    </div>
-    <!-- 📈 2. GRAPHIQUES & ANALYTICS -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
-      <!-- Utilisation IA -->
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs lg:col-span-2 space-y-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-sm font-bold text-slate-900">Répartition des Usages IA</h3>
-            <p class="text-xs text-slate-500">Volume de requêtes par type de pipeline</p>
-          </div>
-          <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 rounded-lg text-slate-600">Ce mois</span>
-        </div>
-
-        <div class="space-y-3 pt-2">
-          <div>
-            <div class="flex justify-between text-xs font-semibold mb-1">
-              <span class="text-slate-700">RAG & Indexation Documents</span>
-              <span class="text-indigo-600">45%</span>
-            </div>
-            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-              <div class="bg-indigo-600 h-full rounded-full" style="width: 45%"></div>
-            </div>
-          </div>
-
-          <div>
-            <div class="flex justify-between text-xs font-semibold mb-1">
-              <span class="text-slate-700">Génération de Formulaires</span>
-              <span class="text-emerald-600">30%</span>
-            </div>
-            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-              <div class="bg-emerald-500 h-full rounded-full" style="width: 30%"></div>
-            </div>
-          </div>
-
-          <div>
-            <div class="flex justify-between text-xs font-semibold mb-1">
-              <span class="text-slate-700">Requêtes Directes LLM</span>
-              <span class="text-amber-500">25%</span>
-            </div>
-            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-              <div class="bg-amber-400 h-full rounded-full" style="width: 25%"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs text-slate-500">
-          <span>Total analysé : <strong class="text-slate-800">1,248 requêtes</strong></span>
-          <span class="text-emerald-600 font-bold">↑ +12.4% vs m-1</span>
-        </div>
-      </div>
-
-      <!-- Performance & Latence -->
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-bold text-slate-900">Performance & Latence LLM</h3>
-            <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 rounded-lg text-slate-600">7 derniers jours</span>
-          </div>
-          <p class="text-xs text-slate-500 mb-4">Temps de réponse moyen (en ms) par jour</p>
-
-          <!-- Barres simulées de latence -->
-          <div class="grid grid-cols-5 gap-2 items-end h-32 pt-4 px-2 border-b border-slate-100">
-            <div class="flex flex-col items-center gap-1">
-              <span class="text-[10px] font-bold text-slate-600">410ms</span>
-              <div class="w-full bg-indigo-100 rounded-t-lg h-[65%]"></div>
-              <span class="text-[10px] text-slate-400">Lun</span>
-            </div>
-            <div class="flex flex-col items-center gap-1">
-              <span class="text-[10px] font-bold text-slate-600">380ms</span>
-              <div class="w-full bg-indigo-200 rounded-t-lg h-[55%]"></div>
-              <span class="text-[10px] text-slate-400">Mar</span>
-            </div>
-            <div class="flex flex-col items-center gap-1">
-              <span class="text-[10px] font-bold text-slate-600">450ms</span>
-              <div class="w-full bg-indigo-600 rounded-t-lg h-[80%]"></div>
-              <span class="text-[10px] text-slate-400">Mer</span>
-            </div>
-            <div class="flex flex-col items-center gap-1">
-              <span class="text-[10px] font-bold text-slate-600">320ms</span>
-              <div class="w-full bg-indigo-100 rounded-t-lg h-[45%]"></div>
-              <span class="text-[10px] text-slate-400">Jeu</span>
-            </div>
-            <div class="flex flex-col items-center gap-1">
-              <span class="text-[10px] font-bold text-slate-600">342ms</span>
-              <div class="w-full bg-indigo-300 rounded-t-lg h-[50%]"></div>
-              <span class="text-[10px] text-slate-400">Ven</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex justify-between items-center pt-3 text-xs">
-          <span class="text-slate-500">Moyenne de la semaine : <strong class="text-slate-800">375 ms</strong></span>
-          <span class="text-emerald-600 font-bold">Optimal (&lt; 500ms)</span>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ⚡ 4. ACTIONS RAPIDES -->
-    <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
-      <h3 class="text-sm font-bold text-slate-900 tracking-wide mb-3">Actions Rapides & Workspaces</h3>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
-        <!-- Action 1 -->
-        <a routerLink="/generator" class="p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-indigo-50/50 hover:border-indigo-100 transition-all flex items-center justify-between group cursor-pointer text-left">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">✨</div>
-            <div>
-              <h4 class="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Lancer le Générateur</h4>
-              <p class="text-[11px] text-slate-500">Créer un formulaire dynamique par IA</p>
-            </div>
-          </div>
-          <span class="text-slate-400 group-hover:text-indigo-600">→</span>
-        </a>
-
-        <!-- Action 2 : Ingerer un Document (Sécurisé par RBAC) -->
-        @if (userRole() !== 'reader') {
-          <a routerLink="/documents" class="p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-blue-50/50 hover:border-blue-100 transition-all flex items-center justify-between group cursor-pointer text-left">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold">📁</div>
-              <div>
-                <h4 class="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Ingérer un Document</h4>
-                <p class="text-[11px] text-slate-500">Ajouter un PDF/TXT à la base RAG</p>
-              </div>
-            </div>
-            <span class="text-slate-400 group-hover:text-blue-600">→</span>
-          </a>
-        } @else {
-          <div class="p-4 rounded-xl border border-slate-100 bg-slate-100/60 opacity-60 flex items-center justify-between text-left cursor-not-allowed">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-lg bg-slate-200 text-slate-400 flex items-center justify-center font-bold">🔒</div>
-              <div>
-                <h4 class="text-xs font-bold text-slate-500">Ingérer un Document</h4>
-                <p class="text-[11px] text-slate-400">Verrouillé (Rôle Lecteur)</p>
-              </div>
-            </div>
-            <span class="text-slate-300">🚫</span>
-          </div>
-        }
-        <!-- Action 3 -->
-        <button (click)="scrollToRegistre()" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-emerald-50/50 hover:border-emerald-100 transition-all flex items-center justify-between group cursor-pointer text-left">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">🔍</div>
-            <div>
-              <h4 class="text-xs font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">Explorer les Logs</h4>
-              <p class="text-[11px] text-slate-500">Consulter l'historique d'inférence</p>
-            </div>
-          </div>
-          <span class="text-slate-400 group-hover:text-emerald-600">↓</span>
-        </button>
-
-      </div>
-    </div>
-
-    <!-- 📋 3. REGISTRE DES SOUMISSIONS & RAG -->
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-      
-      <!-- En-tête du Tableau & Recherche -->
-      <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-slate-50/50">
-        <div>
-          <h3 class="text-sm font-bold text-slate-900">Registre des Soumissions & RAG</h3>
-          <p class="text-xs text-slate-500">Historique complet synchronisé avec SQLite et scores de pertinence</p>
-        </div>
-
-        <!-- Barre de Recherche -->
-        <div class="relative w-full sm:w-80">
-          <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">🔍</span>
-          <input 
-            type="text" 
-            [value]="searchTerm()"
-            (input)="onSearchChange($event)"
-            placeholder="Rechercher dans l'ID, la date ou le contenu..." 
-            class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
-        </div>
-      </div>
-
-      <!-- Tableau des données -->
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              <th class="px-6 py-3.5">ID</th>
-              <th class="px-6 py-3.5">Type / Horodatage</th>
-              <th class="px-6 py-3.5">Contenu (Payload ou Fichier RAG) & Score RAG</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            @for (sub of filteredSubmissions(); track sub.id) {
-              <tr class="hover:bg-slate-50/60 transition">
-                
-                <!-- ID -->
-                <td class="px-6 py-4 text-xs font-bold text-indigo-600 whitespace-nowrap">
-                  #{{ sub.id }}
-                </td>
-
-                <!-- Type & Horodatage -->
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex flex-col gap-1">
-                    @if (sub.type === 'form') {
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 w-fit border border-emerald-200">
-                        ✨ Formulaire
-                      </span>
-                    } @else {
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 w-fit border border-blue-200">
-                        📄 Fichier PDF
-                      </span>
-                    }
-                    <!-- Bouton de Re-indexation à la volée (Sécurisé par RBAC) -->
-                      <button 
-                        (click)="triggerReindex(sub)"
-                        [disabled]="sub.isReindexing || userRole() === 'reader'"
-                        [title]="userRole() === 'reader' ? 'Accès refusé : Rôle Lecteur requis' : 'Relancer le découpage en chunks'"
-                        class="px-2.5 py-1 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 rounded-lg text-[11px] font-semibold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-                        <span [class.animate-spin]="sub.isReindexing">🔄</span>
-                        <span>{{ sub.isReindexing ? 'Indexation...' : 'Re-indexer' }}</span>
-                      </button>
-                    <span class="text-[11px] text-slate-400">{{ sub.createdAt || sub.created_at }}</span>
-                   
-                  </div>
-                </td>
-
-                <!-- Contenu & Score de Confiance RAG (Niveau Senior) -->
-                <td class="px-6 py-4 text-sm text-slate-700">
-                  <div class="flex flex-col gap-2.5">
-                    
-                    <!-- Badge de Score de Confiance RAG & Bouton Inspecteur -->
-                   <!-- Badge de Score de Confiance RAG & Badge FinOps (Tokens / Coût) -->
-                    <div class="flex flex-wrap items-center gap-2">
-                      @if (sub.confidenceScore !== undefined) {
-                        @if (sub.confidenceScore >= 0.85) {
-                          <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            🟢 Score : {{ (sub.confidenceScore * 100).toFixed(0) }}% (High Confidence)
-                          </span>
-                        } @else if (sub.confidenceScore >= 0.60) {
-                          <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                            🟡 Score : {{ (sub.confidenceScore * 100).toFixed(0) }}% (Moderate)
-                          </span>
-                        } @else {
-                          <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 animate-pulse">
-                            ⚠️ Risque d'hallucination (&lt; 60%)
-                          </span>
-                        }
-                      }
-
-                      <!-- 💰 Badge FinOps : Tokens & Coût unitaire -->
-                      @if (sub.tokensCount) {
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                          <span>⚡ {{ sub.tokensCount.toLocaleString() }} tokens</span>
-                          <span class="text-slate-400">•</span>
-                          <span class="text-emerald-700 font-bold">${{ sub.estimatedCost?.toFixed(4) }}</span>
-                        </span>
-                      }
-
-                      @if (sub.chunksList && sub.chunksList.length > 0) {
-                        <button 
-                          (click)="openChunkInspector(sub)" 
-                          class="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-2 transition cursor-pointer">
-                          Inspecter les Chunks ({{ sub.chunksList.length }})
-                        </button>
-                      }
-                    </div>
-
-                    <!-- Payload ou Fichier -->
-                    @if (sub.type && sub.type !== 'form') {
-                      <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs space-y-1">
-                        <div><strong>Fichier :</strong> {{ sub.title }}</div>
-                        <div><strong>Chunks indexés :</strong> {{ sub.chunks_count }}</div>
-                      </div>
-                    } @else {
-                      <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs font-mono text-slate-800 overflow-x-auto max-h-24">
-                        <pre class="whitespace-pre-wrap m-0">{{ sub.title }}</pre>
-                      </div>
-                    }
-                  </div>
-                </td>
-
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="3" class="px-6 py-10 text-center text-slate-400 text-xs italic">
-                  Aucune soumission trouvée dans le registre SQLite.
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pied de tableau -->
-      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
-        <span>Affichage de {{ filteredSubmissions().length }} éléments</span>
-        <span>Synchronisé avec SQLite</span>
-      </div>
-
-    </div>
-
-  </main>
-
-  <!-- 🔍 MODALE D'INSPECTION DES CHUNKS RAG -->
-  @if (selectedSubmissionForInspection(); as activeSub) {
-    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-150">
-        
-        <!-- En-tête de la modale -->
-        <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-          <div>
-            <h3 class="text-sm font-bold text-slate-900">Inspection du Moteur Sémantique (RAG Chunks)</h3>
-            <p class="text-xs text-slate-500">Soumission #{{ activeSub.id }} — Contexte injecté dans le LLM</p>
-          </div>
-          <button 
-            (click)="closeChunkInspector()" 
-            class="w-8 h-8 rounded-lg bg-slate-200/60 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center transition cursor-pointer">
-            ✕
-          </button>
-        </div>
-
-        <!-- Corps de la modale -->
-        <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-        <div class="grid grid-cols-2 gap-3">
-            <div class="bg-slate-100 p-3 rounded-xl text-xs flex flex-col">
-              <span class="font-semibold text-slate-700">Indicateur de Confiance :</span>
-              <span class="font-bold text-indigo-600 mt-1">{{ activeSub.confidenceScore ? (activeSub.confidenceScore * 100) + '%' : 'N/A' }}</span>
-            </div>
-            <div class="bg-slate-100 p-3 rounded-xl text-xs flex flex-col">
-              <span class="font-semibold text-slate-700">Consommation FinOps :</span>
-              <span class="font-bold text-emerald-600 mt-1">{{ activeSub.tokensCount || 0 }} tokens (${{ activeSub.estimatedCost?.toFixed(4) || '0.0000' }})</span>
-            </div>
-          </div>
-          <div class="space-y-2">
-            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Fragments extraits (Chunks) :</h4>
-            @if (activeSub.chunksList && activeSub.chunksList.length > 0) {
-              @for (chunk of activeSub.chunksList; track $index) {
-                <div class="p-3 bg-indigo-50/40 border border-indigo-100 rounded-xl text-xs font-mono text-slate-700 leading-relaxed">
-                  {{ chunk }}
-                </div>
-              }
-            } @else {
-              <p class="text-xs text-slate-400 italic">Aucun chunk textuel associé à cette entrée.</p>
-            }
-          </div>
-        </div>
-
-        <!-- Pied de page de la modale -->
-        <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
-          <button 
-            (click)="closeChunkInspector()" 
-            class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-medium transition shadow-xs cursor-pointer">
-            Fermer l'inspecteur
-          </button>
-        </div>
-
-      </div>
-    </div>
+      }
+    </section>
   }
 
-</div>
+  @if (activeView() === 'inferences') {
+    <section role="tabpanel" aria-label="Historique des exécutions IA" class="space-y-4">
+      <header class="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-end sm:justify-between"><div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-600">Traçabilité</p><h2 class="mt-1 text-lg font-bold text-slate-900">Historique des exécutions IA</h2><p class="mt-1 text-xs text-slate-500">Métadonnées des appels RAG · {{ dateRange().from }} → {{ dateRange().to }}</p></div>
+      <div class="flex flex-wrap gap-2">
+        <label class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Statut<select [ngModel]="inferenceStatus()" (ngModelChange)="inferenceStatus.set($event); applyInferenceFilters()" class="mt-1 block rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium normal-case text-slate-700 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"><option value="">Tous</option><option value="success">Succès</option><option value="no_match">Sans résultat</option><option value="error">Erreur</option></select></label>
+        <label class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Portée<select [ngModel]="inferenceScope()" (ngModelChange)="inferenceScope.set($event); applyInferenceFilters()" class="mt-1 block rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium normal-case text-slate-700 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"><option value="">Toutes</option><option value="document">Document</option><option value="all">Tous les documents</option></select></label>
+      </div></header>
+      @if (inferenceState() === 'loading') { <p role="status" class="rounded-2xl border border-slate-200 bg-white py-12 text-center text-sm text-slate-500 shadow-sm">Chargement de l’historique IA…</p> }
+      @else if (inferenceState() === 'error') { <p role="alert" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">Historique IA indisponible.</p> }
+      @else if (!inferenceItems().length) { <p class="rounded-2xl border border-slate-200 bg-white py-12 text-center text-sm text-slate-500 shadow-sm">Aucune exécution pour ces filtres.</p> }
+      @else {
+        <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm"><table class="w-full min-w-[1050px] text-left text-xs"><thead class="border-b border-slate-100 bg-slate-50/80 text-[10px] uppercase tracking-wide text-slate-500"><tr><th class="p-4">Date / Trace ID</th><th>État</th><th>Modèle</th><th>Portée</th><th>Durée</th><th>Tokens entrée / sortie / total</th><th>Coût estimé</th><th></th></tr></thead><tbody>
+          @for (item of inferenceItems(); track item.traceId) { <tr class="border-b border-slate-100 transition hover:bg-indigo-50/40"><td class="p-4"><div class="font-medium text-slate-700">{{ item.timestamp | date:'medium':'':'fr-FR' }}</div><code class="mt-1 block max-w-48 truncate text-[10px] text-slate-400" [title]="item.traceId">{{ item.traceId }}</code></td><td><span class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold" [class.bg-emerald-50]="item.status === 'success'" [class.text-emerald-700]="item.status === 'success'" [class.bg-amber-50]="item.status === 'no_match'" [class.text-amber-700]="item.status === 'no_match'" [class.bg-rose-50]="item.status === 'error'" [class.text-rose-700]="item.status === 'error'">{{ item.status === 'success' ? 'Succès' : item.status === 'error' ? 'Erreur' : 'Sans résultat' }}</span></td><td class="max-w-40 break-all font-medium text-slate-700">{{ item.modelIdentifier || 'Indisponible' }}</td><td class="text-slate-600">{{ item.scope === 'document' ? ('Document #' + item.documentId) : 'Tous documents' }}</td><td class="font-semibold tabular-nums">{{ item.totalDurationMs.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) }} ms</td><td class="tabular-nums text-slate-600">{{ formatTokens(item.inputTokens) }} / {{ formatTokens(item.outputTokens) }} / {{ formatTokens(item.totalTokens) }}</td><td class="font-semibold">{{ formatCost(item.estimatedCostUsd) }}<div class="mt-1 text-[10px] font-normal text-slate-400">{{ item.pricingSource === 'configured' ? 'Estimation configurée' : 'Sans tarif' }}</div></td><td><button type="button" (click)="openTrace(item)" class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-semibold text-indigo-700 outline-none transition hover:bg-indigo-100 focus-visible:ring-2 focus-visible:ring-indigo-400"><svg lucideFileClock class="h-3.5 w-3.5"></svg> Étapes</button></td></tr> }
+        </tbody></table></div>
+        <footer class="flex items-center justify-between text-xs text-slate-500"><span>{{ inferencePageLabel() }} exécutions</span><div class="flex gap-2"><button aria-label="Page précédente" (click)="pageInferences(-1)" [disabled]="inferenceOffset() === 0" class="rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:opacity-40"><svg lucideChevronLeft class="h-4 w-4"></svg></button><button aria-label="Page suivante" (click)="pageInferences(1)" [disabled]="inferenceOffset() + pageSize >= inferenceTotal()" class="rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:opacity-40"><svg lucideChevronRight class="h-4 w-4"></svg></button></div></footer>
+      }
+      @if (selectedTrace(); as trace) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4" role="dialog" aria-modal="true" aria-label="Execution steps">
+          <article class="max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-7"><header class="flex items-start justify-between gap-4"><div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-600">Trace détaillée</p><h2 class="mt-1 text-lg font-bold">Étapes d’exécution</h2><code class="break-all text-xs text-slate-400">{{ trace.traceId }}</code></div><button (click)="closeTrace()" aria-label="Fermer les détails" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-indigo-400">Fermer</button></header>
+            <dl class="mt-5 grid grid-cols-2 gap-3 text-xs"><div class="rounded-xl bg-slate-50 p-3"><dt class="text-slate-500">État</dt><dd class="mt-1 font-semibold">{{ trace.status }}</dd></div><div class="rounded-xl bg-slate-50 p-3"><dt class="text-slate-500">Modèle</dt><dd class="mt-1 break-all font-semibold">{{ trace.modelIdentifier || 'Indisponible' }}</dd></div><div class="rounded-xl bg-sky-50 p-3"><dt class="text-sky-700">Tokens entrée / sortie / total</dt><dd class="mt-1 font-semibold">{{ formatTokens(trace.inputTokens) }} / {{ formatTokens(trace.outputTokens) }} / {{ formatTokens(trace.totalTokens) }}</dd></div><div class="rounded-xl bg-emerald-50 p-3"><dt class="text-emerald-700">Coût estimé</dt><dd class="mt-1 font-semibold">{{ formatCost(trace.estimatedCostUsd) }}</dd></div></dl>
+            <ol class="mt-5 space-y-2 border-l border-slate-200 pl-4">@for (step of trace.steps; track step.stepIndex) { <li><span class="font-semibold">{{ step.stepIndex + 1 }}. {{ step.name }}</span><span class="ml-2 text-slate-500">{{ step.status }} · {{ step.durationMs.toLocaleString(undefined, { maximumFractionDigits: 2 }) }} ms</span></li> }</ol>
+            <p class="mt-4 text-[11px] text-slate-500">Métadonnées uniquement. Les prompts, réponses et extraits ne sont pas conservés ici.</p>
+          </article>
+        </div>
+      }
+    </section>
+  }
+
+  @if (activeView() === 'documents') {
+    <section role="tabpanel" aria-label="Documents" class="space-y-4">
+      <header class="flex flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"><div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-sky-700">Base documentaire</p><h2 class="mt-1 text-lg font-bold text-slate-900">Documents indexés</h2><p class="mt-1 text-xs text-slate-500">{{ documentTotal().toLocaleString('fr-FR') }} documents · {{ documentChunksTotal().toLocaleString('fr-FR') }} chunks persistés</p></div><a routerLink="/generator" class="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 px-4 text-xs font-semibold text-white shadow-md shadow-sky-200 outline-none transition hover:from-sky-700 hover:to-indigo-700 focus-visible:ring-2 focus-visible:ring-sky-400"><svg lucideFileText class="h-4 w-4"></svg> Ajouter un document</a></header>
+      @if (documentState() === 'loading') { <p role="status" class="rounded-2xl border border-slate-200 bg-white py-12 text-center text-sm text-slate-500 shadow-sm">Chargement des documents…</p> }
+      @else if (documentState() === 'error') { <p role="alert" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">Documents indisponibles.</p> }
+      @else if (!documents().length) { <p class="rounded-2xl border border-slate-200 bg-white py-12 text-center text-sm text-slate-500 shadow-sm">Aucun document indexé.</p> }
+      @else {
+        <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm"><table class="w-full min-w-[700px] text-left text-xs"><thead class="border-b border-slate-100 bg-slate-50/80 text-[10px] uppercase tracking-wide text-slate-500"><tr><th class="p-4">Fichier</th><th>Type</th><th>Indexation</th><th>Date</th><th>Chunks</th><th>Caractères</th></tr></thead><tbody>@for (doc of documents(); track doc.documentId) { <tr class="border-b border-slate-100 transition hover:bg-sky-50/40"><td class="p-4"><div class="flex items-center gap-3"><span class="rounded-xl bg-sky-50 p-2 text-sky-700"><svg lucideFileText class="h-4 w-4"></svg></span><span class="max-w-[360px] break-all font-semibold text-slate-800">{{ doc.filename }}</span></div></td><td><span class="rounded-full bg-sky-50 px-2.5 py-1 text-[10px] font-bold uppercase text-sky-700">{{ doc.fileType }}</span></td><td><span class="rounded-full px-2.5 py-1 text-[10px] font-bold" [class.bg-emerald-50]="doc.status.toLowerCase().includes('success')" [class.text-emerald-700]="doc.status.toLowerCase().includes('success')" [class.bg-amber-50]="!doc.status.toLowerCase().includes('success')" [class.text-amber-700]="!doc.status.toLowerCase().includes('success')">{{ doc.status }}</span></td><td class="text-slate-600">{{ doc.createdAt | date:'medium':'':'fr-FR' }}</td><td class="font-bold tabular-nums text-slate-800">{{ doc.chunksCount.toLocaleString('fr-FR') }}</td><td class="tabular-nums text-slate-600">{{ doc.characterCount === null ? 'Indisponible' : doc.characterCount.toLocaleString('fr-FR') }}</td></tr> }</tbody></table></div>
+        <footer class="flex items-center justify-between text-xs text-slate-500"><span>{{ documentPageLabel() }} documents</span><div class="flex gap-2"><button aria-label="Page précédente" (click)="pageDocuments(-1)" [disabled]="documentOffset() === 0" class="rounded-xl border border-slate-200 bg-white p-2 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:opacity-40"><svg lucideChevronLeft class="h-4 w-4"></svg></button><button aria-label="Page suivante" (click)="pageDocuments(1)" [disabled]="documentOffset() + pageSize >= documentTotal()" class="rounded-xl border border-slate-200 bg-white p-2 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:opacity-40"><svg lucideChevronRight class="h-4 w-4"></svg></button></div></footer>
+      }
+    </section>
+  }
+
+  @if (activeView() === 'forms') {
+    <section role="tabpanel" aria-label="Form Submissions" class="space-y-4">
+      <header class="flex flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:flex-row sm:items-end sm:justify-between"><div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-700">Activité métier</p><h2 class="mt-1 text-lg font-bold text-slate-900">Soumissions de formulaires</h2><p class="mt-1 text-xs text-slate-500">Affichage et export limités aux métadonnées. Les réponses privées restent masquées.</p></div><div class="flex flex-wrap gap-2"><label class="relative"><span class="sr-only">Rechercher par identifiant ou date</span><svg lucideSearch class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></svg><input #formSearch type="search" [value]="submissionSearch()" (keyup.enter)="applySubmissionSearch(formSearch.value)" placeholder="ID ou date ISO" class="min-h-10 w-44 rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-xs outline-none transition focus:border-indigo-300 focus:bg-white focus:ring-2 focus:ring-indigo-100"></label><button aria-label="Rechercher les soumissions" (click)="applySubmissionSearch(formSearch.value)" class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-indigo-400"><svg lucideSearch class="h-4 w-4"></svg> Chercher</button><button (click)="exportSubmissionsMetadata()" [disabled]="!submissions().length" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-emerald-600 px-3 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-400 disabled:opacity-40"><svg lucideArrowDownToLine class="h-4 w-4"></svg> Exporter</button></div></header>
+      @if (submissionState() === 'loading') { <p role="status" class="rounded-2xl border border-slate-200 bg-white py-12 text-center text-sm text-slate-500 shadow-sm">Chargement des soumissions…</p> }
+      @else if (submissionState() === 'error') { <p role="alert" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">Soumissions indisponibles.</p> }
+      @else if (!submissions().length) { <p class="rounded-2xl border border-slate-200 bg-white py-12 text-center text-sm text-slate-500 shadow-sm">Aucune soumission trouvée.</p> }
+      @else {
+        <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm"><table class="w-full text-left text-xs"><thead class="border-b border-slate-100 bg-slate-50/80 text-[10px] uppercase tracking-wide text-slate-500"><tr><th class="p-4">Identifiant</th><th>Date de soumission</th><th>État</th></tr></thead><tbody>@for (submission of submissions(); track submission.id) { <tr class="border-b border-slate-100 transition hover:bg-emerald-50/30"><td class="p-4 font-bold text-slate-800">#{{ submission.id }}</td><td class="text-slate-600">{{ submission.createdAt | date:'medium':'':'fr-FR' }}</td><td><span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700"><svg lucideCircleCheck class="h-3 w-3"></svg>{{ submission.status === 'submitted' ? 'Reçue' : submission.status }}</span></td></tr> }</tbody></table></div>
+        <footer class="flex items-center justify-between text-xs text-slate-500"><span>{{ submissionPageLabel() }} soumissions</span><div class="flex gap-2"><button aria-label="Page précédente" (click)="pageSubmissions(-1)" [disabled]="submissionOffset() === 0" class="rounded-xl border border-slate-200 bg-white p-2 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:opacity-40"><svg lucideChevronLeft class="h-4 w-4"></svg></button><button aria-label="Page suivante" (click)="pageSubmissions(1)" [disabled]="submissionOffset() + pageSize >= submissionTotal()" class="rounded-xl border border-slate-200 bg-white p-2 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:opacity-40"><svg lucideChevronRight class="h-4 w-4"></svg></button></div></footer>
+      }
+    </section>
+  }
+
+  @if (errorMessage()) { <p role="alert" class="border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{{ errorMessage() }}</p> }
+  <p class="border-l-2 border-amber-400 bg-amber-50 px-3 py-2 text-[11px] text-amber-900">Démo locale uniquement. L’accès à la télémétrie est désactivé sauf activation explicite via loopback. Ceci ne remplace pas l’authentification.</p>
+</section>
