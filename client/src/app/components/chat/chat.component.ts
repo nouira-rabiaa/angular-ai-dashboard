@@ -1,20 +1,27 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MarkdownComponent } from 'ngx-markdown';
 import { ApiService } from '../../services/api.service';
+import { ChatCostEstimate, ChatErrorResponse, ChatExecutionTrace, ChatSource, ChatUsage, ChatResponse } from '../../services/api.service';
 import { DynamicFormComponent } from '../dynamic-form/dynamic-form.component';
 import { DynamicFormSchema } from '../../models/dynamic-form.model';
 
 interface Message {
   sender: 'user' | 'ai';
   text?: string;
-  totalTokensUsed?: number;
   sentiment?: { label: string; score: number };
   documentName?: string;
   vectorMeta?: { score: string }; 
+  chatResponse?: boolean;
+  sources?: ChatSource[];
+  citationValidation?: ChatResponse['citationValidation'];
+  usage?: ChatUsage;
+  cost?: ChatCostEstimate;
+  executionTrace?: ChatExecutionTrace;
   formSchema?: DynamicFormSchema;
 }
+
+type RetrievalScope = 'active' | 'all';
 
 @Component({
   selector: 'app-chat',
@@ -32,18 +39,8 @@ export class ChatComponent {
   isLoading = signal<boolean>(false);
   isUploadingDoc = signal<boolean>(false);
   attachedDocument = signal<File | null>(null);
-
-  // Signaux de télémétrie & observabilité Enterprise
-  totalTokensUsed = signal<number>(1248);
-  averageLatency = signal<number>(342); // en millisecondes
-  successRate = signal<number>(100);    // en pourcentage
-  estimatedCost = computed(() => (this.totalTokensUsed() * 0.000002).toFixed(4));
-  
-  // Compteur de tokens en direct pour le prompt en cours de saisie
-  liveTokenCount = computed(() => {
-    const text = this.userPrompt().trim();
-    return text ? Math.ceil(text.length / 4) : null;
-  });
+  activeDocumentId = signal<number | null>(null);
+  retrievalScope = signal<RetrievalScope>('all');
 
   sendMessage() {
     const promptText = this.userPrompt().trim();
@@ -53,8 +50,6 @@ export class ChatComponent {
     this.messages.update(msgs => [...msgs, { sender: 'user', text: promptText }]);
     this.userPrompt.set('');
     this.isLoading.set(true);
-
-    const startTime = performance.now();
 
     const normalizedPrompt = promptText
       .toLowerCase()
@@ -71,9 +66,6 @@ export class ChatComponent {
       // 2A. Appel vers la route dédiée aux schémas de formulaires JSON
       this.apiService.generateFormSchema(promptText).subscribe({
         next: (res: any) => {
-          const latency = Math.round(performance.now() - startTime);
-          this.averageLatency.set(latency);
-
           const formSchema = res.schema || res;
 
           // On injecte formSchema pour activer <app-dynamic-form> dans le HTML
@@ -95,33 +87,79 @@ export class ChatComponent {
 
     } else {
       // 2B. Appel classique vers le Chat RAG (/api/chat)
-      this.apiService.sendChatPrompt(promptText).subscribe({
-        next: (res: any) => {
-          const latency = Math.round(performance.now() - startTime);
-          this.averageLatency.set(latency);
-
-          if (res.tokens) {
-            this.totalTokensUsed.update(val => val + res.tokens);
-          }
-
+      const documentId = this.retrievalScope() === 'active' ? this.activeDocumentId() : null;
+      this.apiService.sendChatPrompt(promptText, documentId).subscribe({
+        next: (res: ChatResponse) => {
           this.messages.update(msgs => [
             ...msgs,
             { 
               sender: 'ai', 
               text: res.reply, 
               totalTokensUsed: res.tokens,
-              documentName: res.documentName,
-              vectorMeta: res.vectorMeta
+              documentName: res.documentName ?? undefined,
+              vectorMeta: res.vectorMeta ?? undefined,
+              chatResponse: true,
+              sources: res.sources ?? [],
+              citationValidation: res.citationValidation,
+              usage: res.usage,
+              cost: this.toCostEstimate(res),
+              executionTrace: res.executionTrace
             }
           ]);
           this.isLoading.set(false);
         },
         error: (err) => {
           console.error('Erreur chat:', err);
+          const errorResponse = err.error as ChatErrorResponse | undefined;
+          this.messages.update(msgs => [...msgs, {
+            sender: 'ai',
+            text: errorResponse?.error || 'Chat request failed.',
+            chatResponse: true,
+            sources: [],
+            executionTrace: errorResponse?.executionTrace
+          }]);
           this.isLoading.set(false);
         }
       });
     }
+  }
+
+  private toCostEstimate(response: ChatResponse): ChatCostEstimate | undefined {
+    if (response.estimatedCostUsd === undefined) return undefined;
+    return {
+      estimatedCostUsd: response.estimatedCostUsd,
+      currency: response.currency ?? 'USD',
+      pricingModelId: response.pricingModelId ?? null,
+      pricingSource: response.pricingSource ?? null,
+      isEstimate: true,
+      unavailableReason: response.unavailableReason ?? null
+    };
+  }
+
+  formatTraceStepName(name: string): string {
+    switch (name) {
+      case 'request-validation': return 'Request validation';
+      case 'sqlite-fts5-retrieval': return 'SQLite FTS5 retrieval';
+      case 'context-preparation': return 'Context preparation';
+      case 'groq-inference': return 'Groq inference';
+      default: return name;
+    }
+  }
+
+  getStepDuration(trace: ChatExecutionTrace, name: string): string {
+    const step = trace.steps.find(item => item.name === name);
+    return step ? this.formatDuration(step.durationMs) : 'Not available';
+  }
+
+  formatDuration(durationMs: number): string {
+    if (!Number.isFinite(durationMs) || durationMs < 0) return 'Not available';
+    return `${durationMs.toLocaleString(undefined, { maximumFractionDigits: 2 })} ms`;
+  }
+
+  formatCost(cost?: number | null): string {
+    return typeof cost === 'number' && Number.isFinite(cost)
+      ? `$${cost.toFixed(8)} USD`
+      : 'Not available';
   }
 
   onFormSubmit(formData: any) {
@@ -143,7 +181,6 @@ export class ChatComponent {
     },
     error: (err) => {
       console.error('Erreur lors de la soumission', err);
-      this.successRate.update(rate => Math.max(0, rate - 5));
       this.messages.update(msgs => [
         ...msgs,
         { sender: 'ai', text: '❌ Erreur lors de l\'enregistrement des données du formulaire.' }
@@ -159,9 +196,11 @@ export class ChatComponent {
     this.isUploadingDoc.set(true);
 
     this.apiService.uploadDocument(file).subscribe({
-      next: (res: any) => {
+      next: (res) => {
         console.log('✅ Document uploadé et vectorisé avec succès :', res);
         this.attachedDocument.set(file);
+        this.activeDocumentId.set(res.documentId);
+        this.retrievalScope.set('active');
         this.isUploadingDoc.set(false);
         
         this.messages.update(msgs => [
@@ -182,5 +221,12 @@ export class ChatComponent {
 
   removeDocument() {
     this.attachedDocument.set(null);
+    this.activeDocumentId.set(null);
+    this.retrievalScope.set('all');
+  }
+
+  setRetrievalScope(scope: RetrievalScope): void {
+    if (scope === 'active' && this.activeDocumentId() === null) return;
+    this.retrievalScope.set(scope);
   }
 }

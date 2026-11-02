@@ -2,3 +2,10 @@
 node_modules/
 dist/
 .angular/
+# Local SQLite databases
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite
+*.sqlite3

@@ -6,9 +6,91 @@ import { map } from 'rxjs/operators';
 
 
 export interface DocumentParseResponse {
+  documentId: number;
   filename: string;
   text: string;
   characterCount: number;
+  chunksGenerated?: number;
+}
+
+export interface ChatSource {
+  chunkId: number;
+  documentId: number;
+  filename: string;
+  label: string;
+  excerpt: string;
+  excerptTruncated?: boolean;
+  pageNumber?: number;
+  startOffset?: number | null;
+  endOffset?: number | null;
+  rank?: number;
+  lexicalRank?: number;
+  cited?: boolean;
+}
+
+export interface ExecutionTraceStep {
+  name: string;
+  status: 'success' | 'no_match' | 'error';
+  durationMs: number;
+}
+
+export interface ChatExecutionTrace {
+  traceId: string;
+  status: 'success' | 'no_match' | 'error';
+  totalDurationMs: number;
+  steps: ExecutionTraceStep[];
+  retrieval: {
+    strategy: 'sqlite-fts5';
+    retrievedChunkCount: number;
+    scope: 'document' | 'all';
+    documentId: number | null;
+  };
+  modelIdentifier: string | null;
+  timestamp: string;
+}
+
+export interface ChatUsage {
+  inputTokens: number | null;
+  outputTokens: number | null;
+  totalTokens: number | null;
+  source: 'provider' | 'unavailable';
+}
+
+export interface ChatCostEstimate {
+  estimatedCostUsd: number | null;
+  currency: 'USD';
+  pricingModelId: string | null;
+  pricingSource: 'configured' | null;
+  isEstimate: true;
+  unavailableReason: string | null;
+}
+
+export interface ChatResponse {
+  reply: string;
+  tokens?: number;
+  documentName?: string | null;
+  vectorMeta?: { score: string } | null;
+  retrievalMeta?: { strategy: string; resultCount: number };
+  sources?: ChatSource[];
+  citationValidation?: {
+    validLabels: string[];
+    invalidLabels: string[];
+    sourceIdentityValidated: boolean;
+    factualEntailmentValidated: boolean;
+  };
+  usage?: ChatUsage;
+  estimatedCostUsd?: number | null;
+  currency?: 'USD';
+  pricingModelId?: string | null;
+  pricingSource?: 'configured' | null;
+  isEstimate?: true;
+  unavailableReason?: string | null;
+  executionTrace?: ChatExecutionTrace;
+}
+
+export interface ChatErrorResponse {
+  error?: string;
+  executionTrace?: ChatExecutionTrace;
 }
 
 @Injectable({
@@ -21,9 +103,10 @@ export class ApiService {
   isLoading = signal(false);
   lastTokenCount = signal<number | null>(null);
 
-  sendChatPrompt(prompt: string): Observable<{ reply: string }> {
+  sendChatPrompt(prompt: string, documentId?: number | null): Observable<ChatResponse> {
     this.isLoading.set(true);
-    return this.http.post<{ reply: string }>(`${this.baseUrl}/chat`, { prompt }).pipe(
+    const body = documentId === undefined ? { prompt } : { prompt, documentId };
+    return this.http.post<ChatResponse>(`${this.baseUrl}/chat`, body).pipe(
       tap(() => this.isLoading.set(false))
     );
   }
