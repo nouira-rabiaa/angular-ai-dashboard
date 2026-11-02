@@ -71,19 +71,27 @@ export function loadModelPricing(serializedPricing = process.env.GROQ_MODEL_PRIC
   }
 }
 
+// Accept fractional averages for simulations; actual provider usage is validated separately.
+export function calculateTokenCost(inputTokens, outputTokens, rates) {
+  if (!rates || ![rates.inputUsdPerMillion, rates.outputUsdPerMillion].every(n => typeof n === 'number' && Number.isFinite(n) && n > 0) || ![inputTokens, outputTokens].every(n => typeof n === 'number' && Number.isFinite(n) && n >= 0)) return null;
+  const amount = (inputTokens * rates.inputUsdPerMillion + outputTokens * rates.outputUsdPerMillion) / 1_000_000;
+  return Number.isFinite(amount) && amount >= 0 ? amount : null;
+}
+
 export function estimateCost(modelIdentifier, usage, pricing) {
-  const rates = modelIdentifier ? pricing[modelIdentifier] : null;
-  const hasUsage = usage?.inputTokens !== null && usage?.outputTokens !== null && usage?.source === 'provider';
-  const unavailableReason = !rates
+  const rates = modelIdentifier && Object.hasOwn(pricing, modelIdentifier) ? pricing[modelIdentifier] : null;
+  const hasUsage = validTokenCount(usage?.inputTokens) !== null && validTokenCount(usage?.outputTokens) !== null && usage?.source === 'provider';
+  let unavailableReason = !rates
     ? 'model_pricing_not_configured'
     : !hasUsage
       ? 'provider_usage_unavailable'
       : null;
 
+  const amount = unavailableReason ? null : calculateTokenCost(usage.inputTokens, usage.outputTokens, rates);
+  if (!unavailableReason && amount === null) unavailableReason = 'numeric_overflow';
+
   return {
-    estimatedCostUsd: unavailableReason
-      ? null
-      : (usage.inputTokens * rates.inputUsdPerMillion + usage.outputTokens * rates.outputUsdPerMillion) / 1_000_000,
+    estimatedCostUsd: unavailableReason ? null : amount,
     currency: 'USD',
     pricingModelId: modelIdentifier ?? null,
     pricingSource: rates ? 'configured' : null,

@@ -120,7 +120,7 @@ describe('GuidedDemoComponent', () => {
     component.selectStep(5);
     fixture.detectChanges();
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Prévision des coûts IA');
+    expect(text).toContain('Prévision des coûts IA · disponible');
     expect(text).toContain('Intégration n8n');
     expect(text).toContain('planifiée, non implémentée');
 

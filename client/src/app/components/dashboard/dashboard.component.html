@@ -28,6 +28,7 @@
 
   @if (activeView() === 'overview') {
     <section role="tabpanel" aria-label="Overview" class="space-y-5">
+      <app-finops />
       <div class="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
         <label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Du <input #rangeFrom type="date" [value]="dateRange().from" class="mt-1 block rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-normal text-slate-700"></label>
         <label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Au <input #rangeTo type="date" [value]="dateRange().to" class="mt-1 block rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-normal text-slate-700"></label>
