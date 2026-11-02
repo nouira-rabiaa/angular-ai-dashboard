@@ -1,3 +1,4 @@
+import { ARCHITECTURE_EDGES, ARCHITECTURE_FLOWS, ARCHITECTURE_NODES } from '../architecture-explorer/architecture.data';
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnDestroy, computed, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -20,7 +21,8 @@ const INITIAL_STATUSES: Record<GuidedDemoStepId, GuidedDemoStepStatus> = {
   selector: 'app-guided-demo',
   standalone: true,
   imports: [CommonModule, RouterLink],
-  templateUrl: './guided-demo.component.html'
+  templateUrl: './guided-demo.component.html',
+  styleUrl: './guided-demo.component.scss'
 })
 export class GuidedDemoComponent implements OnDestroy {
   private focusFrame: number | null = null;
@@ -32,6 +34,19 @@ export class GuidedDemoComponent implements OnDestroy {
 
   readonly progressValue = computed(() => this.currentStepIndex() + 1);
   readonly progressPercent = computed(() => (this.progressValue() / this.steps.length) * 100);
+
+  readonly overviewFlows = ARCHITECTURE_FLOWS;
+  readonly visualEdgeIds: Record<GuidedDemoStepId, readonly string[]> = {
+    introduction: [], 'document-upload': ['ingestion-write'],
+    'rag-question': ['rag-retrieve', 'rag-inference', 'rag-response'],
+    'form-generation': ['chat-generate-request', 'generate-inference', 'generate-schema-return'],
+    'ai-observability': ['chat-observability', 'observability-persist', 'dashboard-history-read'], conclusion: []
+  };
+  visualEdges() {
+    const ids = this.visualEdgeIds[this.currentStep().id];
+    return ARCHITECTURE_EDGES.filter(edge => ids.includes(edge.id));
+  }
+  visualNode(id: string) { return ARCHITECTURE_NODES.find(node => node.id === id)!; }
 
   ngOnDestroy(): void {
     if (this.focusFrame !== null && typeof cancelAnimationFrame !== 'undefined') {
