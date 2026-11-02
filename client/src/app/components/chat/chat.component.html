@@ -19,56 +19,7 @@
     </div>
   </div>
 
-  <!-- 📊 2. BARRE DE KPIS TECHNIQUES (Placée tout en haut sur fond blanc) -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    
-    <!-- KPI 1 : Latence -->
-    <div class="bg-white border border-slate-200 p-3.5 rounded-xl flex items-center justify-between shadow-sm">
-      <div>
-        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Latence Moyenne</p>
-        <h4 class="text-base md:text-lg font-bold text-slate-900 mt-0.5">{{ averageLatency() }} ms</h4>
-      </div>
-      <div class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center text-sm">
-        ⏱️
-      </div>
-    </div>
-
-    <!-- KPI 2 : Tokens -->
-    <div class="bg-white border border-slate-200 p-3.5 rounded-xl flex items-center justify-between shadow-sm">
-      <div>
-        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Tokens Totaux</p>
-        <h4 class="text-base md:text-lg font-bold text-slate-900 mt-0.5">{{ totalTokensUsed() }} tk</h4>
-      </div>
-      <div class="w-9 h-9 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center text-sm">
-        ⚡
-      </div>
-    </div>
-
-    <!-- KPI 3 : Coût Estimé -->
-    <div class="bg-white border border-slate-200 p-3.5 rounded-xl flex items-center justify-between shadow-sm">
-      <div>
-        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Coût Estimé (API)</p>
-        <h4 class="text-base md:text-lg font-bold text-slate-900 mt-0.5">${{ estimatedCost() }}</h4>
-      </div>
-      <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-sm">
-        💰
-      </div>
-    </div>
-
-    <!-- KPI 4 : Taux de succès -->
-    <div class="bg-white border border-slate-200 p-3.5 rounded-xl flex items-center justify-between shadow-sm">
-      <div>
-        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Taux de Succès</p>
-        <h4 class="text-base md:text-lg font-bold text-emerald-600 mt-0.5">{{ successRate() }}%</h4>
-      </div>
-      <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-sm">
-        📈
-      </div>
-    </div>
-
-  </div>
-
-  <!-- 💬 3. ZONE DE CHAT & INTERACTION PRINCIPALE -->
+  <!-- 💬 ZONE DE CHAT & INTERACTION PRINCIPALE -->
   <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-4 md:p-5 flex flex-col">
     
     <!-- Liste des messages -->
@@ -94,6 +45,79 @@
             <div class="max-w-[85%] bg-slate-50 text-slate-800 px-4 py-3 rounded-2xl rounded-bl-none shadow-sm text-sm border border-slate-200 space-y-3">
               @if (msg.text) {
                 <p style="white-space: pre-wrap; margin: 0;">{{ msg.text }}</p>
+              }
+              @if (msg.chatResponse) {
+                <section class="border-t border-slate-200 pt-3 space-y-2" aria-label="Document sources">
+                  <div class="flex items-center justify-between gap-2">
+                    <h3 class="text-xs font-bold text-slate-700 m-0">Sources</h3>
+                    @if (msg.sources?.length) {
+                      <span class="text-[11px] text-slate-500">{{ msg.sources?.length }} retrieved</span>
+                    }
+                  </div>
+
+                  @if (msg.sources?.length) {
+                    <p class="text-[11px] text-slate-500 m-0">Citation labels identify retrieved passages; they do not verify factual entailment.</p>
+                    <div class="space-y-2">
+                      @for (source of msg.sources; track source.chunkId) {
+                        <details open class="rounded-lg border border-slate-200 bg-white">
+                          <summary class="cursor-pointer list-none p-2.5 flex flex-wrap items-center gap-2 text-xs">
+                            <span class="font-bold text-indigo-700">[{{ source.label }}]</span>
+                            <span class="font-semibold text-slate-800 break-all">{{ source.filename }}</span>
+                            @if (source.pageNumber !== undefined && source.pageNumber !== null) {
+                              <span class="text-slate-500">Page {{ source.pageNumber }}</span>
+                            }
+                            @if (source.cited) {
+                              <span class="ml-auto text-emerald-700 font-semibold">Cited</span>
+                            } @else {
+                              <span class="ml-auto text-slate-500 font-semibold">Retrieved, not cited</span>
+                            }
+                          </summary>
+                          <blockquote class="m-0 border-t border-slate-100 px-3 py-2 text-xs leading-relaxed text-slate-700 whitespace-pre-wrap">{{ source.excerpt }}@if (source.excerptTruncated) { <span class="text-slate-500">… (excerpt shortened)</span> }</blockquote>
+                        </details>
+                      }
+                    </div>
+                  } @else {
+                    <p class="text-xs text-slate-500 m-0">No relevant document passages were retrieved. This answer has no document-backed sources.</p>
+                  }
+
+                  @if (msg.citationValidation?.invalidLabels?.length) {
+                    <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md p-2 m-0" role="status">
+                      Unmatched citation labels: {{ msg.citationValidation?.invalidLabels?.join(', ') }}. These labels do not identify retrieved sources.
+                    </p>
+                  }
+                </section>
+
+                @if (msg.executionTrace; as trace) {
+                  <details class="border-t border-slate-200 pt-2" data-testid="execution-details">
+                    <summary class="cursor-pointer text-xs font-semibold text-slate-700 py-1">Execution details</summary>
+                    <div class="mt-2 space-y-3 text-xs">
+                      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 m-0">
+                        <div><dt class="text-slate-500">Status</dt><dd class="m-0 font-semibold">{{ trace.status }}</dd></div>
+                        <div><dt class="text-slate-500">Total duration</dt><dd class="m-0 font-semibold">{{ formatDuration(trace.totalDurationMs) }}</dd></div>
+                        <div><dt class="text-slate-500">SQLite retrieval</dt><dd class="m-0 font-semibold">{{ getStepDuration(trace, 'sqlite-fts5-retrieval') }}</dd></div>
+                        <div><dt class="text-slate-500">Groq inference</dt><dd class="m-0 font-semibold">{{ getStepDuration(trace, 'groq-inference') }}</dd></div>
+                        <div><dt class="text-slate-500">Input tokens</dt><dd class="m-0 font-semibold">{{ msg.usage?.inputTokens ?? 'Not available' }}</dd></div>
+                        <div><dt class="text-slate-500">Output tokens</dt><dd class="m-0 font-semibold">{{ msg.usage?.outputTokens ?? 'Not available' }}</dd></div>
+                        <div><dt class="text-slate-500">Total tokens</dt><dd class="m-0 font-semibold">{{ msg.usage?.totalTokens ?? 'Not available' }}</dd></div>
+                        <div><dt class="text-slate-500">Estimated cost (not billed)</dt><dd class="m-0 font-semibold">{{ formatCost(msg.cost?.estimatedCostUsd) }}</dd></div>
+                        <div><dt class="text-slate-500">Model</dt><dd class="m-0 font-semibold break-all">{{ trace.modelIdentifier ?? 'Not available' }}</dd></div>
+                        <div><dt class="text-slate-500">Retrieved chunks</dt><dd class="m-0 font-semibold">{{ trace.retrieval.retrievedChunkCount }}</dd></div>
+                        <div><dt class="text-slate-500">Scope</dt><dd class="m-0 font-semibold">{{ trace.retrieval.scope === 'document' ? ('Active document #' + trace.retrieval.documentId) : 'All documents' }}</dd></div>
+                        <div><dt class="text-slate-500">Trace ID</dt><dd class="m-0 font-mono break-all">{{ trace.traceId }}</dd></div>
+                        <div><dt class="text-slate-500">Timestamp</dt><dd class="m-0 font-semibold">{{ trace.timestamp | date: 'medium' }}</dd></div>
+                      </dl>
+                      <p class="m-0 text-[11px] text-slate-500">Cost is a configuration-based estimate, not a billed provider charge.</p>
+                      <ol class="m-0 pl-5 space-y-1 border-l border-slate-200">
+                        @for (step of trace.steps; track $index) {
+                          <li class="pl-1">
+                            <span class="font-semibold">{{ formatTraceStepName(step.name) }}</span>
+                            <span class="text-slate-500"> · {{ step.status }} · {{ formatDuration(step.durationMs) }}</span>
+                          </li>
+                        }
+                      </ol>
+                    </div>
+                  </details>
+                }
               }
               @if (msg.formSchema) {
                 <div class="mt-3 p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
@@ -130,11 +154,35 @@
         </div>
       }
 
-      @if (liveTokenCount() !== null) {
-        <div class="text-xs text-slate-400 text-right">
-          Contexte prompt - Tokens estimés : <strong class="text-slate-700">{{ liveTokenCount() }}</strong>
-        </div>
-      }
+      <div class="flex flex-wrap items-center gap-2 text-xs" role="group" aria-label="Document retrieval scope">
+        <span class="font-semibold text-slate-600">Search scope:</span>
+        <button
+          type="button"
+          (click)="setRetrievalScope('active')"
+          [disabled]="activeDocumentId() === null"
+          [attr.aria-pressed]="retrievalScope() === 'active'"
+          class="px-3 py-1.5 rounded-lg border font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+          [class.bg-indigo-50]="retrievalScope() === 'active'"
+          [class.border-indigo-300]="retrievalScope() === 'active'"
+          [class.text-indigo-700]="retrievalScope() === 'active'"
+          [class.bg-white]="retrievalScope() !== 'active'"
+          [class.border-slate-200]="retrievalScope() !== 'active'"
+          [class.text-slate-600]="retrievalScope() !== 'active'"
+        >Active document</button>
+        <button
+          type="button"
+          (click)="setRetrievalScope('all')"
+          [attr.aria-pressed]="retrievalScope() === 'all'"
+          class="px-3 py-1.5 rounded-lg border font-medium"
+          [class.bg-indigo-50]="retrievalScope() === 'all'"
+          [class.border-indigo-300]="retrievalScope() === 'all'"
+          [class.text-indigo-700]="retrievalScope() === 'all'"
+          [class.bg-white]="retrievalScope() !== 'all'"
+          [class.border-slate-200]="retrievalScope() !== 'all'"
+          [class.text-slate-600]="retrievalScope() !== 'all'"
+        >All documents</button>
+        <span class="text-slate-500">{{ retrievalScope() === 'active' ? 'Only the uploaded document is searched.' : 'Search results may include any indexed document.' }}</span>
+      </div>
 
       <div class="flex gap-3 items-center">
         <label class="cursor-pointer p-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-lg flex items-center justify-center transition-all shadow-sm" title="Joindre un fichier PDF/TXT pour le RAG">
