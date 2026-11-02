@@ -3,24 +3,27 @@
     <div><p class="finops-eyebrow">FinOps · USD · UTC</p><h2 id="finops-title">Prévision des coûts IA</h2></div>
     <button type="button" (click)="load()" [disabled]="state() === 'loading'" class="finops-button finops-button-light"><svg lucideChartNoAxesCombined aria-hidden="true" class="h-4 w-4"></svg> Actualiser FinOps</button>
   </header>
-  <p class="finops-note">Estimations des appels RAG /api/chat enregistrés, jamais des montants facturés. Les autres appels IA et les coûts des tentatives échouées ne sont pas intégralement couverts.</p>
+  <div class="finops-kpis" aria-label="Indicateurs principaux : période sélectionnée et mois UTC">
+    <ng-content select="[finops-primary]" />
+        <article class="finops-kpi finops-observed"><div class="finops-kpi-title"><h3>Coût observé estimé · mois</h3><svg lucideCircleDollarSign aria-hidden="true" class="h-4 w-4"></svg></div><p class="finops-value">{{ state() === 'ready' ? cost(summary()?.observedMonthUsd, 2) : (state() === 'loading' ? 'Chargement…' : 'Indisponible') }}</p><p class="finops-note">Mois UTC en cours · {{ summary()?.monthStart }} → {{ summary()?.today }}</p></article>
+        <article class="finops-kpi finops-month-end"><div class="finops-kpi-title"><h3>Estimation de fin de mois</h3><svg lucideChartNoAxesCombined aria-hidden="true" class="h-4 w-4"></svg></div><p class="finops-value">{{ state() === 'ready' ? cost(summary()?.projectedMonthEndUsd, 2) : (state() === 'loading' ? 'Chargement…' : 'Indisponible') }}</p><p class="finops-note">Projection du mois civil</p></article>
+  </div>
   @if (state() === 'loading') { <p role="status" class="finops-state">Chargement FinOps…</p> }
   @else if (state() === 'error') { <p role="alert" class="finops-state finops-error">FinOps indisponible. Vérifiez l’activation de la télémétrie locale et réessayez.</p> }
   @else {
     @if (summary(); as data) {
-      <div class="finops-period"><span>Mois UTC en cours : {{ data.monthStart }} → {{ data.today }}</span><span>Indépendant du filtre de période des métriques.</span></div>
-      <div class="finops-kpis" aria-label="Coûts estimés et projections">
-        <article class="finops-kpi finops-observed"><div class="finops-kpi-title"><h3>Coût observé estimé · mois</h3><svg lucideCircleDollarSign aria-hidden="true" class="h-4 w-4"></svg></div><p class="finops-value">{{ cost(data.observedMonthUsd) }}</p><p class="finops-note">{{ data.monthPricedRequestCount }} / {{ data.monthRequestCount }} tarifées · {{ data.monthCoverageComplete ? 'couverture complète des traces' : 'sous-total partiel uniquement' }}</p></article>
-        <article class="finops-kpi"><div class="finops-kpi-title"><h3>Projection sur 7 jours</h3><svg lucideCalendarDays aria-hidden="true" class="h-4 w-4"></svg></div><p class="finops-value">{{ cost(data.projected7DaysUsd) }}</p><p class="finops-note">Estimation à rythme constant</p></article>
-        <article class="finops-kpi"><div class="finops-kpi-title"><h3>Projection sur 30 jours</h3><svg lucideCalendarDays aria-hidden="true" class="h-4 w-4"></svg></div><p class="finops-value">{{ cost(data.projected30DaysUsd) }}</p><p class="finops-note">Horizon de 30 jours</p></article>
-        <article class="finops-kpi finops-month-end"><div class="finops-kpi-title"><h3>Estimation de fin de mois</h3><svg lucideChartNoAxesCombined aria-hidden="true" class="h-4 w-4"></svg></div><p class="finops-value">{{ cost(data.projectedMonthEndUsd) }}</p><p class="finops-note">Projection du mois civil</p></article>
-      </div>
-      @if (!data.sample.requestCount && !data.monthRequestCount) { <p role="status" class="finops-state">Aucun historique de coûts enregistré.</p> }
-      @if (data.status === 'insufficient_data') { <p role="status" class="finops-state finops-warning">Données insuffisantes : au moins 7 jours terminés, 10 requêtes tarifées et 3 jours actifs sont nécessaires.</p> }
-      @if (data.status === 'unavailable') { <p role="status" class="finops-state finops-warning">Prévision indisponible : certains coûts historiques ne sont pas calculables. Aucun coût manquant n’est remplacé par zéro.</p> }
       <div class="finops-charts">
         <section aria-labelledby="finops-chart-title" class="finops-card finops-chart-card">
           <div class="finops-card-heading"><div><p class="finops-eyebrow">Historique & prévisions</p><h3 id="finops-chart-title">Coûts quotidiens historiques et projetés</h3></div></div>
+          @if ((!data.sample.requestCount && !data.monthRequestCount) || data.status !== 'ready' || !chart().length) {
+            <div role="status" aria-label="Disponibilité des prévisions" class="finops-state">
+              <div class="flex items-center gap-2 text-indigo-800"><svg lucideChartNoAxesCombined aria-hidden="true" class="h-5 w-5 shrink-0"></svg><h4 class="font-semibold">{{ !data.sample.requestCount && !data.monthRequestCount ? 'Aucun historique' : 'Prévision en attente' }}</h4></div>
+              @if (!data.sample.requestCount && !data.monthRequestCount) { <p>Les coûts apparaîtront après l’enregistrement d’appels RAG.</p> }
+              @if (data.status === 'insufficient_data') { <p>Données insuffisantes pour une projection fiable.</p><details class="finops-values"><summary>Conditions de prévision</summary><p>Au moins 7 jours terminés, 10 requêtes tarifées et 3 jours actifs sont nécessaires. Hypothèse : activité et tarifs stables.</p></details> }
+              @if (data.status === 'unavailable') { <p>Prévision indisponible : certains coûts historiques ne sont pas calculables. Aucun coût manquant n’est remplacé par zéro.</p> }
+              @if (!chart().length) { <p>Aucune série de coûts disponible.</p> }
+            </div>
+          }
           <p class="finops-legend"><span class="inline-flex items-center gap-1.5"><i class="finops-dot"></i> Historique estimé</span><span class="inline-flex items-center gap-1.5"><i class="finops-line"></i> Projection quotidienne constante</span></p>
           @if (chart().length) {
             <svg class="finops-chart" viewBox="0 0 620 190" role="img" aria-label="Coûts quotidiens estimés et projections en USD; valeurs dans le tableau ci-dessous">
@@ -38,25 +41,12 @@
             </svg>
             <div class="finops-chart-dates"><span>{{ chart()[0].date }}</span><span>{{ chart()[chart().length - 1].date }}</span></div>
             <details class="finops-values"><summary>Valeurs et dates du graphique</summary><div class="finops-table-scroll"><table><caption class="sr-only">Coûts quotidiens en USD</caption><thead><tr><th scope="col">Date UTC</th><th scope="col">Type</th><th scope="col">Coût estimé</th></tr></thead><tbody>@for (point of chart(); track point.date) { <tr><th scope="row">{{ point.date }}</th><td>{{ point.projected ? 'Projection' : 'Historique' }}</td><td>{{ cost(point.estimatedCostUsd) }}</td></tr> }</tbody></table></div></details>
-          } @else { <p class="finops-state">Aucune série de coûts disponible.</p> }
+          }
           <p class="finops-note">Vert : historique estimé · pointillés indigo : projection quotidienne constante. Consultez les valeurs exactes dans le tableau.</p>
         </section>
-        <section class="finops-card" aria-labelledby="finops-models-title">
-          <p class="finops-eyebrow">Répartition & couverture</p><h3 id="finops-models-title">Coûts estimés par modèle · mois courant</h3>
-          @if (data.models.length) {
-            <div class="finops-table-scroll"><table><caption class="sr-only">Répartition des coûts estimés du mois par modèle</caption><thead><tr><th scope="col">Modèle</th><th scope="col">Tarifées / total</th><th scope="col">Sous-total connu USD</th></tr></thead><tbody>@for (model of data.models; track model.model) { <tr><th scope="row">{{ model.model || 'Indisponible' }}</th><td>{{ model.pricedRequestCount }} / {{ model.requestCount }}</td><td>{{ cost(model.estimatedCostUsd) }}</td></tr> }</tbody></table></div>
-          } @else { <p class="finops-state">Aucun coût par modèle disponible.</p> }
-          <div class="finops-coverage"><p class="finops-note">Couverture de l’échantillon</p><strong class="my-1 block text-sm">{{ data.sample.pricedRequestCount }} / {{ data.sample.requestCount }} requêtes tarifées</strong>
-            @if (data.sample.requestCount > 0) { <progress [max]="data.sample.requestCount" [value]="data.sample.pricedRequestCount" aria-label="Requêtes tarifées dans l’échantillon"></progress> }
-            <p class="finops-note">{{ data.sample.days }} jours calendaires · {{ data.sample.activeDays }} jours actifs</p>
-          </div>
-        </section>
-      </div>
-      <details class="finops-method"><summary>Méthode et détail de l’échantillon</summary><p class="finops-note">Échantillon : {{ data.sample.days }} jours calendaires terminés ({{ data.sample.from || 'aucun début' }} → {{ data.sample.to }}), {{ data.sample.activeDays }} jours actifs, {{ data.sample.pricedRequestCount }} / {{ data.sample.requestCount }} requêtes tarifées. Hypothèse : activité et tarifs stables; les jours sans requête enregistrée comptent pour zéro.</p></details>
-      <div class="finops-controls">
         <section aria-labelledby="finops-budget-title" class="finops-card">
           <p class="finops-eyebrow">Pilotage budgétaire</p><h3 id="finops-budget-title">Budget mensuel partagé · USD</h3>
-          <dl class="finops-budget-summary"><div><dt>Budget enregistré</dt><dd class="mt-1 font-bold text-slate-900">{{ cost(data.monthlyBudgetUsd) }}</dd></div><div><dt>Budget restant</dt><dd class="mt-1 font-bold text-slate-900">Non fourni</dd></div></dl>
+          <dl class="finops-budget-summary"><div><dt>Budget enregistré</dt><dd class="mt-1 font-bold text-slate-900">{{ cost(data.monthlyBudgetUsd, 2) }}</dd></div><div><dt>Budget restant</dt><dd class="mt-1 font-bold text-slate-900">Non fourni</dd></div></dl>
           <form #budgetForm="ngForm" (ngSubmit)="saveBudget()" class="finops-budget-form">
             <label>Budget (vide pour désactiver)<input name="monthlyBudget" type="number" min="0.00000001" max="1000000000" step="any" [(ngModel)]="budget" /></label>
             <button [disabled]="saving() || budgetForm.invalid" class="finops-button">{{ saving() ? 'Enregistrement…' : 'Enregistrer le budget' }}</button>
@@ -70,27 +60,44 @@
           @if (!data.monthCoverageComplete) { <p class="finops-note finops-warning">Les alertes observées reposent sur un minimum connu. L’absence d’alerte ne prouve pas le respect du budget.</p> }
           <p class="finops-note">Enregistré dans SQLite pour les mois suivants jusqu’à modification. Aucune notification externe.</p>
         </section>
+      </div>
+      <div class="finops-controls">
         <section aria-labelledby="finops-simulator-title" class="finops-card">
           <p class="finops-eyebrow">Explorer un scénario</p><h3 id="finops-simulator-title">Simulateur budgétaire</h3>
           @if (!data.pricing.length) { <p role="status" class="finops-state">Simulation indisponible : aucun tarif valide configuré dans GROQ_MODEL_PRICING.</p> }
           @else {
             <form #scenarioForm="ngForm" (ngSubmit)="simulate()" class="finops-scenario">
-              <label class="finops-model-select">Modèle<select name="model" [(ngModel)]="scenario.model" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" required>@for (price of data.pricing; track price.model) { <option [value]="price.model">{{ price.model }} · entrée {{ price.inputUsdPerMillion }} / sortie {{ price.outputUsdPerMillion }} USD par million</option> }</select></label>
+              <label class="col-span-full">Modèle<select name="model" [(ngModel)]="scenario.model" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" required>@for (price of data.pricing; track price.model) { <option [value]="price.model">{{ price.model }} · entrée {{ price.inputUsdPerMillion }} / sortie {{ price.outputUsdPerMillion }} USD par million</option> }</select></label>
               <label>Requêtes par jour<input name="requestsPerDay" type="number" min="0" max="1000000" step="1" required [(ngModel)]="scenario.requestsPerDay" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" /></label>
               <label>Budget du scénario USD (optionnel)<input name="scenarioBudget" type="number" min="0.00000001" max="1000000000" step="any" [(ngModel)]="scenario.monthlyBudgetUsd" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" /></label>
               <label>Tokens moyens d’entrée<input name="inputTokens" type="number" min="0" max="10000000" step="any" required [(ngModel)]="scenario.inputTokens" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" /></label>
               <label>Tokens moyens de sortie<input name="outputTokens" type="number" min="0" max="10000000" step="any" required [(ngModel)]="scenario.outputTokens" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" /></label>
-              <button [disabled]="scenarioForm.invalid || simulationState() === 'loading'" class="finops-button finops-simulate">Simuler sans appel IA</button>
+              <button [disabled]="scenarioForm.invalid || simulationState() === 'loading'" class="finops-button col-span-full">Simuler sans appel IA</button>
             </form>
           }
           @if (simulationState() === 'loading') { <p role="status" class="finops-state">Calcul de la simulation…</p> }
           @if (simulationState() === 'error') { <p role="alert" class="finops-state finops-error">Simulation impossible : vérifiez les valeurs et réessayez.</p> }
           @if (simulation(); as result) {
             @if (result.status === 'unavailable') { <p role="status" class="finops-state finops-warning">Simulation indisponible : tarif non configuré ou résultat non calculable.</p> }
-            @else { <div role="status" class="finops-result"><p>Coût estimé par requête : <strong>{{ cost(result.costPerRequestUsd) }}</strong></p><p>Coût mensuel projeté : <strong>{{ cost(result.monthlyCostUsd) }}</strong> ({{ result.monthDays }} jours dans le mois UTC courant)</p>@if (result.budget; as status) { <p>Budget simulé : {{ alert(status) }}</p> }</div> }
+            @else { <div role="status" class="finops-result"><p>Coût estimé par requête : <strong>{{ cost(result.costPerRequestUsd) }}</strong></p><p>Coût mensuel projeté : <strong>{{ cost(result.monthlyCostUsd, 2) }}</strong> ({{ result.monthDays }} jours dans le mois UTC courant)</p>@if (result.budget; as status) { <p>Budget simulé : {{ alert(status) }}</p> }</div> }
           }
         </section>
+        <section class="finops-card" aria-labelledby="finops-models-title">
+          <p class="finops-eyebrow">Répartition & couverture</p><h3 id="finops-models-title">Coûts estimés par modèle · mois courant</h3>
+          @if (data.models.length) {
+            <div class="finops-table-scroll"><table><caption class="sr-only">Répartition des coûts estimés du mois par modèle</caption><thead><tr><th scope="col">Modèle</th><th scope="col">Tarifées / total</th><th scope="col">Sous-total connu USD</th></tr></thead><tbody>@for (model of data.models; track model.model) { <tr><th scope="row">{{ model.model || 'Indisponible' }}</th><td>{{ model.pricedRequestCount }} / {{ model.requestCount }}</td><td>{{ cost(model.estimatedCostUsd) }}</td></tr> }</tbody></table></div>
+          } @else { <p class="finops-state">Aucun coût par modèle disponible.</p> }
+          <dl class="finops-budget-summary" aria-label="Projections complémentaires"><div><dt>Projection sur 7 jours</dt><dd>{{ cost(data.projected7DaysUsd, 2) }}</dd></div><div><dt>Projection sur 30 jours</dt><dd>{{ cost(data.projected30DaysUsd, 2) }}</dd></div></dl>
+          <p class="finops-note">Estimation à rythme constant · {{ data.monthPricedRequestCount }} / {{ data.monthRequestCount }} requêtes du mois tarifées · {{ data.monthCoverageComplete ? 'couverture complète des traces' : 'sous-total partiel uniquement' }}</p>
+          <div class="finops-coverage"><p class="finops-note">Couverture de l’échantillon</p><strong class="my-1 block text-sm">{{ data.sample.pricedRequestCount }} / {{ data.sample.requestCount }} requêtes tarifées</strong>
+            @if (data.sample.requestCount > 0) { <progress [max]="data.sample.requestCount" [value]="data.sample.pricedRequestCount" aria-label="Requêtes tarifées dans l’échantillon"></progress> }
+            <p class="finops-note">{{ data.sample.days }} jours calendaires · {{ data.sample.activeDays }} jours actifs</p>
+          </div>
+        </section>
       </div>
+  <p class="finops-note">Estimations des appels RAG /api/chat enregistrés, jamais des montants facturés. Récapitulatifs arrondis à deux décimales. Les autres appels IA et les coûts des tentatives échouées ne sont pas intégralement couverts.</p>
+      <div class="finops-period"><span>Mois UTC en cours : {{ data.monthStart }} → {{ data.today }}</span><span>Indépendant du filtre de période des métriques.</span></div>
+      <details class="finops-method"><summary>Méthode et détail de l’échantillon</summary><p class="finops-note">Échantillon : {{ data.sample.days }} jours calendaires terminés ({{ data.sample.from || 'aucun début' }} → {{ data.sample.to }}), {{ data.sample.activeDays }} jours actifs, {{ data.sample.pricedRequestCount }} / {{ data.sample.requestCount }} requêtes tarifées. Hypothèse : activité et tarifs stables; les jours sans requête enregistrée comptent pour zéro.</p></details>
     }
   }
 </section>

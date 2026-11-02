@@ -27,9 +27,22 @@ describe('FinopsComponent', () => {
   });
   const text = () => fixture.nativeElement.textContent as string;
 
+  it('rounds summaries for display while retaining detailed precision and missing values', () => {
+    expect(component.cost(4.00000001, 2)).toBe('$4.00 USD');
+    expect(component.cost(0.004)).toBe('$0.00400000 USD');
+    expect(component.cost(null, 2)).toBe('Indisponible');
+    expect(component.cost(undefined, 2)).toBe('Indisponible');
+    expect(component.cost(0, 2)).toBe('$0.00 USD');
+    api.getSummary.mockReturnValue(of(summary({ monthlyBudgetUsd: 4.00000001 })));
+    fixture.detectChanges();
+    expect(text()).toContain('$4.00 USD');
+    expect(component.budget).toBe(4.00000001);
+    expect(component.summary()?.monthlyBudgetUsd).toBe(4.00000001);
+  });
+
   it('renders observed costs separately from 7/30-day and month-end estimates and sample coverage', () => {
     fixture.detectChanges();
-    expect(text()).toContain('$14.00000000 USD');expect(text()).toContain('$60.00000000 USD');expect(text()).toContain('$65.00000000 USD');
+    expect(text()).toContain('$14.00 USD');expect(text()).toContain('$60.00 USD');expect(text()).toContain('$65.00 USD');
     expect(text()).toContain('20 / 20');expect(text()).toContain('jamais des montants facturés');
     expect(fixture.nativeElement.querySelector('svg[role="img"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('table caption').textContent).toContain('USD');
@@ -50,6 +63,9 @@ describe('FinopsComponent', () => {
     fixture.detectChanges();
     expect(text()).toContain('Données insuffisantes');expect(text()).toContain('Aucun historique');expect(text()).toContain('aucun tarif valide');
     expect(text()).toContain('Indisponible');expect(text()).not.toContain('$0.00000000');
+    const availability = fixture.nativeElement.querySelector('[aria-label="Disponibilité des prévisions"]');
+    expect(availability.textContent).toContain('Aucun historique');
+    expect(availability.textContent).toContain('7 jours terminés, 10 requêtes tarifées et 3 jours actifs');
     expect(fixture.nativeElement.querySelector('select[name="model"]')).toBeNull();
   });
 
@@ -82,7 +98,7 @@ describe('FinopsComponent', () => {
     fixture.detectChanges();await fixture.whenStable();
     fixture.nativeElement.querySelectorAll('form')[1].dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));fixture.detectChanges();
     expect(api.simulate).toHaveBeenCalledWith({ model: 'model', requestsPerDay: 100, inputTokens: 1000, outputTokens: 300, monthlyBudgetUsd: null });
-    expect(text()).toContain('$0.00400000 USD');expect(text()).toContain('$12.40000000 USD');expect(text()).toContain('31 jours');
+    expect(text()).toContain('$0.00400000 USD');expect(text()).toContain('$12.40 USD');expect(text()).toContain('31 jours');
   });
 
   it('renders simulation loading, missing-rate, error and budget persistence failures', async () => {
@@ -97,16 +113,22 @@ describe('FinopsComponent', () => {
     api.saveBudget.mockReturnValue(throwError(() => new Error('DB unavailable')));component.saveBudget();fixture.detectChanges();expect(text()).toContain('Budget non enregistré');
   });
 
-  it('keeps forecast KPIs, charts, model coverage, budget and simulator discoverable in that order', () => {
+  it('groups the chart with budget alerts and keeps the simulator and model coverage visible', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
     const kpis = root.querySelector('.finops-kpis')!;const chart = root.querySelector('.finops-charts')!;
     const controls = root.querySelector('.finops-controls')!;
     expect(kpis.compareDocumentPosition(chart) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(kpis.nextElementSibling).toBe(chart);
     expect(chart.compareDocumentPosition(controls) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(root.querySelectorAll('.finops-kpis article')).toHaveLength(4);
+    expect(root.querySelectorAll('.finops-kpis article')).toHaveLength(2);
+    expect(root.querySelector('[aria-label="Projections complémentaires"]')?.textContent).toContain('Projection sur 7 jours');
+    expect(root.querySelector('[aria-label="Projections complémentaires"]')?.textContent).toContain('Projection sur 30 jours');
     expect(root.querySelector('#finops-models-title')?.closest('details')).toBeNull();
-    expect(controls.querySelector('#finops-budget-title')).not.toBeNull();
+    expect(chart.querySelector('#finops-chart-title')).not.toBeNull();
+    expect(chart.querySelector('#finops-budget-title')).not.toBeNull();
+    expect(chart.querySelectorAll('.finops-budget-alert')).toHaveLength(2);
+    expect(controls.querySelector('#finops-models-title')).not.toBeNull();
     expect(controls.querySelector('#finops-simulator-title')).not.toBeNull();
     expect(root.querySelector('progress[aria-label="Requêtes tarifées dans l’échantillon"]')?.getAttribute('value')).toBe('20');
     expect(root.textContent).toContain('Budget restant');expect(root.textContent).toContain('Non fourni');

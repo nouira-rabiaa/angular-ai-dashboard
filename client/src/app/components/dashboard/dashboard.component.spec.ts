@@ -76,7 +76,9 @@ describe('DashboardComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Requêtes IA');
     expect(text).toContain('8');
-    expect(text).toContain('$0.00120000 USD');
+    expect(text).toContain('$0.00 USD');
+    expect(component.metrics()?.estimatedCostUsd).toBe(0.0012);
+    expect(component.formatCost(0.0012)).toBe('$0.00120000 USD');
     expect(text).toContain('5 tarifées · 3 sans tarif');
     expect(text).toContain('120,5 ms');
     expect(text).not.toContain('142');
@@ -208,12 +210,19 @@ describe('DashboardComponent', () => {
     expect(component.chartHeight(null, singleDay)).toBe(0);
   });
 
-  it('places period KPIs before FinOps and preserves rendered period controls', () => {
+  it('combines period metrics with FinOps in one headline row and preserves period controls', () => {
     createComponent();fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
     expect(root.querySelector('h1')?.textContent).toBe('Tableau de bord');
-    expect(root.querySelector('.dashboard-kpis')!.compareDocumentPosition(root.querySelector('app-finops')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(root.querySelectorAll('.dashboard-kpis article')).toHaveLength(4);
+    const headline = root.querySelector('.finops-kpis')!;
+    expect(headline.querySelectorAll('article')).toHaveLength(4);
+    expect(headline.textContent).toContain('Requêtes IA');
+    expect(headline.textContent).toContain('Tokens consommés');
+    expect(headline.textContent).toContain('Coût observé estimé');
+    expect(headline.textContent).toContain('Estimation de fin de mois');
+    expect(headline.textContent).not.toContain('Latence moyenne');
+    expect(root.querySelector('.dashboard-secondary')?.textContent).toContain('Latence moyenne');
+    expect(root.querySelector('.dashboard-secondary')?.textContent).toContain('Coût estimé · période');
     expect(root.textContent).toContain('Tokens consommés');
     expect(root.textContent).toContain('Couverture des tests : non publiée');
     const dates = root.querySelectorAll<HTMLInputElement>('input[type="date"]');

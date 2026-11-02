@@ -260,8 +260,8 @@ export class DashboardComponent implements OnInit {
     return 'https://github.com/nouira-rabiaa/angular-ai-dashboard/actions';
   }
 
-  formatCost(value: number | null): string {
-    return value === null ? 'Not available' : `$${value.toFixed(8)} USD`;
+  formatCost(value: number | null, decimals = 8): string {
+    return value === null ? 'Not available' : `$${value.toFixed(decimals)} USD`;
   }
 
   formatTokens(value: number | null): string {
