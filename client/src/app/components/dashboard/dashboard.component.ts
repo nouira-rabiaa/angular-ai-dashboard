@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import {
-  LucideActivity,
   LucideArrowDownToLine,
   LucideCalendarDays,
   LucideChartNoAxesCombined,
@@ -47,13 +46,14 @@ export interface CiStatus {
   standalone: true,
   imports: [
     CommonModule, FormsModule, RouterLink, FinopsComponent,
-    LucideActivity, LucideArrowDownToLine, LucideCalendarDays,
+    LucideArrowDownToLine, LucideCalendarDays,
     LucideChartNoAxesCombined, LucideChevronLeft, LucideChevronRight,
     LucideCircleCheck, LucideCircleDollarSign, LucideDatabase,
     LucideFileClock, LucideFileText, LucideLayers, LucideSearch, LucideSparkles,
     LucideTimer
   ],
-  templateUrl: './dashboard.component.html'
+  templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
   private readonly dashboardData = inject(DashboardDataService);

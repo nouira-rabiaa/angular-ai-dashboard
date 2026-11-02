@@ -1,0 +1,56 @@
+:host { display: block; min-width: 0; }
+.finops-shell > * + * { margin-top: .8rem; }
+.finops-header, .finops-kpi-title, .finops-button { display: flex; align-items: center; gap: .5rem; }
+.finops-header, .finops-kpi-title { justify-content: space-between; }
+.finops-header { flex-wrap: wrap; }
+.finops-header h2 { font-size: 1.1rem; font-weight: 750; color: #172033; }
+.finops-eyebrow { color: #6452b1; font-size: .6rem; text-transform: uppercase; font-weight: 750; letter-spacing: .12em; }
+.finops-note, .finops-period { color: #526176; font-size: .7rem; line-height: 1.5; }
+.finops-period { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .3rem .75rem; }
+.finops-kpis, .finops-charts, .finops-controls { display: grid; gap: .8rem; align-items: start; }
+.finops-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.finops-kpi, .finops-card { border: 1px solid #e0e5ef; border-radius: 1rem; background: white; padding: 1rem; min-width: 0; }
+.finops-kpi { align-self: stretch; border-top: 3px solid #a99be2; }
+.finops-kpi-title h3 { font-size: .7rem; font-weight: 650; color: #526176; }
+.finops-kpi-title svg { color: #6750bd; flex-shrink: 0; }
+.finops-value { color: #172033; font-size: 1.05rem; font-weight: 750; margin: .65rem 0 .3rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.finops-observed { border-top-color: #4b9b83; }
+.finops-month-end { background: #f5f2ff; border-top-color: #6750bd; }
+.finops-charts { grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); }
+.finops-card h3 { color: #172033; font-size: .9rem; font-weight: 700; line-height: 1.4; }
+.finops-card > * + * { margin-top: .75rem; }
+.finops-chart { display: block; width: 100%; height: auto; }
+.finops-legend, .finops-chart-dates { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem; color: #526176; font-size: .65rem; }
+.finops-dot { width: .4rem; height: .4rem; border-radius: 50%; background: #047857; }
+.finops-line { width: 1rem; border-top: 2px dashed #6651c8; }
+.finops-table-scroll { max-height: 16rem; overflow: auto; }
+table { width: 100%; font-size: .7rem; text-align: left; border-collapse: collapse; }
+th, td { padding: .6rem .4rem; border-bottom: 1px solid #edf0f5; overflow-wrap: anywhere; }
+thead { color: #526176; background: #f8f9fc; }
+.finops-method, .finops-values { font-size: .7rem; color: #526176; }
+summary { cursor: pointer; font-weight: 650; padding: .3rem 0; }
+.finops-coverage, .finops-result { background: #f5f2ff; border-radius: .7rem; padding: .8rem; }
+progress { display: block; width: 100%; height: .55rem; margin-top: .4rem; accent-color: #6750bd; }
+.finops-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.finops-budget-summary { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; font-size: .7rem; color: #526176; }
+.finops-budget-form { display: flex; flex-wrap: wrap; gap: .65rem; align-items: end; }
+label { display: block; font-size: .7rem; color: #40516a; font-weight: 600; min-width: 0; }
+input, select { display: block; width: 100%; min-width: 0; min-height: 2.5rem; padding: .5rem .65rem; margin-top: .35rem; border: 1px solid #dce2ed; border-radius: .6rem; background: #fbfcfe; color: #172033; font-size: .8rem; }
+.finops-button { justify-content: center; background: #6750bd; color: white; border: 1px solid #6750bd; border-radius: .65rem; min-height: 2.5rem; padding: .5rem .8rem; font-size: .7rem; font-weight: 650; cursor: pointer; }
+.finops-button-light { background: white; color: #5145a1; border-color: #dce2ed; }
+:disabled { opacity: .55; cursor: not-allowed; }
+:is(input, select, button, summary):focus-visible { outline: 2px solid #6750bd; outline-offset: 3px; }
+.finops-state, .finops-budget-alert { padding: .8rem; border-radius: .7rem; background: #f6f8fc; font-size: .75rem; color: #40516a; }
+.finops-warning { background: #fff8e8; color: #854d0e; }
+.finops-error { background: #fff1f2; color: #9f1239; }
+.finops-scenario { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.finops-model-select, .finops-simulate { grid-column: 1 / -1; }
+.finops-result { font-size: .75rem; line-height: 1.7; overflow-wrap: anywhere; }
+@media (max-width: 1199px) { .finops-charts, .finops-controls { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 767px) {
+  .finops-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+  .finops-kpi { padding: .8rem; }
+  .finops-value { font-size: .9rem; }
+  .finops-card { padding: .9rem; }
+  .finops-budget-form > * { flex: 1 1 100%; }
+}

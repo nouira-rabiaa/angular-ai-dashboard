@@ -66,7 +66,7 @@ describe('FinopsComponent', () => {
   it('distinguishes observed 80% alerts from projected 100% alerts and clamps progress', () => {
     api.getSummary.mockReturnValue(of(summary({ observedBudget: { percent: 80, level: 'warning' }, projectedBudget: { percent: 120, level: 'exceeded' } })));
     fixture.detectChanges();expect(text()).toContain('Observé estimé : Alerte 80 %');expect(text()).toContain('Projection fin de mois : Alerte 100 %');
-    const progress = fixture.nativeElement.querySelectorAll('progress');expect(progress[0].value).toBe(80);expect(progress[1].value).toBe(100);
+    const progress = fixture.nativeElement.querySelectorAll('progress[aria-label^="Consommation du budget"]');expect(progress[0].value).toBe(80);expect(progress[1].value).toBe(100);
     expect(progress[0].getAttribute('aria-label')).toContain('Observé');
   });
 
@@ -96,4 +96,21 @@ describe('FinopsComponent', () => {
     api.simulate.mockReturnValue(throwError(() => new Error('bad params')));component.simulate();fixture.detectChanges();expect(text()).toContain('Simulation impossible');
     api.saveBudget.mockReturnValue(throwError(() => new Error('DB unavailable')));component.saveBudget();fixture.detectChanges();expect(text()).toContain('Budget non enregistré');
   });
+
+  it('keeps forecast KPIs, charts, model coverage, budget and simulator discoverable in that order', () => {
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const kpis = root.querySelector('.finops-kpis')!;const chart = root.querySelector('.finops-charts')!;
+    const controls = root.querySelector('.finops-controls')!;
+    expect(kpis.compareDocumentPosition(chart) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(chart.compareDocumentPosition(controls) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(root.querySelectorAll('.finops-kpis article')).toHaveLength(4);
+    expect(root.querySelector('#finops-models-title')?.closest('details')).toBeNull();
+    expect(controls.querySelector('#finops-budget-title')).not.toBeNull();
+    expect(controls.querySelector('#finops-simulator-title')).not.toBeNull();
+    expect(root.querySelector('progress[aria-label="Requêtes tarifées dans l’échantillon"]')?.getAttribute('value')).toBe('20');
+    expect(root.textContent).toContain('Budget restant');expect(root.textContent).toContain('Non fourni');
+    expect(root.querySelector('summary')?.textContent).toContain('Valeurs et dates');
+  });
+
 });

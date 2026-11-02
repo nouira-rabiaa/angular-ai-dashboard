@@ -1,12 +1,14 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideCircleDollarSign, LucideCalendarDays, LucideChartNoAxesCombined } from '@lucide/angular';
 import { Subject, takeUntil } from 'rxjs';
 import { BudgetStatus, FinopsService, FinopsSummary, SimulationInput, SimulationResult } from '../../services/finops.service';
 
 @Component({
-  selector: 'app-finops', standalone: true, imports: [CommonModule, FormsModule],
-  templateUrl: './finops.component.html'
+  selector: 'app-finops', standalone: true, imports: [CommonModule, FormsModule, LucideCircleDollarSign, LucideCalendarDays, LucideChartNoAxesCombined],
+  templateUrl: './finops.component.html',
+  styleUrl: './finops.component.scss'
 })
 export class FinopsComponent implements OnInit, OnDestroy {
   private readonly api = inject(FinopsService);

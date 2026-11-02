@@ -123,7 +123,7 @@ describe('DashboardComponent', () => {
       { stepIndex: 1, name: 'groq-inference', status: 'success', durationMs: 95 }
     ] };
     createComponent(dashboardService({
-      getInferences: jest.fn().mockReturnValue(of({ total: 1, limit: 25, offset: 0, items: [inference] })),
+      getInferences: jest.fn().mockReturnValue(of({ total: 51, limit: 25, offset: 0, items: [inference] })),
       getInferenceDetail: jest.fn().mockReturnValue(of(stepDetail))
     }));
     component.selectView('inferences');
@@ -132,12 +132,21 @@ describe('DashboardComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('100,25 ms');
     expect(fixture.nativeElement.textContent).toContain('trace-1');
 
-    component.openTrace(inference as any);
+    (fixture.nativeElement.querySelector('button[aria-label="Page suivante"]') as HTMLButtonElement).click();
+    expect(data.getInferences).toHaveBeenLastCalledWith(expect.objectContaining({ offset: 25 }));
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('button[aria-label="Page précédente"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(data.getInferences).toHaveBeenLastCalledWith(expect.objectContaining({ offset: 0 }));
+    (fixture.nativeElement.querySelector('tbody button') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Étapes d’exécution');
     expect(fixture.nativeElement.textContent).toContain('request-validation');
     expect(fixture.nativeElement.textContent).toContain('groq-inference');
     expect(data.getInferenceDetail).toHaveBeenCalledWith('trace-1');
+    (fixture.nativeElement.querySelector('button[aria-label="Fermer les détails"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
   });
 
   it('renders document counts and links upload to the existing generator flow', () => {
@@ -170,7 +179,9 @@ describe('DashboardComponent', () => {
     expect(text).toContain('métadonnées');
     expect(text).not.toContain('form_data');
     expect(text).not.toContain('email');
-    component.applySubmissionSearch('2026-10');
+    const search = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+    search.value = '2026-10';
+    search.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }));
     expect(data.getFormSubmissions).toHaveBeenLastCalledWith(25, 0, '2026-10');
   });
 
@@ -196,4 +207,56 @@ describe('DashboardComponent', () => {
     expect(component.latencyChartPoints([])).toBe('');
     expect(component.chartHeight(null, singleDay)).toBe(0);
   });
+
+  it('places period KPIs before FinOps and preserves rendered period controls', () => {
+    createComponent();fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('h1')?.textContent).toBe('Tableau de bord');
+    expect(root.querySelector('.dashboard-kpis')!.compareDocumentPosition(root.querySelector('app-finops')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(root.querySelectorAll('.dashboard-kpis article')).toHaveLength(4);
+    expect(root.textContent).toContain('Tokens consommés');
+    expect(root.textContent).toContain('Couverture des tests : non publiée');
+    const dates = root.querySelectorAll<HTMLInputElement>('input[type="date"]');
+    dates[0].value = '2026-10-01';dates[1].value = '2026-10-27';
+    root.querySelector<HTMLButtonElement>('.dashboard-period button')!.click();
+    expect(data.getMetrics).toHaveBeenLastCalledWith({ from: '2026-10-01', to: '2026-10-27' });
+    expect(data.getTimeseries).toHaveBeenLastCalledWith({ from: '2026-10-01', to: '2026-10-27' });
+    expect(data.getInferences).toHaveBeenLastCalledWith(expect.objectContaining({ from: '2026-10-01', to: '2026-10-27', offset: 0 }));
+  });
+
+  it('keeps FinOps independent from unavailable overview metrics and wires rendered filters', () => {
+    createComponent();fixture.detectChanges();
+    component.overviewState.set('error');fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-finops')).not.toBeNull();
+    const tabs = fixture.nativeElement.querySelectorAll('[role="tab"]') as NodeListOf<HTMLButtonElement>;
+    tabs[1].click();fixture.detectChanges();
+    const filters = fixture.nativeElement.querySelectorAll('select') as NodeListOf<HTMLSelectElement>;
+    filters[0].value = 'error';filters[0].dispatchEvent(new Event('change'));fixture.detectChanges();
+    filters[1].value = 'document';filters[1].dispatchEvent(new Event('change'));fixture.detectChanges();
+    expect(data.getInferences).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'error', scope: 'document', offset: 0 }));
+    expect(tabs[1].getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('exports only existing submission metadata from the rendered export button', async () => {
+    createComponent(dashboardService({ getFormSubmissions: jest.fn().mockReturnValue(of({ total: 1, limit: 25, offset: 0,
+      items: [{ id: 21, createdAt: '2026-10-26T11:00:00.000Z', status: 'submitted' }] })) }));
+    component.selectView('forms');fixture.detectChanges();
+    const originalCreate = Object.getOwnPropertyDescriptor(URL, 'createObjectURL');
+    const originalRevoke = Object.getOwnPropertyDescriptor(URL, 'revokeObjectURL');
+    const create = jest.fn().mockReturnValue('blob:metadata-export');const revoke = jest.fn();
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: create });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revoke });
+    jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    try {
+      const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
+      buttons.find(button => button.textContent?.includes('Exporter'))!.click();
+      expect(create).toHaveBeenCalledTimes(1);expect(revoke).toHaveBeenCalledWith('blob:metadata-export');
+      const csv = await new Promise<string>(resolve => { const reader = new FileReader();reader.onload = () => resolve(String(reader.result));reader.readAsText(create.mock.calls[0][0]); });
+      expect(csv).toBe('ID,Date,Status\r\n"21","2026-10-26T11:00:00.000Z","submitted"');
+    } finally {
+      if (originalCreate) Object.defineProperty(URL, 'createObjectURL', originalCreate);else delete (URL as any).createObjectURL;
+      if (originalRevoke) Object.defineProperty(URL, 'revokeObjectURL', originalRevoke);else delete (URL as any).revokeObjectURL;
+    }
+  });
+
 });
