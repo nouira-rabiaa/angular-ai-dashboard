@@ -108,6 +108,71 @@ describe('ArchitectureExplorerComponent', () => {
     }
   });
 
+  it('maps only the declared nodes and directed connections for each flow', () => {
+    for (const flow of component.flows) {
+      const root = fixture.nativeElement as HTMLElement;
+      root.querySelector<HTMLButtonElement>(`button[aria-label="Choisir le flux ${flow.title}"]`)!.click();
+      fixture.detectChanges();
+      const map = root.querySelector('.architecture-canvas')!;
+      expect(map.getAttribute('aria-label')).toContain(flow.title);
+      expect(Array.from(map.querySelectorAll('[data-node-id]')).map(node => node.getAttribute('data-node-id')).sort())
+        .toEqual([...flow.nodeIds].sort());
+      expect(Array.from(map.querySelectorAll('[data-edge-id]')).map(edge => edge.getAttribute('data-edge-id')).sort())
+        .toEqual([...flow.edgeIds].sort());
+      for (const edge of component.flowEdges()) {
+        expect(flow.nodeIds).toContain(edge.sourceNodeId);
+        expect(flow.nodeIds).toContain(edge.targetNodeId);
+        const path = map.querySelector(`[data-edge-id="${edge.id}"]`)!;
+        expect(path.getAttribute('d')).not.toMatch(/NaN|undefined/);
+        expect(path.getAttribute('marker-end')).toBe('url(#architecture-arrow)');
+        expect(path.getAttribute('data-kind')).toBe(edge.connectionType);
+      }
+      for (const node of component.diagramNodes()) {
+        const position = component.diagramPoint(node.id);
+        expect(position.x).toBeGreaterThanOrEqual(0);
+        expect(position.x + 170).toBeLessThanOrEqual(800);
+        expect(position.y + 72).toBeLessThan(component.diagramHeight());
+      }
+    }
+  });
+
+  it('highlights a selected map node while preserving its detailed inspection', () => {
+    fixture.nativeElement.querySelector('button[aria-label="Sélectionner Formulaire dynamique"]').click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.architecture-canvas .architecture-selected')).toHaveLength(1);
+    expect(fixture.nativeElement.querySelector('.architecture-canvas .architecture-selected').getAttribute('data-node-id')).toBe('dynamic-form-ui');
+    expect(fixture.nativeElement.querySelector('#node-details-title').textContent).toContain('Formulaire dynamique');
+    const scrollRegion = fixture.nativeElement.querySelector('.architecture-map-scroll');
+    expect(scrollRegion.getAttribute('tabindex')).toBe('0');
+    expect(scrollRegion.getAttribute('aria-describedby')).toBe('architecture-map-help');
+  });
+
+  it('inspects diagram nodes by click and real DOM arrow-key events without a follow-up click', () => {
+    const root = fixture.nativeElement as HTMLElement;
+    for (const flow of component.flows) {
+      root.querySelector<HTMLButtonElement>(`button[aria-label="Choisir le flux ${flow.title}"]`)!.click();
+      fixture.detectChanges();
+      const nodes = root.querySelectorAll<HTMLButtonElement>('.architecture-map-node');
+      const expected = component.diagramNodes();
+      nodes[0].focus();
+      nodes[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+      fixture.detectChanges();
+      expect(document.activeElement).toBe(nodes[1]);
+      expect(component.selectedNodeId()).toBe(expected[1].id);
+      expect(nodes[1].getAttribute('aria-pressed')).toBe('true');
+      expect(root.querySelector('#node-details-title')?.textContent).toContain(expected[1].name);
+      nodes[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true }));
+      fixture.detectChanges();
+      expect(document.activeElement).toBe(nodes[0]);
+      nodes[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true }));
+      fixture.detectChanges();
+      expect(document.activeElement).toBe(nodes[nodes.length - 1]);
+      nodes[0].click();fixture.detectChanges();
+      expect(component.selectedNodeId()).toBe(expected[0].id);
+      expect(nodes[0].type).toBe('button');
+    }
+  });
+
   it('retains a selected node shared by the previous and next flows', () => {
     const nextFlow = component.flows.find(flow => flow.id === 'pdf-rag')!;
     const sharedNode = component.nodes.find(node =>

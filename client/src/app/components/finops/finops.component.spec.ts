@@ -86,6 +86,46 @@ describe('FinopsComponent', () => {
     expect(progress[0].getAttribute('aria-label')).toContain('Observé');
   });
 
+  it.each(['observedBudget', 'projectedBudget'] as const)('renders each server-provided threshold independently for %s', key => {
+    fixture.detectChanges();
+    const other = key === 'observedBudget' ? 'projectedBudget' : 'observedBudget';
+    for (const status of [
+      { level: 'ok', percent: 79.9 }, { level: 'warning', percent: 80 },
+      { level: 'exceeded', percent: 100 }, { level: 'unavailable', percent: null }
+    ] as const) {
+      component.summary.set(summary({ [key]: status, [other]: { level: 'unavailable', percent: null } }));
+      fixture.detectChanges();
+      const panel = fixture.nativeElement.querySelector('section[aria-labelledby="finops-alerts-title"]') as HTMLElement;
+      expect(panel.textContent).toContain('80 % : avertissement · 100 % : critique');
+      expect(panel.getAttribute('aria-live')).toBe('polite');
+      const rows = panel.querySelectorAll('.finops-budget-alert');
+      const row = rows[key === 'observedBudget' ? 0 : 1];
+      const otherRow = rows[key === 'observedBudget' ? 1 : 0];
+      expect(row.textContent).toContain(component.alert(status));
+      expect(row.classList.contains('finops-warning')).toBe(status.level === 'warning');
+      expect(row.classList.contains('finops-error')).toBe(status.level === 'exceeded');
+      expect(row.querySelector('svg[aria-hidden="true"]')).not.toBeNull();
+      expect(otherRow.textContent).toContain('Évaluation indisponible');
+      expect(otherRow.querySelector('progress')).toBeNull();
+      if (status.level === 'unavailable') {
+        expect(row.querySelector('progress')).toBeNull();
+        expect(row.textContent).not.toContain('Alerte');
+      } else {
+        expect(row.querySelector('progress')?.value).toBe(status.percent);
+      }
+    }
+  });
+
+  it('keeps a valid observed status when the projection has insufficient data', () => {
+    api.getSummary.mockReturnValue(of(summary({ status: 'insufficient_data', projectedMonthEndUsd: null,
+      observedBudget: { level: 'ok', percent: 25 }, projectedBudget: { level: 'unavailable', percent: null } })));
+    fixture.detectChanges();
+    const rows = fixture.nativeElement.querySelectorAll('.finops-budget-alert');
+    expect(rows[0].textContent).toContain('Sous le seuil de 80 %');
+    expect(rows[1].textContent).toContain('Évaluation indisponible');
+    expect(rows[1].querySelector('progress')).toBeNull();
+  });
+
   it('saves the budget through the rendered form and refreshes the persisted summary', async () => {
     fixture.detectChanges();await fixture.whenStable();
     const input = fixture.nativeElement.querySelector('input[name="monthlyBudget"]') as HTMLInputElement;

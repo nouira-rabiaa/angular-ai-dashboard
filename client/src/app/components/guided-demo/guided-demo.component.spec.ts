@@ -88,6 +88,37 @@ describe('GuidedDemoComponent', () => {
     expect(Object.values(component.stepStatuses())).not.toContain('technically-verified');
   });
 
+  it('retains every educational explanation, destination and completion criterion through the workflow', () => {
+    for (let index = 0; index < component.steps.length; index++) {
+      const button = fixture.nativeElement.querySelectorAll('nav button')[index] as HTMLButtonElement;
+      button.click();fixture.detectChanges();
+      const step = component.steps[index];
+      const root = fixture.nativeElement as HTMLElement;
+      expect(button.getAttribute('aria-current')).toBe('step');
+      expect(root.querySelector('#business-explanation-title')?.parentElement?.textContent).toContain(step.businessExplanation);
+      expect(root.querySelector('#technical-explanation-title')?.parentElement?.textContent).toContain(step.technicalExplanation);
+      expect(root.querySelector('#user-instruction-title')?.parentElement?.textContent).toContain(step.userInstruction);
+      expect(root.querySelector('aside')?.textContent).toContain(step.completionCriteria);
+      const destination = root.querySelector('a[target="_blank"]');
+      expect(destination?.getAttribute('href') ?? undefined).toBe(step.destinationRoute);
+    }
+    TestBed.inject(HttpTestingController).expectNone(() => true);
+  });
+
+  it('illustrates ingestion and RAG with their documented connections without executing requests', () => {
+    component.selectStep(1);fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.demo-scene').getAttribute('data-step')).toBe('document-upload');
+    expect(fixture.nativeElement.querySelectorAll('.demo-flow-edge')).toHaveLength(1);
+    expect(fixture.nativeElement.querySelector('.demo-flow-edge').getAttribute('data-edge-id')).toBe('ingestion-write');
+    expect(fixture.nativeElement.querySelector('.demo-scene').textContent).toContain('API ingestion');
+    component.selectStep(2);fixture.detectChanges();
+    const edges = Array.from(fixture.nativeElement.querySelectorAll('.demo-flow-edge')) as HTMLElement[];
+    expect(edges.map(edge => edge.getAttribute('data-edge-id')).sort()).toEqual(['rag-inference', 'rag-response', 'rag-retrieve']);
+    expect(fixture.nativeElement.querySelector('.demo-scene').textContent).toContain('Aucun appel exécuté');
+    expect(fixture.nativeElement.querySelector('details #technical-explanation-title')).not.toBeNull();
+    TestBed.inject(HttpTestingController).expectNone(() => true);
+  });
+
   it('uses accessible contrast classes for secondary text', () => {
     const template = fixture.nativeElement.innerHTML as string;
     expect(template).not.toContain('text-slate-400');

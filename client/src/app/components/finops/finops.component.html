@@ -52,11 +52,27 @@
             <button [disabled]="saving() || budgetForm.invalid" class="finops-button">{{ saving() ? 'Enregistrement…' : 'Enregistrer le budget' }}</button>
           </form>
           <p role="status" class="finops-note">{{ budgetMessage() }}</p>
-          @for (item of [{ title: 'Observé estimé', status: data.observedBudget }, { title: 'Projection fin de mois', status: data.projectedBudget }]; track item.title) {
-            <div class="finops-budget-alert" [class.finops-warning]="item.status.level === 'warning'" [class.finops-error]="item.status.level === 'exceeded'"><p>{{ item.title }} : {{ alert(item.status) }} @if (item.status.percent !== null) { · {{ item.status.percent | number:'1.0-1' }} % }</p>
-              @if (item.status.percent !== null) { <progress max="100" [value]="progress(item.status)" [attr.aria-label]="'Consommation du budget : ' + item.title"></progress> }
-            </div>
-          }
+          <section aria-labelledby="finops-alerts-title" aria-live="polite" class="space-y-2">
+            <h4 id="finops-alerts-title" class="text-sm font-semibold text-slate-900">Alertes budgétaires</h4>
+            <p class="finops-note">80 % : avertissement · 100 % : critique</p>
+            @for (item of [{ title: 'Observé estimé', status: data.observedBudget }, { title: 'Projection fin de mois', status: data.projectedBudget }]; track item.title) {
+              <div class="finops-budget-alert border-l-4" [class.border-slate-200]="item.status.level === 'ok' || item.status.level === 'unavailable'" [class.border-amber-500]="item.status.level === 'warning'" [class.border-rose-500]="item.status.level === 'exceeded'" [class.finops-warning]="item.status.level === 'warning'" [class.finops-error]="item.status.level === 'exceeded'">
+                <div class="flex items-start gap-2">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="h-4 w-4 shrink-0">
+                    @if (item.status.level === 'warning' || item.status.level === 'exceeded') {
+                      <path d="M12 3 2 21h20L12 3Z M12 9v5 M12 17v1" />
+                    } @else {
+                      <circle cx="12" cy="12" r="9" />
+                      @if (item.status.level === 'ok') { <path d="m8 12 3 3 5-6" /> }
+                      @else { <path d="M12 10v7 M12 7v1" /> }
+                    }
+                  </svg>
+                  <p>{{ item.title }} : <strong>{{ alert(item.status) }}</strong> @if (item.status.percent !== null) { · {{ item.status.percent | number:'1.0-1' }} % }</p>
+                </div>
+                @if (item.status.percent !== null) { <progress max="100" [value]="progress(item.status)" [attr.aria-label]="'Consommation du budget : ' + item.title"></progress> }
+              </div>
+            }
+          </section>
           @if (!data.monthCoverageComplete) { <p class="finops-note finops-warning">Les alertes observées reposent sur un minimum connu. L’absence d’alerte ne prouve pas le respect du budget.</p> }
           <p class="finops-note">Enregistré dans SQLite pour les mois suivants jusqu’à modification. Aucune notification externe.</p>
         </section>
