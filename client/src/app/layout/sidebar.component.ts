@@ -43,8 +43,8 @@ import {
           </div>
           @if (expanded || mobileOpen) {
             <div class="min-w-0 flex-1">
-              <p class="truncate text-sm font-bold tracking-wide text-white">AI Control Center</p>
-              <p class="mt-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">Operations console</p>
+              <p class="text-sm font-bold leading-tight text-white">Enterprise AI Dashboard</p>
+              <p class="mt-0.5 text-[10px] font-medium leading-snug text-slate-300">AI Operations & FinOps Platform</p>
             </div>
           }
           <button type="button" data-mobile-focus class="ml-auto rounded-lg p-2 text-slate-400 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 lg:hidden" aria-label="Fermer le menu" (click)="closeMobile()">

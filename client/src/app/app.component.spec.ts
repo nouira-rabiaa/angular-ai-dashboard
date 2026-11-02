@@ -28,6 +28,9 @@ describe('AppComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).not.toContain('Connecté au Backend');
+    expect(fixture.nativeElement.textContent).toContain('Enterprise AI Dashboard');
+    expect(fixture.nativeElement.textContent).toContain('AI Operations & FinOps Platform');
+    expect(fixture.nativeElement.textContent).not.toContain('AI Control Center');
     const openButton = fixture.nativeElement.querySelector('button[aria-label="Ouvrir le menu de navigation"]') as HTMLButtonElement;
     expect(openButton.getAttribute('aria-expanded')).toBe('false');
     openButton.click();
@@ -41,8 +44,8 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
 
-    const paragraphs = Array.from(fixture.nativeElement.querySelectorAll('p')) as HTMLParagraphElement[];
-    const subtitle = paragraphs.find(paragraph => paragraph.textContent?.includes('RAG operations workspace'));
+    const paragraphs = Array.from(fixture.nativeElement.querySelectorAll('header p')) as HTMLParagraphElement[];
+    const subtitle = paragraphs.find(paragraph => paragraph.textContent?.includes('AI Operations & FinOps Platform'));
     expect(subtitle).toBeDefined();
     expect(subtitle!.classList.contains('text-slate-600')).toBe(true);
   });

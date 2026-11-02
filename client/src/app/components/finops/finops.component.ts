@@ -1,12 +1,12 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideCircleDollarSign, LucideCalendarDays, LucideChartNoAxesCombined } from '@lucide/angular';
+import { LucideCircleDollarSign, LucideChartNoAxesCombined } from '@lucide/angular';
 import { Subject, takeUntil } from 'rxjs';
 import { BudgetStatus, FinopsService, FinopsSummary, SimulationInput, SimulationResult } from '../../services/finops.service';
 
 @Component({
-  selector: 'app-finops', standalone: true, imports: [CommonModule, FormsModule, LucideCircleDollarSign, LucideCalendarDays, LucideChartNoAxesCombined],
+  selector: 'app-finops', standalone: true, imports: [CommonModule, FormsModule, LucideCircleDollarSign, LucideChartNoAxesCombined],
   templateUrl: './finops.component.html',
   styleUrl: './finops.component.scss'
 })
@@ -55,7 +55,7 @@ export class FinopsComponent implements OnInit, OnDestroy {
       error: () => this.simulationState.set('error')
     });
   }
-  cost(value: number | null | undefined) { return typeof value === 'number' && Number.isFinite(value) ? `$${value.toFixed(8)} USD` : 'Indisponible'; }
+  cost(value: number | null | undefined, decimals = 8) { return typeof value === 'number' && Number.isFinite(value) ? `$${value.toFixed(decimals)} USD` : 'Indisponible'; }
   alert(status: BudgetStatus) {
     switch (status.level) {
       case 'exceeded': return 'Alerte 100 % : budget atteint ou dépassé';

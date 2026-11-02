@@ -16,7 +16,7 @@
   <nav class="dashboard-tabs" aria-label="Sections du tableau de bord" role="tablist">
     @for (view of views; track view.id) {
       <button type="button" role="tab" [attr.aria-selected]="activeView() === view.id" (click)="selectView(view.id)"
-        class="whitespace-nowrap rounded-xl px-3.5 py-2.5 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-indigo-400 sm:text-sm"
+        class="whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-indigo-400 sm:text-sm"
         [class.bg-indigo-600]="activeView() === view.id" [class.text-white]="activeView() === view.id" [class.shadow-md]="activeView() === view.id" [class.shadow-indigo-200]="activeView() === view.id"
         [class.text-slate-500]="activeView() !== view.id" [class.hover:bg-slate-50]="activeView() !== view.id" [class.hover:text-slate-900]="activeView() !== view.id">
         {{ view.label }}
@@ -27,33 +27,40 @@
   @if (activeView() === 'overview') {
     <section role="tabpanel" aria-label="Overview" class="dashboard-overview">
       <div class="dashboard-period">
-        <label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Du <input #rangeFrom type="date" [value]="dateRange().from" class="mt-1 block rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-normal text-slate-700"></label>
-        <label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Au <input #rangeTo type="date" [value]="dateRange().to" class="mt-1 block rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-normal text-slate-700"></label>
+        <label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Du <input #rangeFrom type="date" [value]="dateRange().from" class="block rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-normal text-slate-700"></label>
+        <label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Au <input #rangeTo type="date" [value]="dateRange().to" class="block rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-normal text-slate-700"></label>
         <button type="button" (click)="setDateRange(rangeFrom.value, rangeTo.value)" class="inline-flex min-h-9 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-semibold text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"><svg lucideCalendarDays class="h-4 w-4"></svg> Appliquer</button>
         <span class="text-[11px] text-slate-600">Période des métriques et de l’historique RAG.</span>
       </div>
 
+      <app-finops>
+        <ng-container finops-primary>
+          @if (overviewState() === 'ready' && metrics()) {
+            @let metric = metrics()!;
+            <article class="dashboard-kpi"><div class="dashboard-kpi-heading"><h2>Requêtes IA</h2><span class="dashboard-icon"><svg lucideSparkles aria-hidden="true" class="h-4 w-4"></svg></span></div><p class="dashboard-value">{{ metric.requestCount.toLocaleString('fr-FR') }}</p><p class="dashboard-caption">Période sélectionnée</p></article>
+            <article class="dashboard-kpi"><div class="dashboard-kpi-heading"><h2>Tokens consommés</h2><span class="dashboard-icon"><svg lucideLayers aria-hidden="true" class="h-4 w-4"></svg></span></div><p class="dashboard-value">{{ metric.totalTokens === null ? 'Indisponible' : formatTokens(metric.totalTokens) }}</p><p class="dashboard-caption">{{ metric.totalTokens === null ? 'Usage fournisseur non disponible' : 'Usage fournisseur disponible' }}</p></article>
+          } @else {
+            <article class="dashboard-kpi"><h2>Requêtes IA</h2><p class="dashboard-value">{{ overviewState() === 'loading' ? 'Chargement…' : 'Indisponible' }}</p><p class="dashboard-caption">Période sélectionnée</p></article>
+            <article class="dashboard-kpi"><h2>Tokens consommés</h2><p class="dashboard-value">{{ overviewState() === 'loading' ? 'Chargement…' : 'Indisponible' }}</p><p class="dashboard-caption">Usage fournisseur non disponible</p></article>
+          }
+        </ng-container>
+      </app-finops>
       @if (overviewState() === 'loading') {
-        <p role="status" class="rounded-2xl border border-slate-200 bg-white py-6 text-center text-sm text-slate-500 shadow-sm">Chargement des métriques…</p>
+        <p role="status" class="dashboard-caption">Chargement des métriques…</p>
       } @else if (overviewState() === 'error') {
-        <div role="alert" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">Métriques indisponibles. Vérifiez que l’API de démonstration locale est activée.</div>
-      } @else if (metrics()) {
+        <p role="alert" class="rounded-xl bg-rose-50 p-2 text-xs text-rose-800">Métriques indisponibles. Vérifiez que l’API de démonstration locale est activée.</p>
+      }
+      @if (overviewState() === 'ready' && metrics()) {
         @let metric = metrics()!;
-        <div class="dashboard-kpis" aria-label="Indicateurs de la période sélectionnée">
-          <article class="dashboard-kpi"><div class="dashboard-kpi-heading"><h2>Requêtes IA</h2><span class="dashboard-icon"><svg lucideSparkles aria-hidden="true" class="h-4 w-4"></svg></span></div><p class="dashboard-value">{{ metric.requestCount.toLocaleString('fr-FR') }}</p><p class="dashboard-caption">Période sélectionnée</p><p class="dashboard-caption">Exécutions : {{ metric.successCount.toLocaleString('fr-FR') }} OK · {{ metric.errorCount }} erreur(s) · {{ metric.noMatchCount }} sans résultat</p></article>
-          <article class="dashboard-kpi"><div class="dashboard-kpi-heading"><h2>Tokens consommés</h2><span class="dashboard-icon"><svg lucideLayers aria-hidden="true" class="h-4 w-4"></svg></span></div><p class="dashboard-value">{{ formatTokens(metric.totalTokens) }}</p><p class="dashboard-caption">Usage fournisseur disponible</p></article>
-          <article class="dashboard-kpi"><div class="dashboard-kpi-heading"><h2>Coût estimé · USD</h2><span class="dashboard-icon"><svg lucideCircleDollarSign aria-hidden="true" class="h-4 w-4"></svg></span></div><p class="dashboard-value dashboard-money">{{ formatCost(metric.estimatedCostUsd) }}</p><p class="dashboard-caption">{{ metric.pricedRequestCount }} tarifées · {{ metric.unpricedRequestCount }} sans tarif</p></article>
-          <article class="dashboard-kpi"><div class="dashboard-kpi-heading"><h2>Latence moyenne</h2><span class="dashboard-icon"><svg lucideTimer aria-hidden="true" class="h-4 w-4"></svg></span></div><p class="dashboard-value">{{ metric.averageLatencyMs === null ? 'Indisponible' : (metric.averageLatencyMs.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' ms') }}</p><p class="dashboard-caption">Mesure serveur</p></article>
-        </div>
-        <div class="dashboard-secondary" aria-label="Documents et détail des tokens">
+<p class="dashboard-caption">Exécutions : {{ metric.successCount.toLocaleString('fr-FR') }} OK · {{ metric.errorCount }} erreur(s) · {{ metric.noMatchCount }} sans résultat</p>
+        <div class="dashboard-secondary" aria-label="Indicateurs secondaires de la période">
           <div><svg lucideDatabase aria-hidden="true" class="h-4 w-4"></svg><span>Documents indexés<strong>{{ documentTotal().toLocaleString('fr-FR') }}</strong></span></div>
           <div><svg lucideLayers aria-hidden="true" class="h-4 w-4"></svg><span>Chunks indexés<strong>{{ documentChunksTotal().toLocaleString('fr-FR') }}</strong></span></div>
           <div><svg lucideArrowDownToLine aria-hidden="true" class="h-4 w-4"></svg><span>Tokens entrants<strong>{{ formatTokens(metric.inputTokens) }}</strong></span></div>
           <div><svg lucideSparkles aria-hidden="true" class="h-4 w-4"></svg><span>Tokens sortants<strong>{{ formatTokens(metric.outputTokens) }}</strong></span></div>
+          <div><svg lucideCircleDollarSign aria-hidden="true" class="h-4 w-4"></svg><span>Coût estimé · période<strong>{{ formatCost(metric.estimatedCostUsd, 2) }}</strong><span>{{ metric.pricedRequestCount }} tarifées · {{ metric.unpricedRequestCount }} sans tarif</span></span></div>
+          <div><svg lucideTimer aria-hidden="true" class="h-4 w-4"></svg><span>Latence moyenne · serveur<strong>{{ metric.averageLatencyMs === null ? 'Indisponible' : (metric.averageLatencyMs.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' ms') }}</strong></span></div>
         </div>
-      }
-      <app-finops />
-      @if (overviewState() === 'ready' && metrics()) {
         <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_12px_40px_-32px_rgba(30,41,59,0.5)] sm:p-6">
           <div class="flex flex-wrap items-baseline justify-between gap-2"><div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-600">Tendance réelle</p><h2 class="mt-1 text-base font-bold text-slate-900">Activité et latence quotidienne</h2></div><span class="text-[11px] text-slate-500">Le coût non tarifé reste indisponible.</span></div>
           @if (timeseriesState() === 'loading') { <p role="status" class="py-6 text-center text-xs text-slate-500">Chargement des métriques quotidiennes…</p> }
