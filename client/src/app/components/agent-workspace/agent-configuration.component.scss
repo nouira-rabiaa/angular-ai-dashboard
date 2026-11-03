@@ -1,0 +1,51 @@
+:host { display: block; min-width: 0; }
+.studio { color: #172033; }
+.studio-hero,.studio-panel-heading,.studio-actions,.studio-pagination { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; }
+.studio-hero { padding: 1.25rem; border-radius: 1rem; background: radial-gradient(ellipse at top right,#343270,transparent 70%),#0b1428; color: #cbd5e1; }
+.studio-hero h1 { color: white; font-size: 1.6rem; font-weight: 750; letter-spacing: -.03em; }
+.studio-hero > div > p:last-child { font-size: .8rem; margin-top: .35rem; }
+.studio-eyebrow { color: #6452b1; font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+.studio-hero .studio-eyebrow { color: #c4b5fd; }
+.studio-badge { border: 1px solid #64719a; border-radius: 2rem; padding: .3rem .6rem; font-size: .65rem; }
+.studio-scope,.studio-help,label > span { color: #526176; font-size: .7rem; line-height: 1.6; }
+.studio-scope { margin: .8rem 0; }
+.studio-layout { display: grid; align-items: start; gap: 1rem; }
+.studio-panel { min-width: 0; border: 1px solid #e0e5ef; border-radius: 1rem; padding: 1rem; background: white; box-shadow: 0 4px 14px #17203305; }
+h2 { font-size: 1.05rem; font-weight: 700; overflow-wrap: anywhere; }
+button { min-height: 2.5rem; border-radius: .65rem; padding: .5rem .75rem; font-size: .75rem; font-weight: 650; cursor: pointer; }
+.studio-primary { background: #6750bd; color: white; }
+.studio-secondary,.studio-icon-button { border: 1px solid #dce2ed; background: #fff; color: #5145a1; }
+.studio-new { width: 100%; margin: 1rem 0; }
+.studio-agent-items { display: grid; gap: .5rem; }
+.studio-agent { display: flex; align-items: start; gap: .6rem; width: 100%; text-align: left; border: 1px solid #e0e5ef; }
+.studio-selected { border-color: #6750bd; background: #f5f2ff; box-shadow: inset 3px 0 #6750bd; }
+.studio-agent-avatar { display: grid; place-items: center; flex-shrink: 0; width: 2rem; height: 2rem; border-radius: .6rem; background: #ede9fe; color: #5141a0; }
+.studio-agent-copy { min-width: 0; overflow-wrap: anywhere; }
+.studio-agent-copy > * { display: block; }
+.studio-agent-copy > span { font-size: .7rem; font-weight: 400; color: #526176; }
+small { font-size: .65rem; color: #526176; }
+.studio-active { color: #065f46; }
+.studio-empty { padding: 1rem .5rem; font-size: .75rem; color: #526176; line-height: 1.6; }
+.studio-empty > span { font-size: 2rem; color: #6750bd; }
+.studio-empty h3 { color: #172033; font-weight: 700; }
+.studio-pagination { margin-top: .75rem; font-size: .7rem; }
+fieldset { min-width: 0; border-top: 1px solid #e7eaf1; margin-top: 1rem; padding-top: .8rem; }
+legend { font-weight: 700; font-size: .85rem; padding-right: .75rem; }
+.studio-fields { display: grid; gap: .8rem; margin-top: .6rem; }
+label { display: block; min-width: 0; font-size: .75rem; font-weight: 600; }
+input,select,textarea { display: block; width: 100%; min-width: 0; margin: .35rem 0; padding: .6rem; border: 1px solid #dce2ed; border-radius: .6rem; background: #fbfcfe; color: #172033; font-size: .8rem; }
+textarea { resize: vertical; }
+label > span,em { display: block; font-weight: 400; }
+em,.studio-error { color: #9f1239; font-size: .75rem; font-style: normal; }
+[aria-invalid="true"] { border-color: #be123c; }
+.studio-check { display: flex; align-items: center; gap: .5rem; }
+.studio-check input { width: 1rem; height: 1rem; accent-color: #6750bd; }
+.studio-notice,.studio-error,.studio-unsaved { margin: .65rem 0; padding: .65rem; border-radius: .6rem; font-size: .75rem; }
+.studio-notice { color: #40516a; background: #f0f5ff; }
+.studio-error { background: #fff1f2; }
+.studio-unsaved { color: #854d0e; background: #fff8e8; }
+.studio-actions { margin-top: 1rem; padding-top: .8rem; border-top: 1px solid #e7eaf1; }
+:disabled { opacity: .6; cursor: not-allowed; }
+:is(button,input,textarea,select):focus-visible { outline: 2px solid #6750bd; outline-offset: 3px; }
+@media (min-width: 768px) { .studio-fields { grid-template-columns: repeat(2,minmax(0,1fr)); } .studio-wide { grid-column: 1 / -1; } }
+@media (min-width: 1200px) { .studio-layout { grid-template-columns: 17rem minmax(0,1fr); } .studio-list { position: sticky; top: 4rem; } }

@@ -1,3 +1,4 @@
+import { AgentConfigurationComponent } from './agent-configuration.component';
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +10,7 @@ type WorkspaceState = 'idle' | 'running' | 'completed' | 'failed';
 @Component({
   selector: 'app-agent-workspace',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AgentConfigurationComponent],
   templateUrl: './agent-workspace.component.html',
   styleUrl: './agent-workspace.component.scss'
 })

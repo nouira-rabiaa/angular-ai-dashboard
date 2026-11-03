@@ -1,3 +1,4 @@
+import { emptySupportAgent } from '../models/support-agent.model';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
@@ -21,6 +22,17 @@ describe('AgentService', () => {
   });
 
   afterEach(() => http.verify());
+
+  it('uses the configuration resource and versioned HTTP methods without calling run', () => {
+    const base = 'http://localhost:3000/api/agents';
+    service.listAgents().subscribe();http.expectOne(base + '?limit=50&offset=0').flush({ items: [], total: 0, limit: 50, offset: 0 });
+    service.getAgent('id').subscribe();http.expectOne(base + '/id').flush({ id: 'id' });
+    const config = emptySupportAgent();
+    service.createAgent(config).subscribe();const create = http.expectOne(base);expect(create.request.method).toBe('POST');expect(create.request.body).toEqual(config);create.flush({ id: 'id' });
+    service.updateAgent('id', config, 2).subscribe();const update = http.expectOne(base + '/id');expect(update.request.method).toBe('PUT');expect(update.request.body.version).toBe(2);update.flush({ id: 'id' });
+    service.setAgentStatus('id', 'active', 3).subscribe();const status = http.expectOne(base + '/id/status');expect(status.request.method).toBe('PATCH');expect(status.request.body).toEqual({ status: 'active', version: 3 });status.flush({ id: 'id' });
+    http.expectNone('http://localhost:3000/api/agent/run');
+  });
 
   it('posts the goal and returns the typed run response', () => {
     const response: AgentRunResponse = {

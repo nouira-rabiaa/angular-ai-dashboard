@@ -61,3 +61,10 @@ Références de code : [ingestion et FTS5](../server/document-store.js), [contex
 E. Prévision des coûts et simulation budgétaire — Phase 4
 La prévision utilise une moyenne des coûts estimés sur au plus 30 jours UTC terminés, avec au moins 7 jours calendaires, 10 requêtes tarifées et 3 jours actifs. Toute trace non chiffrable de l’échantillon empêche l’extrapolation. Le rythme moyen est multiplié par 7 ou 30; l’estimation de fin de mois utilise le calendrier civil et ajuste la journée courante sans double comptage. Ces hypothèses ne modélisent ni croissance ni saisonnalité.
 Le simulateur utilise exclusivement les tarifs valides de GROQ_MODEL_PRICING et les tokens moyens saisis. Le budget partagé est persisté dans SQLite; les alertes à 80/100 % différencient sous-total observé estimé et projection. Une couverture partielle ne prouve pas le respect du budget. Les formules, limites, bornes et instructions se trouvent dans [FINOPS](FINOPS.md). Aucun service externe ou agent de support client Phase 5 n’est ajouté.
+
+
+## Phase 5A — Configuration persistante des agents
+
+La route Angular existante `/agent-workspace` héberge Support Agent Studio et conserve le runner d'exploitation séparé. `AgentService` ajoute les opérations de catalogue/configuration ; les Reactive Forms et Signals gèrent les brouillons et états asynchrones. La migration additive `003_support_agents.sql` et les routes locales `/api/agents` persistent les configurations, avec validation stricte et contrôle de version contre l'écrasement d'une édition concurrente.
+
+Aucun appel Groq n'est effectué par 5A. Les statuts actif/inactif ne constituent pas un déploiement. Documents autorisés, chat de support, conversations et escalades effectives restent futurs ; le RAG FTS5/BM25 et les calculs FinOps existants sont inchangés. Aucune authentification ou isolation multi-tenant n'est ajoutée. Détails : [PHASE5_SUPPORT_AGENT](PHASE5_SUPPORT_AGENT.md).
