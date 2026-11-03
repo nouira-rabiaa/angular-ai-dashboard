@@ -17,7 +17,7 @@
           <div class="finops-card-heading"><div><p class="finops-eyebrow">Historique & prévisions</p><h3 id="finops-chart-title">Coûts quotidiens historiques et projetés</h3></div></div>
           @if ((!data.sample.requestCount && !data.monthRequestCount) || data.status !== 'ready' || !chart().length) {
             <div role="status" aria-label="Disponibilité des prévisions" class="finops-state">
-              <div class="flex items-center gap-2 text-indigo-800"><svg lucideChartNoAxesCombined aria-hidden="true" class="h-5 w-5 shrink-0"></svg><h4 class="font-semibold">{{ !data.sample.requestCount && !data.monthRequestCount ? 'Aucun historique' : 'Prévision en attente' }}</h4></div>
+              <div class="flex items-center gap-2 text-blue-800"><svg lucideChartNoAxesCombined aria-hidden="true" class="h-5 w-5 shrink-0"></svg><h4 class="font-semibold">{{ !data.sample.requestCount && !data.monthRequestCount ? 'Aucun historique' : 'Prévision en attente' }}</h4></div>
               @if (!data.sample.requestCount && !data.monthRequestCount) { <p>Les coûts apparaîtront après l’enregistrement d’appels RAG.</p> }
               @if (data.status === 'insufficient_data') { <p>Données insuffisantes pour une projection fiable.</p><details class="finops-values"><summary>Conditions de prévision</summary><p>Au moins 7 jours terminés, 10 requêtes tarifées et 3 jours actifs sont nécessaires. Hypothèse : activité et tarifs stables.</p></details> }
               @if (data.status === 'unavailable') { <p>Prévision indisponible : certains coûts historiques ne sont pas calculables. Aucun coût manquant n’est remplacé par zéro.</p> }

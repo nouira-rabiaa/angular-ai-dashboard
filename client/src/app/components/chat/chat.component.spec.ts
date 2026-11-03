@@ -30,6 +30,17 @@ describe('ChatComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('keeps the document picker keyboard accessible and describes lexical indexing honestly', () => {
+    const fixture = TestBed.createComponent(ChatComponent);fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector('input[type="file"]') as HTMLInputElement;
+    expect(input.accept).toBe('.pdf,.txt,.csv');expect(input.classList.contains('hidden')).toBe(false);
+    expect(input.getAttribute('aria-label')).toContain('PDF, TXT ou CSV');
+    expect(fixture.nativeElement.querySelector('textarea').getAttribute('aria-label')).toBeTruthy();
+    fixture.componentInstance.isLoading.set(true);fixture.componentInstance.isUploadingDoc.set(true);fixture.detectChanges();
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('indexation lexicale FTS5');expect(text).not.toMatch(/vectorisation|embedding/);
+    expect(uploadDocument).not.toHaveBeenCalled();
+  });
   it('renders real citation metadata and distinguishes cited from retrieved-only sources', () => {
     sendChatPrompt.mockReturnValue(of({
       reply: 'The site opened in 1984 [S1].',
