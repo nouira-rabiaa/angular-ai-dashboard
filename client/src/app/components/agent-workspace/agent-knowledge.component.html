@@ -6,23 +6,29 @@
   @if (message()) { <p role="status" class="notice">{{ message() }}</p> }
   @if (state() === 'ready') {
     @if (mode === 'knowledge') {
+      <div class="knowledge-grid">
       <section aria-labelledby="associated-title" class="assigned"><h3 id="associated-title">Documents associés · {{ selection().length }}</h3>
         @if (!selection().length) { <p>Aucun document sélectionné. Sans association enregistrée, l’agent s’abstient.</p> }
         <div class="chips">@for (id of selection(); track id) {
           <span>{{ documentName(id) }}<button type="button" [attr.aria-label]="'Retirer le document ' + id" (click)="toggle(id, false)" [disabled]="busy()">×</button></span>
         }</div>
       </section>
-      <div class="catalog-heading"><h3>Documents disponibles</h3><a href="/generator" target="_blank" rel="noopener noreferrer">Importer dans le Generator ↗</a></div>
+      <section class="catalog" aria-labelledby="catalog-title">
+      <div class="catalog-heading"><h3 id="catalog-title">Documents disponibles</h3><a href="/generator" target="_blank" rel="noopener noreferrer">Importer dans le Generator ↗</a></div>
       @if (catalogLoading()) { <p role="status" class="notice">Chargement du catalogue…</p> }
       @if (catalogError()) { <p role="alert" class="error">{{ catalogError() }}</p><button type="button" (click)="loadCatalog(offset())" [disabled]="catalogLoading() || busy()">Réessayer le catalogue</button> }
       @if (!catalogLoading() && !catalogError() && !total()) { <p class="notice">Aucun document disponible. Importez un document dans le Generator existant.</p> }
-      <div class="document-list">@for (document of documents(); track document.documentId) {
+      <div class="document-list" tabindex="0" role="region" aria-label="Catalogue des documents">@for (document of documents(); track document.documentId) {
         <label [class.chosen]="selection().includes(document.documentId)"><input type="checkbox" [checked]="selection().includes(document.documentId)" (change)="toggle(document.documentId, $any($event.target).checked)" [disabled]="busy() || catalogLoading()" /><span><strong>{{ document.filename }}</strong><small>{{ document.fileType }} · {{ document.chunksCount }} chunks · Document #{{ document.documentId }}</small></span></label>
       }</div>
       @if (total()) { <nav aria-label="Pages de documents" class="pagination"><span>{{ offset() + 1 }}–{{ offset() + documents().length }} / {{ total() }}</span><button type="button" (click)="page(-1)" [disabled]="busy() || catalogLoading() || offset() === 0">Précédents</button><button type="button" (click)="page(1)" [disabled]="busy() || catalogLoading() || offset() + 25 >= total()">Suivants</button></nav> }
+      </section>
+      </div>
       @if (dirty()) { <p role="status" class="attention">Modifications documentaires non enregistrées. Enregistrez ou annulez avant de quitter cet espace.</p> }
       <footer><span class="scope">Maximum 100 documents. Retirer une association ne supprime jamais le fichier ni ses chunks.</span><button type="button" (click)="cancel()" [disabled]="busy() || !dirty()">Annuler la sélection</button><button type="button" class="primary" (click)="save()" [disabled]="busy() || !dirty()">{{ busy() ? 'Enregistrement…' : 'Enregistrer les documents' }}</button></footer>
     } @else {
+      <div class="preview-grid">
+      <div class="question-panel">
       <div class="preview-note"><strong>Prévisualisation documentaire 5B</strong><p>Une question indépendante, sans conversation persistante ni ticket. L’envoi déclenche un appel Groq uniquement si le contexte autorisé passe les contrôles lexicaux.</p></div>
       <details class="assigned"><summary>Documents autorisés · {{ knowledge()?.documents?.length || 0 }}</summary><ul>@for (document of knowledge()?.documents; track document.documentId) { <li>{{ document.filename }} · {{ document.chunksCount }} chunks</li> } @empty { <li>Aucun document autorisé : une abstention sera affichée sans appel IA.</li> }</ul></details>
       @if (agent.status !== 'active') { <p role="status" class="attention">Activez et enregistrez la configuration dans Configuration pour tester cet agent.</p> }
@@ -32,6 +38,8 @@
         <div class="question-actions"><span id="support-question-help" class="scope">{{ question.length }} / 2 000 caractères · Aucun historique enregistré</span><button type="submit" class="primary" [disabled]="busy() || !question.trim() || askForm.invalid">{{ busy() ? 'Génération…' : 'Envoyer la question' }}</button></div>
       </fieldset></form>
       @if (busy()) { <p role="status" class="notice">Recherche dans le périmètre autorisé et génération éventuelle…</p> }
+      </div>
+      <div class="result-panel">
       @if (response(); as answer) {
         <section class="answer" aria-labelledby="support-answer-title" aria-live="polite"><h3 id="support-answer-title">{{ answer.status === 'answered' ? 'Réponse documentaire' : 'Abstention · message de secours' }}</h3>
           @if (answer.status === 'abstained') { <p class="attention">{{ reason(answer.reason) }}</p> }
@@ -41,7 +49,9 @@
             <div class="citations">@for (source of answer.sources; track source.label) { <details><summary>[{{ source.label }}] {{ source.filename }} @if (source.pageNumber !== null) { · page {{ source.pageNumber }} }</summary><blockquote>{{ source.excerpt }}</blockquote><small>Document #{{ source.documentId }} · Chunk #{{ source.chunkId }}</small></details> }</div>
           }
         </section>
-      }
+      } @else { <div class="notice" role="status"><h3>Réponse et citations</h3><p>Posez une question pour consulter la réponse et ses sources ici. Aucun résultat n’est généré avant votre envoi.</p></div> }
+      </div>
+      </div>
     }
   }
 </section>

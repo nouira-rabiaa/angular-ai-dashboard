@@ -13,13 +13,20 @@ button { min-height: 2.5rem; padding: .4rem .7rem; border: 1px solid #dce2ed; bo
 .assigned { background: #f5f2ff; border: 1px solid #e5def7; }
 .chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }.chips > span { display: inline-flex; align-items: center; gap: .4rem; max-width: 100%; overflow-wrap: anywhere; font-size: .7rem; }.chips button { min-height: 1.75rem; padding: .1rem .4rem; }
 .document-list { display: grid; gap: .5rem; }
-.document-list label { display: flex; align-items: start; gap: .6rem; padding: .75rem; border: 1px solid #e0e5ef; border-radius: .65rem; cursor: pointer; }
+.document-list label { display: flex; align-items: start; gap: .6rem; padding: .5rem .65rem; border: 1px solid #e0e5ef; border-radius: .65rem; cursor: pointer; }
 .document-list span { min-width: 0; overflow-wrap: anywhere; }.document-list strong,.document-list small { display: block; }.document-list strong { font-size: .8rem; }.document-list input { flex-shrink: 0; width: 1rem; height: 1rem; margin-top: .2rem; accent-color: #6750bd; }
 .chosen { background: #f5f2ff; border-color: #b8ace8; }
 a { color: #5145a1; font-size: .75rem; text-decoration: underline; }
 fieldset { min-width: 0; }form label { display: block; font-size: .75rem; font-weight: 650; margin-bottom: .65rem; }
 textarea,select { width: 100%; min-width: 0; padding: .6rem; margin-top: .35rem; border: 1px solid #dce2ed; border-radius: .6rem; background: #fbfcfe; color: #172033; font-size: .8rem; } textarea { resize: vertical; }
-.answer { border: 1px solid #ddd7f7; border-radius: .75rem; padding: 1rem; }.reply,blockquote { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .8rem; line-height: 1.7; margin: .6rem 0; }
+.answer { border: 1px solid #ddd7f7; border-radius: .75rem; padding: .75rem; }.reply,blockquote { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .8rem; line-height: 1.7; margin: .6rem 0; }
 summary { cursor: pointer; font-size: .75rem; font-weight: 650; overflow-wrap: anywhere; }.citations { display: grid; gap: .5rem; margin-top: .6rem; }.citations details { padding: .6rem; background: #f5f8fc; border-radius: .5rem; }
 :disabled { opacity: .6; cursor: not-allowed; }:is(button,a,input,select,textarea,summary):focus-visible { outline: 2px solid #6750bd; outline-offset: 3px; }
 @media (max-width: 639px) { .knowledge { padding: .75rem; }footer button { flex: 1 1 auto; } }
+
+.knowledge-grid,.preview-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,20rem),1fr)); gap: 1rem; align-items: start; }
+.catalog,.question-panel,.result-panel { min-width: 0; }
+.catalog > * + *,.question-panel > * + * { margin-top: .65rem; }
+.document-list { max-height: 26rem; overflow: auto; padding: 5px; }
+.chips { max-height: 18rem; overflow: auto; }
+.document-list:focus-visible { outline: 2px solid #6750bd; outline-offset: 2px; }
