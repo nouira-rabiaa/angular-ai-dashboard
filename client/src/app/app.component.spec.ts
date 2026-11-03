@@ -1,3 +1,4 @@
+import { ErrorService } from './services/error.service';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
@@ -17,6 +18,13 @@ describe('AppComponent', () => {
     }).compileComponents();
   });
 
+  it('presents real global errors as a dismissible accessible notification', () => {
+    const fixture = TestBed.createComponent(AppComponent);fixture.detectChanges();
+    const errors = TestBed.inject(ErrorService);errors.showError('Document indisponible');fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('Document indisponible');
+    fixture.nativeElement.querySelector('[aria-label="Fermer la notification"]').click();fixture.detectChanges();
+    expect(errors.currentError()).toBeNull();expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+  });
   it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;

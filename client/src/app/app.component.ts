@@ -1,4 +1,5 @@
-import { Component, signal } from '@angular/core';
+import { ErrorService } from './services/error.service';
+import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from './layout/sidebar.component';
 import { LucideMenu } from '@lucide/angular';
@@ -33,6 +34,11 @@ import { LucideMenu } from '@lucide/angular';
         </header>
 
         <main class="min-w-0 flex-1 p-3 sm:p-5 xl:p-6">
+          @if (errors.currentError(); as message) {
+            <div role="alert" class="mb-3 flex items-start justify-between gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">
+              <p>{{ message }}</p><button type="button" (click)="errors.clearError()" aria-label="Fermer la notification" class="shrink-0 rounded-lg px-2 py-1 font-semibold focus-visible:ring-2 focus-visible:ring-blue-600">Fermer</button>
+            </div>
+          }
           <router-outlet></router-outlet>
         </main>
       </div>
@@ -40,6 +46,7 @@ import { LucideMenu } from '@lucide/angular';
   `
 })
 export class AppComponent {
+  readonly errors = inject(ErrorService);
   sidebarExpanded = signal(true);
   mobileOpen = signal(false);
 }

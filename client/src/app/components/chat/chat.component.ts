@@ -1,3 +1,4 @@
+import { ErrorService } from '../../services/error.service';
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -32,6 +33,7 @@ type RetrievalScope = 'active' | 'all';
 })
 export class ChatComponent {
   private apiService = inject(ApiService);
+  private readonly errors = inject(ErrorService);
 
   messages = signal<Message[]>([]);
   userPrompt = signal<string>('');
@@ -197,7 +199,7 @@ export class ChatComponent {
 
     this.apiService.uploadDocument(file).subscribe({
       next: (res) => {
-        console.log('✅ Document uploadé et vectorisé avec succès :', res);
+        console.log('✅ Document importé et indexé avec succès :', res);
         this.attachedDocument.set(file);
         this.activeDocumentId.set(res.documentId);
         this.retrievalScope.set('active');
@@ -207,14 +209,14 @@ export class ChatComponent {
           ...msgs,
           { 
             sender: 'ai', 
-            text: `📄 Document **${res.filename}** analysé avec succès (${res.characterCount} caractères, ${res.chunksGenerated || 'plusieurs'} chunks vectorisés). Vous pouvez maintenant l'interroger !` 
+            text: `📄 Document **${res.filename}** analysé avec succès (${res.characterCount} caractères, ${res.chunksGenerated ?? 'indisponible'} chunks indexés). Vous pouvez maintenant l'interroger !`
           }
         ]);
       },
       error: (err) => {
         console.error('❌ Erreur lors de l\'upload du document :', err);
         this.isUploadingDoc.set(false);
-        alert('Échec du traitement du document par le serveur.');
+        this.errors.showError('Échec du traitement du document par le serveur.');
       }
     });
   }
