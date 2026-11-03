@@ -216,7 +216,7 @@ export class ChatComponent {
       error: (err) => {
         console.error('❌ Erreur lors de l\'upload du document :', err);
         this.isUploadingDoc.set(false);
-        this.errors.showError('Échec du traitement du document par le serveur.');
+        this.errors.showError('Échec du traitement du document par le serveur.', { key: 'errors.upload' });
       }
     });
   }

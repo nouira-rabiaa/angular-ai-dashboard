@@ -1,7 +1,7 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
 import { inject } from '@angular/core';
-import { ErrorService } from '../services/error.service';
+import { ErrorService, ErrorPresentation } from '../services/error.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const errorService = inject(ErrorService);
@@ -23,7 +23,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       // On pousse l'erreur dans le signal global pour l'UI
-      errorService.showError(errorMessage);
+      const keys: Record<number, ErrorPresentation['key']> = { 0: 'errors.network', 400: 'errors.badRequest', 401: 'errors.unauthorized', 403: 'errors.forbidden', 404: 'errors.notFound', 409: 'errors.conflict', 429: 'errors.rateLimited' };
+      const key = error.error instanceof ErrorEvent ? 'errors.network' : keys[error.status] ?? (error.status >= 500 ? 'errors.server' : 'errors.http');
+      errorService.showError(errorMessage, { key, ...(key === 'errors.http' ? { params: { status: error.status } } : {}) });
 
       return throwError(() => new Error(errorMessage));
     })

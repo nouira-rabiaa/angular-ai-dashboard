@@ -1,3 +1,5 @@
+import { provideUiI18n } from './i18n/ui-i18n.providers';
+import { UI_LANGUAGE_STORAGE_KEY } from './i18n/ui-language.service';
 import { ErrorService } from './services/error.service';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
@@ -8,9 +10,11 @@ import { routes } from './app.routes';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
+    localStorage.removeItem(UI_LANGUAGE_STORAGE_KEY);
     await TestBed.configureTestingModule({
       imports: [AppComponent],
       providers: [
+        ...provideUiI18n(),
         provideRouter(routes),
         provideHttpClient(),
         provideHttpClientTesting()
@@ -37,7 +41,7 @@ describe('AppComponent', () => {
 
     expect(fixture.nativeElement.textContent).not.toContain('Connecté au Backend');
     expect(fixture.nativeElement.textContent).toContain('Enterprise AI Dashboard');
-    expect(fixture.nativeElement.textContent).toContain('AI Operations & FinOps Platform');
+    expect(fixture.nativeElement.textContent).toContain('Plateforme d’opérations IA et FinOps');
     expect(fixture.nativeElement.textContent).not.toContain('AI Control Center');
     const openButton = fixture.nativeElement.querySelector('button[aria-label="Ouvrir le menu de navigation"]') as HTMLButtonElement;
     expect(openButton.getAttribute('aria-expanded')).toBe('false');
@@ -53,7 +57,7 @@ describe('AppComponent', () => {
     fixture.detectChanges();
 
     const paragraphs = Array.from(fixture.nativeElement.querySelectorAll('header p')) as HTMLParagraphElement[];
-    const subtitle = paragraphs.find(paragraph => paragraph.textContent?.includes('AI Operations & FinOps Platform'));
+    const subtitle = paragraphs.find(paragraph => paragraph.textContent?.includes('Plateforme d’opérations IA et FinOps'));
     expect(subtitle).toBeDefined();
     expect(subtitle!.classList.contains('text-slate-600')).toBe(true);
   });
