@@ -1,3 +1,4 @@
+import { findCitationLabels, normalizeValidCitationMarkers } from './citation-utils.js';
 import { searchDocumentChunks } from './document-store.js';
 import {
   createExecutionTrace,
@@ -18,22 +19,6 @@ const ACTIVE_MODELS = [
   'openai/gpt-oss-20b',
   'qwen/qwen3.8-27b'
 ];
-
-const CITATION_MARKER_PATTERN = /\[S\d+\]|【S\d+】/g;
-
-function findCitationLabels(answer) {
-  return [...answer.matchAll(CITATION_MARKER_PATTERN)]
-    .map(([marker]) => marker.slice(1, -1))
-    .filter((label, index, labels) => labels.indexOf(label) === index);
-}
-
-function normalizeValidCitationMarkers(answer, validLabels) {
-  const valid = new Set(validLabels);
-  return answer.replace(CITATION_MARKER_PATTERN, marker => {
-    const label = marker.slice(1, -1);
-    return valid.has(label) ? `[${label}]` : marker;
-  });
-}
 
 export function createChatHandler({
   groq,

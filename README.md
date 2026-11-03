@@ -2,7 +2,7 @@
 
 > Conçu et développé par **Rabiaa NOUIRA**
 
-Dashboard Angular 19 et BFF Node.js/Express : RAG lexical avec citations, génération de formulaires et suivi/prévision des coûts IA. Démonstration locale sans authentification utilisateur. La Phase 5A ajoute la configuration persistante des agents de support ; le chat de support, les conversations, les documents par agent et les escalades effectives restent à développer.
+Dashboard Angular 19 et BFF Node.js/Express : RAG lexical avec citations, génération de formulaires et suivi/prévision des coûts IA. Démonstration locale sans authentification utilisateur. Les Phases 5A/5B ajoutent les configurations persistantes, les documents autorisés par agent et une prévisualisation RAG stricte. Les conversations persistantes et les escalades effectives restent à développer.
 
 ## 🏗️ Architecture & Technical Stack
 
@@ -13,11 +13,11 @@ Dashboard Angular 19 et BFF Node.js/Express : RAG lexical avec citations, géné
 
 Voir [ARCHITECTURE](docs/ARCHITECTURE.md), [TECHNIQUES](docs/TECHNIQUES.md) et [FinOps Phase 4](docs/FINOPS.md).
 
-## Support Agent Studio — Phase 5A
+## Support Agent Studio — Phases 5A / 5B
 
 Dans **Agent Workspace**, créez, modifiez et activez/désactivez des configurations sauvegardées dans SQLite. Activez `DASHBOARD_TELEMETRY_LOCAL_ONLY=true` pour les API locales de configuration. L'ancien exécuteur à outils de lecture reste disponible dans « Outils d'exploitation ».
 
-La sauvegarde ne lance aucun appel IA et l'activation ne déploie pas un agent. Voir [périmètre, sécurité, tests et démonstration Phase 5A](docs/PHASE5_SUPPORT_AGENT.md).
+Trois espaces conservent le même design : **Configuration**, **Knowledge Base** et **Tester l’agent**. Associez explicitement des documents existants, puis envoyez une question à une configuration active. Le serveur filtre FTS5 dans SQL par agent et s'abstient si le contexte lexical ou les références sont insuffisants. Aucun historique de conversation n'est créé. La sauvegarde ne lance aucun appel IA et l'activation ne déploie pas un agent. Voir [périmètre, sécurité, tests et démonstration Phase 5A](docs/PHASE5_SUPPORT_AGENT.md).
 
 ## ✨ Key Features & Deep Dive
 

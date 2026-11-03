@@ -69,7 +69,7 @@ export function createCorsPolicy(allowedOrigins) {
     res.vary('Access-Control-Request-Headers');
 
     // Only configuration resources gain write verbs; legacy routes retain their policy.
-    const methods = /^\/api\/agents(?:\/[0-9a-f-]+(?:\/status)?)?$/.test(req.path)
+    const methods = /^\/api\/agents(?:\/[0-9a-f-]+(?:\/(?:status|documents))?)?$/.test(req.path)
       ? new Set([...ALLOWED_METHODS, 'PUT', 'PATCH']) : ALLOWED_METHODS;
     const requestedMethod = req.get('Access-Control-Request-Method');
     if (requestedMethod && !methods.has(requestedMethod.toUpperCase())) {

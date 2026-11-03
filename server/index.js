@@ -8,6 +8,7 @@ import { createAgentRouteHandler, createAgentRunner } from './agent.js';
 import { createChatHandler } from './chat-handler.js';
 import { createDashboardHandlers, registerDashboardRoutes } from './dashboard-routes.js';
 import { createFinopsHandlers, registerFinopsRoutes } from './finops.js';
+import { registerSupportKnowledgeRoutes } from './support-knowledge.js';
 import { registerSupportAgentRoutes } from './support-agents.js';
 import { runMigrations } from './migration-runner.js';
 import { validateLocalDemoBinding } from './local-demo-security.js';
@@ -73,6 +74,7 @@ const dashboardHandlers = createDashboardHandlers(db, { localOnlyEnabled: localT
 registerDashboardRoutes(app, dashboardHandlers);
 registerFinopsRoutes(app, createFinopsHandlers(db), dashboardHandlers.middleware);
 registerSupportAgentRoutes(app, db, dashboardHandlers.middleware);
+registerSupportKnowledgeRoutes(app, { db, groq }, dashboardHandlers.middleware);
 
 // 1. Route Chat LLM avec support RAG
 app.post('/api/chat', createChatHandler({ groq, db }));

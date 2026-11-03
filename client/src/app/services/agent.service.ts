@@ -1,4 +1,4 @@
-import { SupportAgent, SupportAgentConfig, SupportAgentPage, SupportAgentStatus } from '../models/support-agent.model';
+import { SupportAgent, SupportAgentConfig, SupportAgentPage, SupportAgentStatus, AgentKnowledge, SupportAnswer } from '../models/support-agent.model';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -25,6 +25,17 @@ export class AgentService {
   }
   setAgentStatus(id: string, status: SupportAgentStatus, version: number): Observable<SupportAgent> {
     return this.http.patch<SupportAgent>(`${this.configurations}/${encodeURIComponent(id)}/status`, { status, version });
+  }
+
+  getAgentDocuments(id: string): Observable<AgentKnowledge> {
+    return this.http.get<AgentKnowledge>(`${this.configurations}/${encodeURIComponent(id)}/documents`);
+  }
+  setAgentDocuments(id: string, documentIds: number[], scopeVersion: string): Observable<AgentKnowledge> {
+    return this.http.put<AgentKnowledge>(`${this.configurations}/${encodeURIComponent(id)}/documents`, { documentIds, scopeVersion });
+  }
+  askAgent(id: string, question: string, documentId?: number): Observable<SupportAnswer> {
+    return this.http.post<SupportAnswer>(`${this.configurations}/${encodeURIComponent(id)}/ask`,
+      { question, ...(documentId !== undefined ? { documentId } : {}) });
   }
 
   run(goal: string): Observable<AgentRunResponse> {
