@@ -47,7 +47,7 @@ describe('AppComponent', () => {
     const paragraphs = Array.from(fixture.nativeElement.querySelectorAll('header p')) as HTMLParagraphElement[];
     const subtitle = paragraphs.find(paragraph => paragraph.textContent?.includes('AI Operations & FinOps Platform'));
     expect(subtitle).toBeDefined();
-    expect(subtitle!.classList.contains('text-[var(--ui-muted)]')).toBe(true);
+    expect(subtitle!.classList.contains('text-slate-600')).toBe(true);
   });
 
   it('navigates to the lazy Architecture Explorer route and highlights its sidebar link', async () => {
