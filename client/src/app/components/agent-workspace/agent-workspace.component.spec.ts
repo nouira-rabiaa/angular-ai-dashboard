@@ -9,7 +9,7 @@ describe('AgentWorkspaceComponent — Studio shell', () => {
   const agent: SupportAgent = { ...emptySupportAgent(), id: 'agent', name: 'Assistance', status: 'active', version: 1, createdAt: '', updatedAt: '' };
   beforeEach(() => TestBed.configureTestingModule({ imports: [AgentWorkspaceComponent], providers: [
     { provide: AgentService, useValue: { listAgents: () => of({ items: [agent], total: 1, limit: 50, offset: 0 }),
-      getAgent: () => of(agent), getAgentDocuments: () => of({ documentIds: [], documents: [], scopeVersion: 'scope' }) } },
+      listConversations: () => of({ items: [], total: 0 }), getAgent: () => of(agent), getAgentDocuments: () => of({ documentIds: [], documents: [], scopeVersion: 'scope' }) } },
     { provide: DashboardDataService, useValue: { getDocuments: () => of({ items: [], total: 0, limit: 25, offset: 0 }) } }
   ] }));
   it('renders only Support Agent Studio, without legacy execution controls', () => {
@@ -21,14 +21,15 @@ describe('AgentWorkspaceComponent — Studio shell', () => {
     expect(fixture.nativeElement.querySelector('#agent-goal')).toBeNull();
     expect('run' in TestBed.inject(AgentService)).toBe(false);
   });
-  it('preserves the three spaces and keeps the configuration form mounted', () => {
+  it('preserves the four spaces and keeps the configuration form mounted', () => {
     const fixture = TestBed.createComponent(AgentWorkspaceComponent);fixture.detectChanges();
     fixture.nativeElement.querySelector('.studio-agent').click();fixture.detectChanges();
     const form = fixture.nativeElement.querySelector('#studio-config-panel');
     const buttons = Array.from(fixture.nativeElement.querySelectorAll('nav[aria-label="Espaces du Support Agent Studio"] button')) as HTMLButtonElement[];
-    expect(buttons.map(button => button.textContent?.trim())).toEqual(['Configuration', 'Knowledge Base', 'Tester l’agent']);
+    expect(buttons.map(button => button.textContent?.trim())).toEqual(['Configuration', 'Knowledge Base', 'Tester l’agent', 'Conversations']);
     buttons[1].click();fixture.detectChanges();expect(fixture.nativeElement.textContent).toContain('Aucun document sélectionné');
     buttons[2].click();fixture.detectChanges();expect(fixture.nativeElement.textContent).toContain('Prévisualisation documentaire');
+    buttons[3].click();fixture.detectChanges();expect(fixture.nativeElement.textContent).toContain('Aucun échange');
     buttons[0].click();fixture.detectChanges();expect(fixture.nativeElement.querySelector('#studio-config-panel')).toBe(form);expect(form.hidden).toBe(false);
   });
 });

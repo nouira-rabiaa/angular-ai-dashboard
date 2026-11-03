@@ -39,3 +39,15 @@ export interface SupportAnswer {
   sources: { label: string; documentId: number; chunkId: number; filename: string; excerpt: string; pageNumber: number | null; startOffset: number | null; endOffset: number | null }[];
   citationValidation: { validLabels: string[]; invalidLabels: string[]; sourceIdentityValidated: boolean; factualEntailmentValidated: false } | null;
 }
+
+export interface SupportConversation {
+  id: string; agent_id: string; title: string; status: 'open'; created_at: string; updated_at: string;
+}
+export interface ConversationMessage {
+  id: string; sequence: number; requestId: string; role: 'user' | 'assistant'; content: string;
+  status: 'pending' | 'completed' | 'abstained' | 'failed'; createdAt: string;
+  sources: SupportAnswer['sources']; stale: boolean; metadata: { code?: string; reason?: string };
+}
+export interface ConversationPage { items: SupportConversation[]; total: number; limit: number; offset: number; }
+export interface ConversationHistory { conversation: SupportConversation; items: ConversationMessage[]; nextBefore: number | null; }
+export interface ConversationTurn { items: ConversationMessage[]; }
