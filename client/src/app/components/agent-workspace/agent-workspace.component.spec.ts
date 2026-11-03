@@ -25,7 +25,7 @@ describe('AgentWorkspaceComponent', () => {
     run = jest.fn<Observable<AgentRunResponse>, [string]>();
     TestBed.configureTestingModule({
       imports: [AgentWorkspaceComponent],
-      providers: [{ provide: AgentService, useValue: { run } }]
+      providers: [{ provide: AgentService, useValue: { run, listAgents: jest.fn().mockReturnValue(of({ items: [], total: 0, limit: 50, offset: 0 })) } }]
     });
     fixture = TestBed.createComponent(AgentWorkspaceComponent);
     component = fixture.componentInstance;

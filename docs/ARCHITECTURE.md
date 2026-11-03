@@ -57,3 +57,10 @@ Références de code : [routes Angular](../client/src/app/app.routes.ts), [Chat]
 4. FinOps Phase 4 — extensions de l’architecture existante
 Le Dashboard inclut désormais un composant FinopsComponent et un FinopsService pour les projections, scénarios et alertes locales. Les métriques, séries et historiques existants restent fournis par DashboardDataService. Le BFF ajoute server/finops.js, qui réutilise les coûts persistés et la formule commune de server/observability.js; aucun appel IA n’est nécessaire au calcul.
 La migration additive 002_finops_budget.sql stocke un budget mensuel partagé dans finops_settings. Les trois endpoints /api/dashboard/finops, /finops/budget et /finops/simulate réutilisent les restrictions loopback/télémétrie et CORS existantes. Le pipeline RAG FTS5/BM25 est inchangé. Les règles d’échantillonnage, projections, coûts partiels et seuils sont détaillées dans [FINOPS](FINOPS.md).
+
+
+## Phase 5A — Configuration persistante des agents
+
+La route Angular existante `/agent-workspace` héberge Support Agent Studio et conserve le runner d'exploitation séparé. `AgentService` ajoute les opérations de catalogue/configuration ; les Reactive Forms et Signals gèrent les brouillons et états asynchrones. La migration additive `003_support_agents.sql` et les routes locales `/api/agents` persistent les configurations, avec validation stricte et contrôle de version contre l'écrasement d'une édition concurrente.
+
+Aucun appel Groq n'est effectué par 5A. Les statuts actif/inactif ne constituent pas un déploiement. Documents autorisés, chat de support, conversations et escalades effectives restent futurs ; le RAG FTS5/BM25 et les calculs FinOps existants sont inchangés. Aucune authentification ou isolation multi-tenant n'est ajoutée. Détails : [PHASE5_SUPPORT_AGENT](PHASE5_SUPPORT_AGENT.md).

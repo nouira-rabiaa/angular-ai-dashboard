@@ -68,8 +68,11 @@ export function createCorsPolicy(allowedOrigins) {
     res.vary('Access-Control-Request-Method');
     res.vary('Access-Control-Request-Headers');
 
+    // Only configuration resources gain write verbs; legacy routes retain their policy.
+    const methods = /^\/api\/agents(?:\/[0-9a-f-]+(?:\/status)?)?$/.test(req.path)
+      ? new Set([...ALLOWED_METHODS, 'PUT', 'PATCH']) : ALLOWED_METHODS;
     const requestedMethod = req.get('Access-Control-Request-Method');
-    if (requestedMethod && !ALLOWED_METHODS.has(requestedMethod.toUpperCase())) {
+    if (requestedMethod && !methods.has(requestedMethod.toUpperCase())) {
       return rejectOrigin(res);
     }
 
@@ -81,7 +84,7 @@ export function createCorsPolicy(allowedOrigins) {
       return rejectOrigin(res);
     }
 
-    res.set('Access-Control-Allow-Methods', [...ALLOWED_METHODS].join(', '));
+    res.set('Access-Control-Allow-Methods', [...methods].join(', '));
     if (requestedHeaders.length) {
       res.set('Access-Control-Allow-Headers', requestedHeaders.join(', '));
     }

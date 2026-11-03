@@ -2,7 +2,7 @@
 
 > Conçu et développé par **Rabiaa NOUIRA**
 
-Dashboard Angular 19 et BFF Node.js/Express : RAG lexical avec citations, génération de formulaires et suivi/prévision des coûts IA. Démonstration locale sans authentification utilisateur. La Phase 5 (agent de support client) n’est pas implémentée par la Phase 4.
+Dashboard Angular 19 et BFF Node.js/Express : RAG lexical avec citations, génération de formulaires et suivi/prévision des coûts IA. Démonstration locale sans authentification utilisateur. La Phase 5A ajoute la configuration persistante des agents de support ; le chat de support, les conversations, les documents par agent et les escalades effectives restent à développer.
 
 ## 🏗️ Architecture & Technical Stack
 
@@ -12,6 +12,12 @@ Dashboard Angular 19 et BFF Node.js/Express : RAG lexical avec citations, géné
 - **Observabilité :** tokens retournés par Groq, durées mesurées côté serveur et coûts estimés à partir des tarifs configurés. `/api/tokens` utilise séparément tiktoken; le service Transformers.js de sentiment n’est pas consommé par les parcours actuels.
 
 Voir [ARCHITECTURE](docs/ARCHITECTURE.md), [TECHNIQUES](docs/TECHNIQUES.md) et [FinOps Phase 4](docs/FINOPS.md).
+
+## Support Agent Studio — Phase 5A
+
+Dans **Agent Workspace**, créez, modifiez et activez/désactivez des configurations sauvegardées dans SQLite. Activez `DASHBOARD_TELEMETRY_LOCAL_ONLY=true` pour les API locales de configuration. L'ancien exécuteur à outils de lecture reste disponible dans « Outils d'exploitation ».
+
+La sauvegarde ne lance aucun appel IA et l'activation ne déploie pas un agent. Voir [périmètre, sécurité, tests et démonstration Phase 5A](docs/PHASE5_SUPPORT_AGENT.md).
 
 ## ✨ Key Features & Deep Dive
 
