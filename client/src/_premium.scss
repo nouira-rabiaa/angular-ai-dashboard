@@ -1,0 +1,36 @@
+// Light Premium: one palette and one scale for the shell and workspaces.
+:root {
+  color-scheme: light;
+  --canvas: #f3f6fc;
+  --surface: #ffffff;
+  --soft: #edf3ff;
+  --ink: #14213d;
+  --muted: #52617a;
+  --line: #dfe7f3;
+  --brand: #1459e8;
+  --brand-hover: #1047bc;
+  --purple: #7042ce;
+  --violet-soft: #f3efff;
+  --nav: #102b50;
+  --nav-text: #dce9ff;
+  --good: #067647;
+  --good-bg: #e5f8ee;
+  --warn: #854d0e;
+  --warn-bg: #fff8e7;
+  --bad: #ad2446;
+  --bad-bg: #fff0f3;
+  --radius: 1rem;
+  --shadow: 0 4px 18px #173c7410;
+  --space: .75rem;
+  --page-title: clamp(1.4rem,2.1vw,1.9rem);
+  --section-title: 1.05rem;
+  --label: .8rem;
+  --body: .875rem;
+}
+body { margin: 0; background: var(--canvas); color: var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.5; }
+button, input, select, textarea { font-family: inherit; }
+.ui-card { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.ui-primary { background: var(--brand); color: white; border-radius: .7rem; }
+.ui-primary:hover:not(:disabled) { background: var(--brand-hover); }
+:where(button,a,input,select,textarea,summary,[tabindex]):focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
