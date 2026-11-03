@@ -41,4 +41,14 @@ describe('AgentService', () => {
     http.expectNone('http://localhost:3000/api/agent/run');http.expectNone('http://localhost:3000/api/chat');
   });
 
+  it('uses persistent conversation resources with bounded pagination and an explicit idempotency key', () => {
+    const base = 'http://localhost:3000/api/agents/id/conversations';
+    service.listConversations('id', 30).subscribe();http.expectOne(base + '?limit=30&offset=30').flush({ items: [], total: 0 });
+    service.createConversation('id').subscribe();const create = http.expectOne(base);expect(create.request.method).toBe('POST');expect(create.request.body).toEqual({});create.flush({ id: 'c' });
+    service.getConversation('id', 'c', 12).subscribe();http.expectOne(base + '/c?limit=30&before=12').flush({ items: [], nextBefore: null });
+    service.sendConversationMessage('id', 'c', 'Question', 'request-id').subscribe();const send = http.expectOne(base + '/c/messages');expect(send.request.method).toBe('POST');expect(send.request.body).toEqual({ question: 'Question', requestId: 'request-id' });send.flush({ items: [] });
+    service.deleteConversation('id', 'c').subscribe();const remove = http.expectOne(base + '/c');expect(remove.request.method).toBe('DELETE');remove.flush(null);
+    http.expectNone('http://localhost:3000/api/agent/run');http.expectNone('http://localhost:3000/api/chat');
+  });
+
 });

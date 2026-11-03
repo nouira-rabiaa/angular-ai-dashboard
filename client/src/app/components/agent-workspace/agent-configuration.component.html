@@ -1,9 +1,9 @@
 <section class="studio" aria-labelledby="support-studio-title">
   <header class="studio-hero">
-    <div><p class="studio-eyebrow">Enterprise AI Dashboard · Phases 5A / 5B</p><h1 id="support-studio-title">Support Agent Studio</h1><p>Configure, manage and deploy intelligent customer support agents.</p></div>
+    <div><p class="studio-eyebrow">Enterprise AI Dashboard · Phases 5A / 5B / 5C</p><h1 id="support-studio-title">Support Agent Studio</h1><p>Configure, manage and deploy intelligent customer support agents.</p></div>
     <span class="studio-badge">Configuration et RAG autorisé · démo locale</span>
   </header>
-  <p class="studio-scope">Configurez l’agent, associez ses documents puis testez une question documentaire. Les sauvegardes ne lancent aucune inférence. Le test est sans conversation persistante ni transfert humain.</p>
+  <p class="studio-scope">Configurez l’agent, associez ses documents puis testez une question documentaire. Les sauvegardes ne lancent aucune inférence. Le test indépendant reste sans historique ; l’espace Conversations conserve les échanges localement, sans transfert humain.</p>
   <div class="studio-layout">
     <aside class="studio-panel studio-list" aria-labelledby="agent-list-title">
       <div class="studio-panel-heading"><div><p class="studio-eyebrow">Catalogue</p><h2 id="agent-list-title">Vos agents</h2></div><button type="button" class="studio-icon-button" aria-label="Recharger les configurations" (click)="reload()" [disabled]="listState() === 'loading' || saving() || loadingDetail()">↻</button></div>
@@ -66,14 +66,18 @@
         <label for="support-fallback">Message de secours *<textarea id="support-fallback" formControlName="fallbackMessage" rows="3" maxlength="2000" [attr.aria-invalid]="invalid('fallbackMessage')"></textarea>@if (invalid('fallbackMessage')) { <em>Message requis, 2 000 caractères maximum.</em> }</label>
         <label class="studio-check" for="support-escalation"><input id="support-escalation" type="checkbox" formControlName="escalationEnabled" />Autoriser l’escalade humaine dans la configuration</label>
         <p class="studio-help">Option mémorisée uniquement. Aucun conseiller n’est contacté et aucune demande d’escalade n’est créée en 5B.</p>
-        <label for="support-status">Statut de la configuration<select id="support-status" formControlName="status"><option value="inactive">Inactive</option><option value="active">Active</option></select><span>Une configuration active peut être testée sur ses documents autorisés ; aucun chat client persistant n’est déployé.</span></label>
+        <label for="support-status">Statut de la configuration<select id="support-status" formControlName="status"><option value="inactive">Inactive</option><option value="active">Active</option></select><span>Une configuration active peut être testée sur ses documents autorisés ; les conversations restent une démonstration locale, sans déploiement public.</span></label>
       </fieldset>
       <footer class="studio-actions"><span class="studio-help">{{ selected() ? 'Modifiez puis enregistrez pour mettre à jour SQLite.' : 'Rien n’est enregistré avant votre validation.' }}</span><button type="button" class="studio-secondary" (click)="cancel()" [disabled]="saving() || loadingDetail()">Annuler</button><button type="submit" class="studio-primary" [disabled]="saving() || loadingDetail()">{{ saving() ? 'Enregistrement…' : 'Enregistrer' }}</button></footer>
     </form>
     <div id="studio-extra-panel" [hidden]="activeSpace() === 'configuration'">
       @if (activeSpace() !== 'configuration') {
         @if (selected(); as agent) {
+          @if (activeSpace() === 'conversations') {
+            <app-agent-conversations [agent]="agent" (busyChange)="workspaceBusy.set($event)" />
+          } @else {
           <app-agent-knowledge [agent]="agent" [mode]="activeSpace() === 'knowledge' ? 'knowledge' : 'test'" (dirtyChange)="knowledgeDraft($event)" (busyChange)="workspaceBusy.set($event)" />
+          }
         } @else { <div class="studio-panel"><h2>Enregistrez ou sélectionnez un agent</h2><p class="studio-scope">La base documentaire et les tests utilisent uniquement une configuration persistée. Aucun document n’est associé automatiquement.</p><button type="button" class="studio-secondary" (click)="selectSpace('configuration')">Ouvrir Configuration</button></div> }
       }
     </div>

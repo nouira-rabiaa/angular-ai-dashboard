@@ -106,10 +106,10 @@ describe('AgentConfigurationComponent', () => {
     expect(fixture.nativeElement.querySelector('#studio-config-panel').hidden).toBe(true);
     expect(fixture.nativeElement.querySelector('#support-name')).toBe(name);
     expect(text()).toContain('Knowledge Base');
-    component.knowledgeDraft(true);component.selectSpace('test');expect(component.activeSpace()).toBe('knowledge');
+    component.knowledgeDraft(true);component.selectSpace('conversations');expect(component.activeSpace()).toBe('knowledge');component.selectSpace('test');expect(component.activeSpace()).toBe('knowledge');
     component.knowledgeDraft(false);component.selectSpace('test');fixture.detectChanges();expect(text()).toContain('Prévisualisation documentaire');
     component.selectSpace('configuration');fixture.detectChanges();
-    fillDraft();component.selectSpace('knowledge');fixture.detectChanges();expect(component.activeSpace()).toBe('configuration');
+    fillDraft();component.selectSpace('conversations');expect(component.activeSpace()).toBe('configuration');component.selectSpace('knowledge');fixture.detectChanges();expect(component.activeSpace()).toBe('configuration');
     expect(component.form.controls.name.value).toBe('Mon agent');
   });
 

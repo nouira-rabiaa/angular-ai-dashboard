@@ -1,4 +1,4 @@
-# Phases 5A / 5B — Support Agent Studio
+# Phases 5A / 5B / 5C — Support Agent Studio
 
 Enterprise AI Dashboard — AI Operations & FinOps Platform.
 
@@ -7,7 +7,7 @@ Enterprise AI Dashboard — AI Operations & FinOps Platform.
 Créer, consulter, modifier et activer/désactiver des **configurations** de support client persistantes.
 Le Studio vit dans la route existante `/agent-workspace` : aucune seconde page Agent concurrente.
 L'activation reste un état de configuration, pas un déploiement public. La Phase **5B** ajoute un test documentaire réel et stateless pour les configurations actives.
-La sauvegarde 5A ne lance aucun appel Groq. Seul l'envoi explicite d'une question dans « Tester l’agent » peut lancer une inférence. Conversations persistantes et escalades effectives restent futures.
+La sauvegarde 5A ne lance aucun appel Groq. L'envoi explicite dans « Tester l’agent » ou « Conversations » peut lancer une inférence réelle. La Phase 5C ajoute les conversations locales persistantes décrites ci-dessous ; classification, escalade effective et n8n restent futurs.
 
 ## Audit de la base existante
 
@@ -35,11 +35,11 @@ Le runner historique n'est pas un agent de support documentaire : il ne reçoit 
 
 - **5A (livré)** : configurations, validation, catalogue, édition, statut, persistance SQLite.
 - **5B (livré)** : base documentaire autorisée par agent, recherche FTS5/BM25 et citations ; réponse d'insuffisance stricte.
-- **5C** : conversations/messages persistants, reprise et contexte borné.
-- **5D** : demandes d'escalade humaine et historique de traitement ; aucune notification externe implicite.
-- **5E** : observabilité par agent, usage réel nullable, latence et coûts estimés avec les fonctions FinOps existantes.
+- **5C (livré)** : conversations/messages persistants, reprise et contexte borné.
+- **5D (futur)** : classification, intégration n8n et demandes d'escalade humaine et historique de traitement ; aucune notification externe implicite.
+- **5E (futur)** : tool calling et validation humaine, en réutilisant le moteur interne. L’agrégation observabilité/FinOps par agent reste à planifier.
 
-Ces sous-phases futures ne sont pas annoncées comme implémentées.
+Seules 5A, 5B et 5C sont livrées ; 5D/5E ne sont pas implémentées.
 
 ## SQLite et migration
 
@@ -314,3 +314,84 @@ Aucun nouveau moteur, outil, accès documentaire ou transfert humain n'est ajout
 Pour la future validation humaine de 5E : définir des états de proposition/approbation/expiration persistés côté serveur, une identité d'approbateur, un lien à la version exacte des arguments et un audit avant toute exécution à effets de bord. Une instruction utilisateur ou un simple bouton frontend ne peut pas tenir lieu d'autorisation. Le point d'exécution d'outils existant pourra être adapté, sans réimplémenter une boucle agent concurrente. Ces capacités ne sont **pas implémentées** par ce nettoyage.
 
 Les tests backend du runner restent conservés. Les tests exclusivement dédiés à son UI supprimée sont remplacés par des tests de la coquille Studio et de ses trois espaces ; le test du service HTTP legacy est retiré. Les suites détaillées 5A/5B restent inchangées. Les anciens chiffres de build ci-dessus décrivent les livraisons historiques ; l'avertissement SCSS historique disparaît après retrait de son import.
+
+## Phase 5C — Conversations persistantes et mémoire courte
+
+### Audit et réutilisation
+
+Base : `11ab51363c6460654ee18fe0d6276ad342f53fee`, branche `feat/phase-5-support-agent`, propre et synchronisée après fetch. 5A et 5B sont présentes ; aucune 5C préalable n'a été trouvée. Les sections précédentes décrivent aussi l'historique des livraisons : leurs indications « futur » concernent leur date de rédaction.
+
+`registerSupportKnowledgeRoutes()` expose désormais son gestionnaire de réponse à `support-conversations.js`. Aucun appel HTTP interne, nouveau moteur RAG ou nouvel outil n'est ajouté. `/ask` conserve sa question indépendante sans création de conversation. `/api/chat` et `/api/agent/run` restent séparés. Le filtrage par agent dans SQL, BM25, quatre passages, le garde lexical, les citations, l'abstention, le timeout et la limite partagée de quatre générations globales / une par agent sont réutilisés.
+
+### Stockage et états
+
+Migration additive `005_support_conversations.sql`, appliquée par le runner existant :
+
+- `support_conversations` : UUID, agent avec cascade, titre de 80 caractères maximum, statut `open`, dates UTC. Index agent/date/ID.
+- `support_messages` : séquence entière autoincrémentée pour l'ordre stable, UUID, conversation avec cascade, UUID d'envoi, rôle, texte, statut, date, références de sources et métadonnées. Unicité `(conversation, request_id, role)` ; un seul assistant `pending` par conversation.
+- `support_agents.knowledge_revision` : compteur incrémenté par triggers lors d'ajouts/retraits d'associations. Il détecte aussi une révocation suivie d'une réautorisation pendant une génération.
+
+Un envoi écrit atomiquement le message utilisateur `completed` et l'assistant `pending`. L'assistant devient `completed` (réponse citée), `abstained` (message de secours) ou `failed` (incident technique/périmètre modifié). La finalisation et la date d'activité sont transactionnelles. Les erreurs fournisseur ne deviennent pas des réponses réussies. Le texte d'une réponse rejetée n'est pas persisté.
+
+`sources_json` conserve seulement les labels, IDs document/chunk et empreintes SHA-256 des passages, **pas une copie des chunks**. À la lecture, les extraits et métadonnées sont reconstruits depuis le store actuel autorisé. Les métadonnées de réponse peuvent conserver durée mesurée, usage fournisseur nullable, estimation tarifaire et validation d'identité des citations. Aucun score de confiance n'est créé ; l'entailment factuel n'est pas validé. Ces échanges ne sont pas ajoutés aux agrégats FinOps du Dashboard, limités à `/api/chat`. Absence de mesure ou d'estimation ne signifie pas coût nul, notamment après une erreur ou une abstention.
+
+### Endpoints et pagination
+
+Tous exigent le garde local explicite (`DASHBOARD_TELEMETRY_LOCAL_ONLY=true` et loopback), des UUID v4 et l'appartenance de la conversation à l'agent. Aucun mécanisme d'authentification multi-utilisateur n'est ajouté.
+
+| Méthode | Route relative à `/api/agents/:id` | Contrat |
+| --- | --- | --- |
+| GET | `/conversations?limit=30&offset=0` | `{items,total,limit,offset}`, limite 1–50, offset 0–10 000, tri activité décroissante puis UUID |
+| POST | `/conversations` | Corps JSON `{}` uniquement, 201 et conversation créée ; agent actif requis |
+| GET | `/conversations/:conversationId?limit=30&before=N` | `{conversation,items,nextBefore}`, derniers messages ordonnés par séquence croissante, curseur exclusif vers les anciens |
+| POST | `/conversations/:conversationId/messages` | JSON `{question,requestId}`, question non vide ≤ 2 000 caractères, UUID v4 d'idempotence ; `{items}` utilisateur/assistant |
+| DELETE | `/conversations/:conversationId` | 204 après suppression réelle et cascade |
+
+Les objets conversation utilisent les noms SQL (`agent_id`, `created_at`, `updated_at`), les messages un contrat camelCase (`requestId`, `createdAt`, `nextBefore` pour la page). Les paramètres SQL sont liés. Les champs et paramètres de pagination inconnus sont rejetés. CORS autorise `DELETE` uniquement sur la ressource d'une conversation précise ; les politiques des anciennes routes ne sont pas élargies.
+
+Erreurs : 400 `invalid_id`/`invalid_body`/`invalid_page` ; 403 garde local ou origine interdite ; 404 `not_found` identique pour conversation absente ou d'un autre agent ; 409 `agent_inactive`, `conversation_busy`, `idempotency_conflict`, `scope_changed`, `conversation_limit` ou `message_limit` ; 429 limite partagée du pipeline ; 502 fournisseur et 504 timeout ; 500 stockage. Une erreur de génération peut renvoyer la paire persistée avec son état `failed`. Les détails privés du fournisseur ne sont pas exposés.
+
+### Mémoire et recherche de suivi
+
+La mémoire n'est pas un historique illimité : au maximum **six anciens messages utilisateur**, uniquement les tours ayant produit un assistant `completed`, avec **4 000 caractères au total, question actuelle incluse**. Les messages les plus récents sont prioritaires ; le plus ancien retenu peut être tronqué. Aucun ancien message assistant ni extrait historique n'est envoyé à Groq.
+
+Recherche explicable, sans deuxième appel LLM : question actuelle puis derniers messages utilisateur du plus récent au plus ancien, maximum 4 000 caractères, envoyés au même `searchDocumentChunks()` scoped. Le tokenizer FTS existant conserve au plus 32 termes et utilise OR/BM25. Le garde lexical s'applique à cette requête enrichie. Le prompt distingue les questions historiques non fiables des nouvelles sources ; seules ces dernières peuvent étayer une réponse.
+
+Limites : pas de résolution sémantique garantie de « ce produit » ; les termes d'un sujet précédent peuvent ramener du contexte peu pertinent. Les synonymes non présents lexicalement et les changements de sujet restent difficiles. Une citation valide prouve une identité de source, pas que chaque affirmation est étayée. Le système privilégie l'abstention lorsque ses gardes échouent, sans promettre zéro hallucination.
+
+### Révocation, concurrence et reprise
+
+Le pipeline recharge le périmètre à chaque tour et revalide statut, version d'agent, IDs autorisés et révision documentaire après Groq. La couche conversation revalide encore avant persistance, ainsi que l'existence de la conversation. Révocation, suppression et désactivation pendant génération empêchent de conserver la réponse tardive. Le timeout utilise AbortController et Promise.race ; aucune réponse fournisseur arrivée après le timeout ne finalise le message une seconde fois.
+
+À la lecture historique, si un passage a disparu, changé ou n'est plus autorisé, **toute la réponse assistant concernée est masquée**, marquée `stale`, et ses sources sont retirées. La réponse originale reste en clair dans SQLite jusqu'à suppression de la conversation. Une réautorisation du même passage inchangé peut rendre l'historique à nouveau visible. Une révocation ne retire pas rétroactivement ce qui a déjà été vu, copié ou chargé dans un onglet : recharger l'historique applique la politique actuelle. Le code utilisateur passé est du contexte de question, jamais une nouvelle permission.
+
+Une clé UUID par envoi évite les doublons : même clé et même question renvoient la paire existante (202 si encore pending, 200 sinon), sans nouvelle inférence. Même clé et autre question : 409. Une autre requête simultanée dans la conversation : 409 ; les limites par agent/globales du pipeline s'appliquent également. Un résultat failed n'est pas relancé automatiquement : un nouveau tour requiert une nouvelle clé. L'UI conserve la clé lors d'un retry réseau de la même saisie ; elle n'est pas persistée dans le navigateur.
+
+Une génération se poursuit après déconnexion du navigateur, dans la limite du timeout, pour permettre de consulter son résultat après rechargement. Au démarrage **d'un unique processus BFF local**, les pending abandonnés passent en `failed` avec code `interrupted`. Aucun appel payant n'est relancé. Ce mécanisme n'est pas un coordinateur multi-processus ; ne pas partager ce fichier entre plusieurs BFF concurrents.
+
+### Rétention, interface et limites de sécurité
+
+Politique de **taille**, sans expiration automatique : 50 conversations maximum par agent, 200 messages (100 paires) maximum par conversation. Les quotas sont vérifiés transactionnellement ; une fois atteints, supprimer explicitement une conversation avant d'en créer une autre. Aucun timer de purge ni fausse promesse d'effacement automatique. La suppression confirmée dans l'UI appelle DELETE et supprime réellement les messages par cascade. Elle ne garantit pas l'effacement forensique du fichier SQLite, de ses sidecars ou de sauvegardes.
+
+Le Studio ajoute **Conversations** à côté des trois espaces conservés. Liste paginée, création, sélection, confirmation de suppression, historique à curseur, citations inspectables, abstention et erreurs distinctes. Les réponses sont interpolées comme texte, jamais injectées en HTML. Les messages pending sont relus toutes les 1,5 secondes tant que le composant est présent ; le polling est annulé à sa destruction. Changer d'agent vide les données de l'ancien et ignore ses réponses HTTP tardives. Les opérations en cours bloquent la navigation du Studio ; les gardes de brouillon 5A/5B restent en place. Agent inactif : historique lisible, nouvelle génération interdite. La zone de messages défile indépendamment et les contrôles restent natifs au clavier.
+
+Stockage **local en clair**, potentiellement sensible. Le garde loopback/CORS n'est pas une authentification ; ne pas publier ce BFF derrière un proxy public. Avant production : authentification, autorisation par utilisateur/organisation, chiffrement adapté, gestion des secrets, sauvegardes protégées, politique de conservation, gestion des données personnelles et revue de sécurité. Aucune conformité RGPD n'est revendiquée.
+
+### Démonstration manuelle 5C
+
+1. Démarrer le BFF local avec le flag local et une clé Groq uniquement côté serveur. Créer/activer un agent et lui associer un document de test non sensible sur les retours.
+2. Ouvrir Conversations, créer un échange, demander la politique de retour puis « Et si le produit est déjà ouvert ? ». Les inférences manuelles explicites sont réelles et peuvent être payantes.
+3. Inspecter les citations, comparer aux documents ; recharger Angular puis redémarrer le BFF et rouvrir l'échange. Aucun ancien pending ne doit déclencher d'inférence automatique.
+4. Retirer le document de Knowledge Base, recharger l'historique : réponse masquée et sources absentes. Poser une autre question : aucune recherche globale ne doit contourner le périmètre vide.
+5. Désactiver l'agent, consulter l'historique et vérifier les contrôles de génération désactivés. Supprimer avec confirmation et vérifier l'absence après rechargement.
+6. Recontrôler Configuration (brouillon), Knowledge Base (brouillon), Tester l'agent indépendant, desktop/tablette/mobile et clavier. Le contrôle visuel réel reste nécessaire si Safari refuse WebDriver.
+
+La Phase 5D pourra s'appuyer sur les UUID, les états et les conversations persistantes pour classifier les demandes et concevoir une escalade/n8n. Aucune classification, notification, intégration n8n ou validation humaine n'est implémentée en 5C. Le moteur technique `/api/agent/run` reste inchangé pour 5E.
+
+### Validation automatisée de la livraison 5C
+
+- Angular : **18 suites, 128 tests réussis** (`npm test -- --runInBand`). Les tests soumettent le formulaire natif, contrôlent les quatre espaces et les brouillons 5A/5B, création/sélection/suppression, retry, polling, changements d'agent, abstention et erreurs. JSDOM ne prouve pas l'activation clavier native ni le rendu responsive d'un navigateur.
+- Backend : **115 tests réussis** (`npm test`), SQLite temporaire isolé et Groq simulé : réouverture réelle de SQLite, pagination, mémoire et suivi, isolation, révocations pendant/entre tours, retrait/réajout, timeout/réponse tardive, idempotence/concurrence, cascade, rollback, récupération pending, quotas, CORS et usage/coûts nullable. Non-régressions `/ask`, `/api/chat` et moteur interne incluses.
+- Build production réussi, **426 215 octets initiaux**, cinq routes lazy conservées. Chunk agent : **62 062 octets** ; stylesheet Conversations : **2 753 octets**. Budgets inchangés (initial warning 500 kB ; composant warning 4 kB / error 8 kB), aucun avertissement Angular.
+- `git diff --check`, vérification des imports et scan des fichiers concernés : aucun secret reconnaissable, fichier SQLite, sidecar ou artefact généré ajouté. Ce scan ne constitue pas une garantie exhaustive d'absence de secret dans l'historique du dépôt.
+- Safari WebDriver réellement tenté : session refusée parce que « Allow remote automation » est désactivé. **Aucune validation visuelle desktop/tablette/mobile ni capture réalisée**. Aucun appel Groq réel dans les tests ; la qualité linguistique d'une conversation réelle reste à évaluer manuellement.

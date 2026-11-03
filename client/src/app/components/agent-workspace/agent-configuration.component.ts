@@ -1,3 +1,4 @@
+import { AgentConversationsComponent } from './agent-conversations.component';
 import { AgentKnowledgeComponent } from './agent-knowledge.component';
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, HostListener, OnInit, inject, signal } from '@angular/core';
@@ -9,7 +10,7 @@ import { SupportAgent, SupportAgentConfig, emptySupportAgent } from '../../model
 
 @Component({
   selector: 'app-agent-configuration', standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, AgentKnowledgeComponent],
+  imports: [CommonModule, ReactiveFormsModule, AgentKnowledgeComponent, AgentConversationsComponent],
   templateUrl: './agent-configuration.component.html',
   styleUrl: './agent-configuration.component.scss'
 })
@@ -39,12 +40,12 @@ export class AgentConfigurationComponent implements OnInit {
   readonly message = signal('');
   readonly error = signal('');
   readonly pageSize = 50;
-  readonly activeSpace = signal<'configuration' | 'knowledge' | 'test'>('configuration');
-  readonly spaces = [{ id: 'configuration', label: 'Configuration' }, { id: 'knowledge', label: 'Knowledge Base' }, { id: 'test', label: 'Tester l’agent' }] as const;
+  readonly activeSpace = signal<'configuration' | 'knowledge' | 'test' | 'conversations'>('configuration');
+  readonly spaces = [{ id: 'configuration', label: 'Configuration' }, { id: 'knowledge', label: 'Knowledge Base' }, { id: 'test', label: 'Tester l’agent' }, { id: 'conversations', label: 'Conversations' }] as const;
   readonly knowledgeDirty = signal(false);
   readonly workspaceBusy = signal(false);
   readonly navigationMessage = signal('');
-  selectSpace(space: 'configuration' | 'knowledge' | 'test'): void {
+  selectSpace(space: 'configuration' | 'knowledge' | 'test' | 'conversations'): void {
     if (space === this.activeSpace() || !this.mayLeaveDraft()) return;
     this.navigationMessage.set('');this.activeSpace.set(space);
   }

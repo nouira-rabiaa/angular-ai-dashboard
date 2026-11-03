@@ -1,4 +1,4 @@
-import { SupportAgent, SupportAgentConfig, SupportAgentPage, SupportAgentStatus, AgentKnowledge, SupportAnswer } from '../models/support-agent.model';
+import { SupportAgent, SupportAgentConfig, SupportAgentPage, SupportAgentStatus, AgentKnowledge, SupportAnswer, SupportConversation, ConversationPage, ConversationHistory, ConversationTurn } from '../models/support-agent.model';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -34,6 +34,23 @@ export class AgentService {
   askAgent(id: string, question: string, documentId?: number): Observable<SupportAnswer> {
     return this.http.post<SupportAnswer>(`${this.configurations}/${encodeURIComponent(id)}/ask`,
       { question, ...(documentId !== undefined ? { documentId } : {}) });
+  }
+
+  listConversations(id: string, offset = 0): Observable<ConversationPage> {
+    return this.http.get<ConversationPage>(`${this.configurations}/${encodeURIComponent(id)}/conversations`, { params: { limit: 30, offset } });
+  }
+  createConversation(id: string): Observable<SupportConversation> {
+    return this.http.post<SupportConversation>(`${this.configurations}/${encodeURIComponent(id)}/conversations`, {});
+  }
+  getConversation(id: string, conversationId: string, before?: number): Observable<ConversationHistory> {
+    return this.http.get<ConversationHistory>(`${this.configurations}/${encodeURIComponent(id)}/conversations/${encodeURIComponent(conversationId)}`,
+      { params: { limit: 30, ...(before !== undefined ? { before } : {}) } });
+  }
+  sendConversationMessage(id: string, conversationId: string, question: string, requestId: string): Observable<ConversationTurn> {
+    return this.http.post<ConversationTurn>(`${this.configurations}/${encodeURIComponent(id)}/conversations/${encodeURIComponent(conversationId)}/messages`, { question, requestId });
+  }
+  deleteConversation(id: string, conversationId: string): Observable<void> {
+    return this.http.delete<void>(`${this.configurations}/${encodeURIComponent(id)}/conversations/${encodeURIComponent(conversationId)}`);
   }
 
 }
