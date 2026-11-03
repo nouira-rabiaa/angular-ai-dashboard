@@ -347,3 +347,8 @@ export function createAgentRouteHandler(runAgent) {
     }
   };
 }
+// Retained technical endpoint, deliberately absent from the product UI.
+export function registerInternalAgentRoute(app, runAgent, localGuard) {
+  if (typeof localGuard !== 'function') throw new TypeError('The internal agent route requires an explicit local guard.');
+  app.post('/api/agent/run', localGuard, createAgentRouteHandler(runAgent));
+}

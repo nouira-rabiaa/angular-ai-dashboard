@@ -1,10 +1,14 @@
+import express from 'express';
+import { createDashboardHandlers } from './dashboard-routes.js';
+import { createCorsPolicy, parseCorsAllowedOrigins } from './cors-policy.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import Database from 'better-sqlite3';
 import {
   AgentRunError,
   createAgentRouteHandler,
-  createAgentRunner
+  createAgentRunner,
+  registerInternalAgentRoute
 } from './agent.js';
 
 function makeDatabase() {
@@ -313,4 +317,27 @@ test('route handler returns validation and run failures as structured JSON', asy
       }
     }
   ]);
+});
+
+test('retained internal route requires explicit local opt-in and never runs for denied origins', async t => {
+  const app = express();app.use(createCorsPolicy(parseCorsAllowedOrigins()));app.use(express.json());
+  let enabled = false;let calls = 0;
+  const run = async goal => { calls++;return { status: 'completed', answer: goal, trace: [] }; };
+  const guard = (req, res, next) => createDashboardHandlers({}, { localOnlyEnabled: enabled }).middleware(req, res, next);
+  registerInternalAgentRoute(app, run, guard);
+  const server = await new Promise(resolve => { const s = app.listen(0, '127.0.0.1', () => resolve(s)); });
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const invoke = origin => fetch(`http://127.0.0.1:${server.address().port}/api/agent/run`, { method: 'POST',
+    headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ goal: 'test goal' }) });
+  assert.equal((await invoke('http://localhost:4200')).status, 403);assert.equal(calls, 0);
+  enabled = true;assert.equal((await invoke('https://untrusted.example')).status, 403);assert.equal(calls, 0);
+  const allowed = await invoke('http://localhost:4200');assert.equal(allowed.status, 200);assert.equal(calls, 1);
+  assert.equal((await allowed.json()).answer, 'test goal');
+  let reached = false;
+  guard({ socket: { remoteAddress: '203.0.113.2' } }, { status(code) { assert.equal(code, 403);return this; }, json() {} }, () => { reached = true; });
+  assert.equal(reached, false);
+});
+
+test('internal route cannot be mounted accidentally without a local guard', () => {
+  assert.throws(() => registerInternalAgentRoute(express(), async () => ({})), /explicit local guard/);
 });

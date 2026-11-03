@@ -59,7 +59,7 @@ describe('SidebarComponent', () => {
       'Générateur IA',
       'Guided Demo',
       'Architecture Explorer',
-      'Agent Workspace'
+      'Support Agent Studio'
     ]);
     expect(links.every(link => link.textContent?.trim() === '')).toBe(true);
   });

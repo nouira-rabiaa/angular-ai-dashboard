@@ -24,11 +24,6 @@ export const ARCHITECTURE_NODES: readonly ArchitectureNode[] = [
     description: 'Le schéma de formulaire est rendu dans Angular puis soumis séparément. La génération ne lance pas automatiquement la recherche RAG.'
   },
   {
-    id: 'agent-workspace-ui', name: 'Agent Workspace', layerId: 'client', technology: 'Angular standalone',
-    responsibility: 'Interface séparée pour les requêtes agent sur les métadonnées du tableau de bord.',
-    description: 'Cette interface utilise le parcours agent et ses outils en lecture seule. Elle n’est pas le chat RAG et ne reçoit pas les chunks documentaires.'
-  },
-  {
     id: 'operations-dashboard-ui', name: 'Dashboard local', layerId: 'client', technology: 'Angular · HttpClient',
     responsibility: 'Présentation des métriques et historiques autorisés pour la démo locale.',
     description: 'Le dashboard lit des agrégats, séries, exécutions, documents et métadonnées de soumissions. Les endpoints de télémétrie sont restreints au mode démo local.'
@@ -69,8 +64,8 @@ export const ARCHITECTURE_NODES: readonly ArchitectureNode[] = [
     description: 'L’API consomme l’usage fournisseur quand disponible. Elle peut utiliser un modèle de secours; l’exécution indique le modèle effectivement utilisé.'
   },
   {
-    id: 'groq-agent-model', name: 'Groq · agent', layerId: 'ai', technology: 'Tool calling · raisonnement masqué',
-    responsibility: 'Choisit uniquement parmi les opérations de lecture définies par Agent Workspace.',
+    id: 'groq-agent-model', name: 'Groq · agent interne', layerId: 'ai', technology: 'Tool calling · raisonnement masqué',
+    responsibility: 'Choisit uniquement parmi les opérations de lecture définies par le moteur interne conservé pour réutilisation.',
     description: 'Le runner borne durée, itérations et nombre d’appels; des demandes d’outils non autorisées sont rejetées.'
   },
   {
@@ -121,11 +116,9 @@ export const ARCHITECTURE_EDGES: readonly ArchitectureEdge[] = [
   { id: 'chat-observability', sourceNodeId: 'express-rag-api', targetNodeId: 'observability-runtime', connectionType: 'tool', description: 'Mesure les étapes du handler, usage et estimation tarifaire.' },
   { id: 'observability-persist', sourceNodeId: 'observability-runtime', targetNodeId: 'sqlite-inference-history', connectionType: 'sql', description: 'Écrit une trace metadata-only et ses étapes ordonnées.' },
   { id: 'dashboard-history-read', sourceNodeId: 'sqlite-inference-history', targetNodeId: 'operations-dashboard-ui', connectionType: 'response', description: 'Endpoints de métriques et d’historique local-only.' },
-  { id: 'agent-request', sourceNodeId: 'agent-workspace-ui', targetNodeId: 'express-agent-api', connectionType: 'http', description: 'POST /api/agent/run avec un but utilisateur.' },
   { id: 'agent-inference', sourceNodeId: 'express-agent-api', targetNodeId: 'groq-agent-model', connectionType: 'inference', description: 'Appel Groq avec outils explicitement déclarés et limites d’exécution.' },
   { id: 'agent-tools', sourceNodeId: 'groq-agent-model', targetNodeId: 'agent-readonly-tools', connectionType: 'tool', description: 'Seuls les noms et arguments de la liste blanche sont exécutés.' },
   { id: 'agent-metadata-query', sourceNodeId: 'agent-readonly-tools', targetNodeId: 'sqlite-dashboard-metadata', connectionType: 'sql', description: 'Lectures bornées de compteurs et d’historique metadata-only.' },
-  { id: 'agent-result', sourceNodeId: 'express-agent-api', targetNodeId: 'agent-workspace-ui', connectionType: 'response', description: 'Réponse finale et trace des outils exécutés.' }
 ];
 
 export const ARCHITECTURE_FLOWS: readonly ArchitectureFlow[] = [
@@ -166,15 +159,15 @@ export const ARCHITECTURE_FLOWS: readonly ArchitectureFlow[] = [
     ]
   },
   {
-    id: 'agent-workspace', title: 'Agent Workspace',
-    purpose: 'Répondre à des questions de tableau de bord via des outils de lecture strictement approuvés.',
-    nodeIds: ['agent-workspace-ui', 'express-agent-api', 'groq-agent-model', 'agent-readonly-tools', 'sqlite-dashboard-metadata'],
-    edgeIds: ['agent-request', 'agent-inference', 'agent-tools', 'agent-metadata-query', 'agent-result'],
+    id: 'agent-workspace', title: 'Moteur interne · outils',
+    purpose: 'Module backend local conservé pour 5E, sans interface ni raccordement automatique au Support Agent Studio.',
+    nodeIds: ['express-agent-api', 'groq-agent-model', 'agent-readonly-tools', 'sqlite-dashboard-metadata'],
+    edgeIds: ['agent-inference', 'agent-tools', 'agent-metadata-query'],
     steps: [
-      { title: 'Objectif', explanation: 'Angular transmet le but à /api/agent/run; ce parcours ne passe pas par le chat RAG.' },
+      { title: 'Objectif', explanation: 'Un appel technique local autorisé peut transmettre un but à /api/agent/run; ce parcours ne passe pas par le chat RAG et ne possède plus d’interface produit.' },
       { title: 'Outils limités', explanation: 'Groq ne peut demander que le comptage des soumissions ou la lecture d’un historique metadata-only borné.' },
       { title: 'Validation serveur', explanation: 'Le runner valide les noms/arguments, limites le temps, les itérations et le nombre d’appels; les outils arbitraires sont rejetés.' },
-      { title: 'Résultat', explanation: 'L’Agent Workspace reçoit la réponse et la trace d’outils, sans noms de fichiers ni payloads.' }
+      { title: 'Résultat', explanation: 'Le backend retourne à l’appelant technique la réponse et la trace d’outils, sans noms de fichiers ni payloads. Aucune validation humaine n’est encore implémentée.' }
     ]
   }
 ];
