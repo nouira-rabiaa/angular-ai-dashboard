@@ -1,3 +1,4 @@
+import { provideUiI18nTesting } from '../../i18n/ui-i18n.testing';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 import { AgentConversationsComponent } from './agent-conversations.component';
@@ -14,7 +15,7 @@ describe('AgentConversationsComponent',()=>{
   beforeEach(async()=>{
     Object.defineProperty(crypto, 'randomUUID', { configurable: true, value: jest.fn().mockReturnValue('00000000-0000-4000-8000-000000000001') });
     api={listConversations:jest.fn().mockReturnValue(of({items:[],total:0})),getConversation:jest.fn().mockReturnValue(of(history())),createConversation:jest.fn().mockReturnValue(of(conversation())),sendConversationMessage:jest.fn().mockReturnValue(of({items:history().items})),deleteConversation:jest.fn().mockReturnValue(of(undefined))};
-    await TestBed.configureTestingModule({imports:[AgentConversationsComponent],providers:[{provide:AgentService,useValue:api}]}).compileComponents();
+    await TestBed.configureTestingModule({ imports:[AgentConversationsComponent],providers:[...provideUiI18nTesting(),{provide:AgentService,useValue:api}]}).compileComponents();
     fixture=TestBed.createComponent(AgentConversationsComponent);component=fixture.componentInstance;fixture.componentRef.setInput('agent',agent());fixture.detectChanges();
   });
   it('loads server list, shows empty state and explains plaintext storage',()=>{

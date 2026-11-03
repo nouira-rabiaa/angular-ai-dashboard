@@ -1,3 +1,4 @@
+import { provideUiI18nTesting } from '../../i18n/ui-i18n.testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -12,7 +13,7 @@ describe('GuidedDemoComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GuidedDemoComponent],
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()]
+      providers: [...provideUiI18nTesting(), provideRouter([]), provideHttpClient(), provideHttpClientTesting()]
     }).compileComponents();
     fixture = TestBed.createComponent(GuidedDemoComponent);
     component = fixture.componentInstance;
@@ -30,7 +31,7 @@ describe('GuidedDemoComponent', () => {
     expect(GUIDED_DEMO_STEPS.every(step => step.completionCriteria.length > 0)).toBe(true);
     expect(GUIDED_DEMO_STEPS[2].liveAiCallMayBeRequired).toBe(true);
     expect(GUIDED_DEMO_STEPS[3].liveAiCallMayBeRequired).toBe(true);
-    expect(GUIDED_DEMO_STEPS[4].technicalExplanation).toContain('locale');
+    expect(component.ui.text(GUIDED_DEMO_STEPS[4].technicalExplanation)).toContain('locale');
   });
 
   it('shows accessible progress and focuses the updated heading after the next render', async () => {
@@ -95,10 +96,10 @@ describe('GuidedDemoComponent', () => {
       const step = component.steps[index];
       const root = fixture.nativeElement as HTMLElement;
       expect(button.getAttribute('aria-current')).toBe('step');
-      expect(root.querySelector('#business-explanation-title')?.parentElement?.textContent).toContain(step.businessExplanation);
-      expect(root.querySelector('#technical-explanation-title')?.parentElement?.textContent).toContain(step.technicalExplanation);
-      expect(root.querySelector('#user-instruction-title')?.parentElement?.textContent).toContain(step.userInstruction);
-      expect(root.querySelector('aside')?.textContent).toContain(step.completionCriteria);
+      expect(root.querySelector('#business-explanation-title')?.parentElement?.textContent).toContain(component.ui.text(step.businessExplanation));
+      expect(root.querySelector('#technical-explanation-title')?.parentElement?.textContent).toContain(component.ui.text(step.technicalExplanation));
+      expect(root.querySelector('#user-instruction-title')?.parentElement?.textContent).toContain(component.ui.text(step.userInstruction));
+      expect(root.querySelector('aside')?.textContent).toContain(component.ui.text(step.completionCriteria));
       const destination = root.querySelector('a[target="_blank"]');
       expect(destination?.getAttribute('href') ?? undefined).toBe(step.destinationRoute);
     }
@@ -230,7 +231,7 @@ describe('GuidedDemoComponent', () => {
       expect(cancelFrame.mock.calls).toEqual([[firstId], [secondId]]);
       expect(frames.size).toBe(1);
       expect(focus).not.toHaveBeenCalled();
-      expect(heading.textContent).toContain(GUIDED_DEMO_STEPS[4].title);
+      expect(heading.textContent).toContain(component.ui.text(GUIDED_DEMO_STEPS[4].title));
       flushFrames();
       expect(focus).toHaveBeenCalledTimes(1);
       expect(document.activeElement).toBe(heading);
@@ -286,7 +287,7 @@ describe('GuidedDemoComponent', () => {
         GUIDED_DEMO_STEPS.map((step, index) => [step.id, index === 0 ? 'viewed' : 'not-visited'])
       ));
       expect(fixture.nativeElement.querySelector('nav button[aria-current="step"]').getAttribute('aria-label'))
-        .toContain(GUIDED_DEMO_STEPS[0].title);
+        .toContain(component.ui.text(GUIDED_DEMO_STEPS[0].title));
       expect(document.activeElement).toBe(fixture.nativeElement.querySelector('h2[tabindex="-1"]'));
       http.expectNone(() => true);
     });

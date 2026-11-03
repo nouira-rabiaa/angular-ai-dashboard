@@ -1,3 +1,4 @@
+import { UiLanguageService } from '../i18n/ui-language.service';
 import { provideUiI18n } from '../i18n/ui-i18n.providers';
 import { UI_LANGUAGE_STORAGE_KEY } from '../i18n/ui-language.service';
 import { Component } from '@angular/core';
@@ -25,6 +26,7 @@ describe('SidebarComponent', () => {
         { path: 'agent-workspace', component: TestPageComponent }
       ])]
     }).compileComponents();
+    await TestBed.inject(UiLanguageService).ready;
     router = TestBed.inject(Router);
     fixture = TestBed.createComponent(SidebarComponent);
     component = fixture.componentInstance;

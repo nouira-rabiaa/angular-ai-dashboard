@@ -30,7 +30,7 @@
                 type="email"
                 [id]="field.name"
                 [formControlName]="field.name"
-                [placeholder]="field.placeholder || 'exemple@domaine.com'"
+                [placeholder]="field.placeholder || ('dynamicForm.exemple_domaine_com' | transloco)"
                 class="form-control"
               />
             }
@@ -54,7 +54,7 @@
             }
             @case ('select') {
               <select [id]="field.name" [formControlName]="field.name" class="form-control">
-                <option value="">-- Sélectionner --</option>
+                <option value="">{{ 'dynamicForm.selectionner' | transloco }}</option>
                 @for (opt of field.options; track $index) {
                   <!-- Gère à la fois les objets {label, value} et les chaînes simples "Option" -->
                   @if (typeof opt === 'object' && opt !== null) {
@@ -68,7 +68,7 @@
             @case ('checkbox') {
               <div class="checkbox-container">
                 <input type="checkbox" [id]="field.name" [formControlName]="field.name" />
-                <label [for]="field.name" class="inline-label">{{ field.placeholder || 'Oui' }}</label>
+                <label [for]="field.name" class="inline-label">{{ field.placeholder || ('dynamicForm.oui' | transloco) }}</label>
               </div>
             }
             @default {
@@ -86,10 +86,10 @@
           @if (formGroup()!.get(field.name)?.touched && formGroup()!.get(field.name)?.invalid) {
             <div class="error-msg">
               @if (formGroup()!.get(field.name)?.errors?.['required']) {
-                Ce champ est obligatoire.
+                {{ 'dynamicForm.ce_champ_est_obligatoire' | transloco }}
               }
               @if (formGroup()!.get(field.name)?.errors?.['email']) {
-                Veuillez entrer un email valide.
+                {{ 'dynamicForm.veuillez_entrer_un_email_valide' | transloco }}
               }
             </div>
           }
@@ -97,7 +97,7 @@
       }
 
       <button type="submit" [disabled]="formGroup()!.invalid" class="btn-submit">
-        Soumettre le formulaire
+        {{ 'dynamicForm.soumettre_le_formulaire' | transloco }}
       </button>
     </form>
   </div>

@@ -1,3 +1,6 @@
+import { UiDatePipe, UiStatusPipe } from '../../i18n/ui-format.pipe';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { UiLanguageService } from '../../i18n/ui-language.service';
 import { ErrorService } from '../../services/error.service';
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -10,6 +13,8 @@ import { DynamicFormSchema } from '../../models/dynamic-form.model';
 interface Message {
   sender: 'user' | 'ai';
   text?: string;
+  uiKey?: string;
+  uiParams?: Record<string, unknown>;
   sentiment?: { label: string; score: number };
   documentName?: string;
   vectorMeta?: { score: string }; 
@@ -27,11 +32,12 @@ type RetrievalScope = 'active' | 'all';
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, DynamicFormComponent], 
+  imports: [TranslocoPipe, UiDatePipe, UiStatusPipe, CommonModule, FormsModule, DynamicFormComponent],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss'
 })
 export class ChatComponent {
+  readonly ui = inject(UiLanguageService);
   private apiService = inject(ApiService);
   private readonly errors = inject(ErrorService);
 
@@ -75,7 +81,7 @@ export class ChatComponent {
             ...msgs,
             { 
               sender: 'ai', 
-              text: `Voici le formulaire généré selon votre demande :`,
+              uiKey: 'workspace.formGenerated',
               formSchema: formSchema 
             }
           ]);
@@ -115,7 +121,7 @@ export class ChatComponent {
           const errorResponse = err.error as ChatErrorResponse | undefined;
           this.messages.update(msgs => [...msgs, {
             sender: 'ai',
-            text: errorResponse?.error || 'La requête IA a échoué.',
+            uiKey: 'workspace.chatFailed',
             chatResponse: true,
             sources: [],
             executionTrace: errorResponse?.executionTrace
@@ -124,6 +130,11 @@ export class ChatComponent {
         }
       });
     }
+  }
+
+  messageParams(message: Message): Record<string, unknown> {
+    if (message.uiKey !== 'workspace.documentImported') return message.uiParams ?? {};
+    return { ...message.uiParams, characters: this.ui.number(message.uiParams?.['characters'] as number), chunks: this.ui.number(message.uiParams?.['chunks'] as number | undefined) };
   }
 
   private toCostEstimate(response: ChatResponse): ChatCostEstimate | undefined {
@@ -140,28 +151,28 @@ export class ChatComponent {
 
   formatTraceStepName(name: string): string {
     switch (name) {
-      case 'request-validation': return 'Validation de la requête';
-      case 'sqlite-fts5-retrieval': return 'Recherche SQLite FTS5';
-      case 'context-preparation': return 'Préparation du contexte';
-      case 'groq-inference': return 'Inférence Groq';
+      case 'request-validation': return this.ui.text('workspace.validation');
+      case 'sqlite-fts5-retrieval': return this.ui.text('workspace.retrieval');
+      case 'context-preparation': return this.ui.text('workspace.context');
+      case 'groq-inference': return this.ui.text('workspace.inference');
       default: return name;
     }
   }
 
   getStepDuration(trace: ChatExecutionTrace, name: string): string {
     const step = trace.steps.find(item => item.name === name);
-    return step ? this.formatDuration(step.durationMs) : 'Indisponible';
+    return step ? this.formatDuration(step.durationMs) : this.ui.text('common.unavailable');
   }
 
   formatDuration(durationMs: number): string {
-    if (!Number.isFinite(durationMs) || durationMs < 0) return 'Indisponible';
-    return `${durationMs.toLocaleString(undefined, { maximumFractionDigits: 2 })} ms`;
+    if (!Number.isFinite(durationMs) || durationMs < 0) return this.ui.text('common.unavailable');
+    return `${this.ui.number(durationMs, { maximumFractionDigits: 2 })} ms`;
   }
 
   formatCost(cost?: number | null): string {
     return typeof cost === 'number' && Number.isFinite(cost)
-      ? `$${cost.toFixed(8)} USD`
-      : 'Indisponible';
+      ? this.ui.currency(cost, 'USD', { minimumFractionDigits: 8, maximumFractionDigits: 8 })
+      : this.ui.text('common.unavailable');
   }
 
   onFormSubmit(formData: any) {
@@ -177,7 +188,7 @@ export class ChatComponent {
         ...msgs,
         { 
           sender: 'ai', 
-          text: `✅ ${res.message}\n\n**Données enregistrées :**\n${formattedDetails}` 
+          uiKey: 'workspace.formSaved', uiParams: { details: formattedDetails }
         }
       ]);
     },
@@ -185,7 +196,7 @@ export class ChatComponent {
       console.error('Erreur lors de la soumission', err);
       this.messages.update(msgs => [
         ...msgs,
-        { sender: 'ai', text: '❌ Erreur lors de l\'enregistrement des données du formulaire.' }
+        { sender: 'ai', uiKey: 'workspace.formSaveFailed' }
       ]);
     }
   });
@@ -209,7 +220,7 @@ export class ChatComponent {
           ...msgs,
           { 
             sender: 'ai', 
-            text: `📄 Document **${res.filename}** analysé avec succès (${res.characterCount} caractères, ${res.chunksGenerated ?? 'indisponible'} chunks indexés). Vous pouvez maintenant l'interroger !`
+            uiKey: 'workspace.documentImported', uiParams: { filename: res.filename, characters: res.characterCount, chunks: res.chunksGenerated }
           }
         ]);
       },

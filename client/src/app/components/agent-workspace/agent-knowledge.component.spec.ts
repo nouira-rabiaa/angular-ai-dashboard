@@ -1,3 +1,4 @@
+import { provideUiI18nTesting } from '../../i18n/ui-i18n.testing';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { of, Subject, throwError } from 'rxjs';
@@ -20,7 +21,7 @@ describe('AgentKnowledgeComponent', () => {
   beforeEach(async () => {
     api = { getAgentDocuments: jest.fn().mockReturnValue(of(scope())), setAgentDocuments: jest.fn().mockReturnValue(of(scope([1, 2]))), askAgent: jest.fn().mockReturnValue(of(reply)) };
     catalog = { getDocuments: jest.fn().mockReturnValue(of({ items: [document(1), document(2)], total: 2, limit: 25, offset: 0 })) };
-    await TestBed.configureTestingModule({ imports: [AgentKnowledgeComponent], providers: [{ provide: AgentService, useValue: api }, { provide: DashboardDataService, useValue: catalog }] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [AgentKnowledgeComponent], providers: [...provideUiI18nTesting(), { provide: AgentService, useValue: api }, { provide: DashboardDataService, useValue: catalog }] }).compileComponents();
     fixture = TestBed.createComponent(AgentKnowledgeComponent);component = fixture.componentInstance;
     fixture.componentRef.setInput('agent', agent);
   });

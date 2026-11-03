@@ -1,61 +1,61 @@
 <section aria-labelledby="finops-title" class="finops-shell">
   <header class="finops-header">
-    <div><p class="finops-eyebrow">FinOps · USD · UTC</p><h2 id="finops-title">Prévision des coûts IA</h2></div>
-    <button type="button" (click)="load()" [disabled]="state() === 'loading'" class="finops-button finops-button-light"><svg lucideChartNoAxesCombined aria-hidden="true" class="h-4 w-4"></svg> Actualiser FinOps</button>
+    <div><p class="finops-eyebrow">{{ 'finops.finops_usd_utc' | transloco }}</p><h2 id="finops-title">{{ 'finops.prevision_des_couts_ia' | transloco }}</h2></div>
+    <button type="button" (click)="load()" [disabled]="state() === 'loading'" class="finops-button finops-button-light"><svg lucideChartNoAxesCombined aria-hidden="true" class="h-4 w-4"></svg> {{ 'finops.actualiser_finops' | transloco }}</button>
   </header>
-  <div class="finops-kpis" aria-label="Indicateurs principaux : période sélectionnée et mois UTC">
+  <div class="finops-kpis" [attr.aria-label]="'finops.indicateurs_principaux_periode_selectionnee_et_mois_utc' | transloco">
     <ng-content select="[finops-primary]" />
-        <article class="finops-kpi finops-observed"><div class="finops-kpi-title"><h3>Coût observé estimé · mois</h3><svg lucideCircleDollarSign aria-hidden="true" class="h-4 w-4"></svg></div><p class="finops-value">{{ state() === 'ready' ? cost(summary()?.observedMonthUsd, 2) : (state() === 'loading' ? 'Chargement…' : 'Indisponible') }}</p><p class="finops-note">Mois UTC en cours · {{ summary()?.monthStart }} → {{ summary()?.today }}</p></article>
-        <article class="finops-kpi finops-month-end"><div class="finops-kpi-title"><h3>Estimation de fin de mois</h3><svg lucideChartNoAxesCombined aria-hidden="true" class="h-4 w-4"></svg></div><p class="finops-value">{{ state() === 'ready' ? cost(summary()?.projectedMonthEndUsd, 2) : (state() === 'loading' ? 'Chargement…' : 'Indisponible') }}</p><p class="finops-note">Projection du mois civil</p></article>
+        <article class="finops-kpi finops-observed"><div class="finops-kpi-title"><h3>{{ 'finops.cout_observe_estime_mois' | transloco }}</h3><svg lucideCircleDollarSign aria-hidden="true" class="h-4 w-4"></svg></div><p class="finops-value">{{ state() === 'ready' ? cost(summary()?.observedMonthUsd, 2) : (state() === 'loading' ? ('finops.chargement' | transloco) : ('finops.indisponible' | transloco)) }}</p><p class="finops-note">{{ 'finops.mois_utc_en_cours' | transloco: { value1: (ui.date(summary()?.monthStart)), value2: (ui.date(summary()?.today)) } }}</p></article>
+        <article class="finops-kpi finops-month-end"><div class="finops-kpi-title"><h3>{{ 'finops.estimation_de_fin_de_mois' | transloco }}</h3><svg lucideChartNoAxesCombined aria-hidden="true" class="h-4 w-4"></svg></div><p class="finops-value">{{ state() === 'ready' ? cost(summary()?.projectedMonthEndUsd, 2) : (state() === 'loading' ? ('finops.chargement' | transloco) : ('finops.indisponible' | transloco)) }}</p><p class="finops-note">{{ 'finops.projection_du_mois_civil' | transloco }}</p></article>
   </div>
-  @if (state() === 'loading') { <p role="status" class="finops-state">Chargement FinOps…</p> }
-  @else if (state() === 'error') { <p role="alert" class="finops-state finops-error">FinOps indisponible. Vérifiez l’activation de la télémétrie locale et réessayez.</p> }
+  @if (state() === 'loading') { <p role="status" class="finops-state">{{ 'finops.chargement_finops' | transloco }}</p> }
+  @else if (state() === 'error') { <p role="alert" class="finops-state finops-error">{{ 'finops.finops_indisponible_verifiez_l_activation_de_la' | transloco }}</p> }
   @else {
     @if (summary(); as data) {
       <div class="finops-charts">
         <section aria-labelledby="finops-chart-title" class="finops-card finops-chart-card">
-          <div class="finops-card-heading"><div><p class="finops-eyebrow">Historique & prévisions</p><h3 id="finops-chart-title">Coûts quotidiens historiques et projetés</h3></div></div>
+          <div class="finops-card-heading"><div><p class="finops-eyebrow">{{ 'finops.historique_previsions' | transloco }}</p><h3 id="finops-chart-title">{{ 'finops.couts_quotidiens_historiques_et_projetes' | transloco }}</h3></div></div>
           @if ((!data.sample.requestCount && !data.monthRequestCount) || data.status !== 'ready' || !chart().length) {
-            <div role="status" aria-label="Disponibilité des prévisions" class="finops-state">
-              <div class="flex items-center gap-2 text-blue-800"><svg lucideChartNoAxesCombined aria-hidden="true" class="h-5 w-5 shrink-0"></svg><h4 class="font-semibold">{{ !data.sample.requestCount && !data.monthRequestCount ? 'Aucun historique' : 'Prévision en attente' }}</h4></div>
-              @if (!data.sample.requestCount && !data.monthRequestCount) { <p>Les coûts apparaîtront après l’enregistrement d’appels RAG.</p> }
-              @if (data.status === 'insufficient_data') { <p>Données insuffisantes pour une projection fiable.</p><details class="finops-values"><summary>Conditions de prévision</summary><p>Au moins 7 jours terminés, 10 requêtes tarifées et 3 jours actifs sont nécessaires. Hypothèse : activité et tarifs stables.</p></details> }
-              @if (data.status === 'unavailable') { <p>Prévision indisponible : certains coûts historiques ne sont pas calculables. Aucun coût manquant n’est remplacé par zéro.</p> }
-              @if (!chart().length) { <p>Aucune série de coûts disponible.</p> }
+            <div role="status" [attr.aria-label]="'finops.disponibilite_des_previsions' | transloco" class="finops-state">
+              <div class="flex items-center gap-2 text-blue-800"><svg lucideChartNoAxesCombined aria-hidden="true" class="h-5 w-5 shrink-0"></svg><h4 class="font-semibold">{{ !data.sample.requestCount && !data.monthRequestCount ? ('finops.aucun_historique' | transloco) : ('finops.prevision_en_attente' | transloco) }}</h4></div>
+              @if (!data.sample.requestCount && !data.monthRequestCount) { <p>{{ 'finops.les_couts_apparaitront_apres_l_enregistrement_d' | transloco }}</p> }
+              @if (data.status === 'insufficient_data') { <p>{{ 'finops.donnees_insuffisantes_pour_une_projection_fiable' | transloco }}</p><details class="finops-values"><summary>{{ 'finops.conditions_de_prevision' | transloco }}</summary><p>{{ 'finops.au_moins_7_jours_termines_10_requetes' | transloco }}</p></details> }
+              @if (data.status === 'unavailable') { <p>{{ 'finops.prevision_indisponible_certains_couts_historiques_ne_sont' | transloco }}</p> }
+              @if (!chart().length) { <p>{{ 'finops.aucune_serie_de_couts_disponible' | transloco }}</p> }
             </div>
           }
-          <p class="finops-legend"><span class="inline-flex items-center gap-1.5"><i class="finops-dot"></i> Historique estimé</span><span class="inline-flex items-center gap-1.5"><i class="finops-line"></i> Projection quotidienne constante</span></p>
+          <p class="finops-legend"><span class="inline-flex items-center gap-1.5"><i class="finops-dot"></i> {{ 'finops.historique_estime' | transloco }}</span><span class="inline-flex items-center gap-1.5"><i class="finops-line"></i> {{ 'finops.projection_quotidienne_constante' | transloco }}</span></p>
           @if (chart().length) {
-            <svg class="finops-chart" viewBox="0 0 620 190" role="img" aria-label="Coûts quotidiens estimés et projections en USD; valeurs dans le tableau ci-dessous">
+            <svg class="finops-chart" viewBox="0 0 620 190" role="img" [attr.aria-label]="'finops.couts_quotidiens_estimes_et_projections_en_usd' | transloco">
               <line x1="30" x2="590" y1="35" y2="35" stroke="var(--line)" stroke-dasharray="3 4" />
               <line x1="30" x2="590" y1="95" y2="95" stroke="var(--line)" stroke-dasharray="3 4" />
               <line x1="30" x2="590" y1="155" y2="155" stroke="var(--line)" />
-              <text x="2" y="175" class="fill-slate-700 text-[10px]">0 USD</text>
-              <text x="30" y="188" class="fill-slate-700 text-[10px]">{{ chart()[0].date }}</text>
-              <text x="590" y="188" text-anchor="end" class="fill-slate-700 text-[10px]">{{ chart()[chart().length - 1].date }}</text>
+              <text x="2" y="175" class="fill-slate-700 text-[10px]">{{ 'finops.0_usd' | transloco }}</text>
+              <text x="30" y="188" class="fill-slate-700 text-[10px]">{{ ui.date(chart()[0].date) }}</text>
+              <text x="590" y="188" text-anchor="end" class="fill-slate-700 text-[10px]">{{ ui.date(chart()[chart().length - 1].date) }}</text>
               @for (segment of segments(false); track $index) { <polyline [attr.points]="segment" fill="none" stroke="var(--good)" stroke-width="2.5" /> }
               @for (segment of segments(true); track $index) { <polyline [attr.points]="segment" fill="none" stroke="var(--purple)" stroke-width="2.5" stroke-dasharray="5 4" /> }
               @for (point of chart(); track point.date) {
-                @if (point.y !== null) { <circle [attr.cx]="point.x" [attr.cy]="point.y" r="2.5" [attr.fill]="point.projected ? '#6651c8' : '#047857'"><title>{{ point.date }} : {{ cost(point.estimatedCostUsd) }} · {{ point.projected ? 'projeté' : 'observé estimé' }}</title></circle> }
+                @if (point.y !== null) { <circle [attr.cx]="point.x" [attr.cy]="point.y" r="2.5" [attr.fill]="point.projected ? '#6651c8' : '#047857'"><title>{{ ui.date(point.date) }} : {{ cost(point.estimatedCostUsd) }} · {{ point.projected ? ('finops.projete' | transloco) : ('finops.observe_estime' | transloco) }}</title></circle> }
               }
             </svg>
-            <div class="finops-chart-dates"><span>{{ chart()[0].date }}</span><span>{{ chart()[chart().length - 1].date }}</span></div>
-            <details class="finops-values"><summary>Valeurs et dates du graphique</summary><div class="finops-table-scroll"><table><caption class="sr-only">Coûts quotidiens en USD</caption><thead><tr><th scope="col">Date UTC</th><th scope="col">Type</th><th scope="col">Coût estimé</th></tr></thead><tbody>@for (point of chart(); track point.date) { <tr><th scope="row">{{ point.date }}</th><td>{{ point.projected ? 'Projection' : 'Historique' }}</td><td>{{ cost(point.estimatedCostUsd) }}</td></tr> }</tbody></table></div></details>
+            <div class="finops-chart-dates"><span>{{ ui.date(chart()[0].date) }}</span><span>{{ ui.date(chart()[chart().length - 1].date) }}</span></div>
+            <details class="finops-values"><summary>{{ 'finops.valeurs_et_dates_du_graphique' | transloco }}</summary><div class="finops-table-scroll"><table><caption class="sr-only">{{ 'finops.couts_quotidiens_en_usd' | transloco }}</caption><thead><tr><th scope="col">{{ 'finops.date_utc' | transloco }}</th><th scope="col">{{ 'finops.type' | transloco }}</th><th scope="col">{{ 'finops.cout_estime' | transloco }}</th></tr></thead><tbody>@for (point of chart(); track point.date) { <tr><th scope="row">{{ ui.date(point.date) }}</th><td>{{ point.projected ? ('finops.projection' | transloco) : ('finops.historique' | transloco) }}</td><td>{{ cost(point.estimatedCostUsd) }}</td></tr> }</tbody></table></div></details>
           }
-          <p class="finops-note">Vert : historique estimé · pointillés indigo : projection quotidienne constante. Consultez les valeurs exactes dans le tableau.</p>
+          <p class="finops-note">{{ 'finops.vert_historique_estime_pointilles_indigo_projection_quotidienne' | transloco }}</p>
         </section>
         <section aria-labelledby="finops-budget-title" class="finops-card">
-          <p class="finops-eyebrow">Pilotage budgétaire</p><h3 id="finops-budget-title">Budget mensuel partagé · USD</h3>
-          <dl class="finops-budget-summary"><div><dt>Budget enregistré</dt><dd class="mt-1 font-bold text-slate-900">{{ cost(data.monthlyBudgetUsd, 2) }}</dd></div><div><dt>Budget restant</dt><dd class="mt-1 font-bold text-slate-900">Non fourni</dd></div></dl>
+          <p class="finops-eyebrow">{{ 'finops.pilotage_budgetaire' | transloco }}</p><h3 id="finops-budget-title">{{ 'finops.budget_mensuel_partage_usd' | transloco }}</h3>
+          <dl class="finops-budget-summary"><div><dt>{{ 'finops.budget_enregistre' | transloco }}</dt><dd class="mt-1 font-bold text-slate-900">{{ cost(data.monthlyBudgetUsd, 2) }}</dd></div><div><dt>{{ 'finops.budget_restant' | transloco }}</dt><dd class="mt-1 font-bold text-slate-900">{{ 'finops.non_fourni' | transloco }}</dd></div></dl>
           <form #budgetForm="ngForm" (ngSubmit)="saveBudget()" class="finops-budget-form">
-            <label>Budget (vide pour désactiver)<input name="monthlyBudget" type="number" min="0.00000001" max="1000000000" step="any" [(ngModel)]="budget" /></label>
-            <button [disabled]="saving() || budgetForm.invalid" class="finops-button">{{ saving() ? 'Enregistrement…' : 'Enregistrer le budget' }}</button>
+            <label>{{ 'finops.budget_vide_pour_desactiver' | transloco }}<input name="monthlyBudget" type="number" min="0.00000001" max="1000000000" step="any" [(ngModel)]="budget" /></label>
+            <button [disabled]="saving() || budgetForm.invalid" class="finops-button">{{ saving() ? ('finops.enregistrement' | transloco) : ('finops.enregistrer_le_budget' | transloco) }}</button>
           </form>
-          <p role="status" class="finops-note">{{ budgetMessage() }}</p>
+          <p role="status" class="finops-note">{{ budgetMessage() | transloco }}</p>
           <section aria-labelledby="finops-alerts-title" aria-live="polite" class="space-y-2">
-            <h4 id="finops-alerts-title" class="text-sm font-semibold text-slate-900">Alertes budgétaires</h4>
-            <p class="finops-note">80 % : avertissement · 100 % : critique</p>
-            @for (item of [{ title: 'Observé estimé', status: data.observedBudget }, { title: 'Projection fin de mois', status: data.projectedBudget }]; track item.title) {
+            <h4 id="finops-alerts-title" class="text-sm font-semibold text-slate-900">{{ 'finops.alertes_budgetaires' | transloco }}</h4>
+            <p class="finops-note">{{ 'finops.80_avertissement_100_critique' | transloco }}</p>
+            @for (item of [{ title: 'finops.observe_estime_2', status: data.observedBudget }, { title: 'finops.projection_fin_de_mois', status: data.projectedBudget }]; track item.title) {
               <div class="finops-budget-alert border-l-4" [class.border-slate-200]="item.status.level === 'ok' || item.status.level === 'unavailable'" [class.border-amber-500]="item.status.level === 'warning'" [class.border-rose-500]="item.status.level === 'exceeded'" [class.finops-warning]="item.status.level === 'warning'" [class.finops-error]="item.status.level === 'exceeded'">
                 <div class="flex items-start gap-2">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="h-4 w-4 shrink-0">
@@ -67,53 +67,53 @@
                       @else { <path d="M12 10v7 M12 7v1" /> }
                     }
                   </svg>
-                  <p>{{ item.title }} : <strong>{{ alert(item.status) }}</strong> @if (item.status.percent !== null) { · {{ item.status.percent | number:'1.0-1' }} % }</p>
+                  <p>{{ item.title | transloco }} : <strong>{{ alert(item.status) }}</strong> @if (item.status.percent !== null) { · {{ ui.percent(item.status.percent / 100, { maximumFractionDigits: 1 }) }} }</p>
                 </div>
-                @if (item.status.percent !== null) { <progress max="100" [value]="progress(item.status)" [attr.aria-label]="'Consommation du budget : ' + item.title"></progress> }
+                @if (item.status.percent !== null) { <progress max="100" [value]="progress(item.status)" [attr.aria-label]="'workspace.budgetUsage' | transloco: { title: (item.title | transloco) }"></progress> }
               </div>
             }
           </section>
-          @if (!data.monthCoverageComplete) { <p class="finops-note finops-warning">Les alertes observées reposent sur un minimum connu. L’absence d’alerte ne prouve pas le respect du budget.</p> }
-          <p class="finops-note">Enregistré dans SQLite pour les mois suivants jusqu’à modification. Aucune notification externe.</p>
+          @if (!data.monthCoverageComplete) { <p class="finops-note finops-warning">{{ 'finops.les_alertes_observees_reposent_sur_un_minimum' | transloco }}</p> }
+          <p class="finops-note">{{ 'finops.enregistre_dans_sqlite_pour_les_mois_suivants' | transloco }}</p>
         </section>
       </div>
       <div class="finops-controls">
         <section aria-labelledby="finops-simulator-title" class="finops-card">
-          <p class="finops-eyebrow">Explorer un scénario</p><h3 id="finops-simulator-title">Simulateur budgétaire</h3>
-          @if (!data.pricing.length) { <p role="status" class="finops-state">Simulation indisponible : aucun tarif valide configuré dans GROQ_MODEL_PRICING.</p> }
+          <p class="finops-eyebrow">{{ 'finops.explorer_un_scenario' | transloco }}</p><h3 id="finops-simulator-title">{{ 'finops.simulateur_budgetaire' | transloco }}</h3>
+          @if (!data.pricing.length) { <p role="status" class="finops-state">{{ 'finops.simulation_indisponible_aucun_tarif_valide_configure_dans' | transloco }}</p> }
           @else {
             <form #scenarioForm="ngForm" (ngSubmit)="simulate()" class="finops-scenario">
-              <label class="col-span-full">Modèle<select name="model" [(ngModel)]="scenario.model" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" required>@for (price of data.pricing; track price.model) { <option [value]="price.model">{{ price.model }} · entrée {{ price.inputUsdPerMillion }} / sortie {{ price.outputUsdPerMillion }} USD par million</option> }</select></label>
-              <label>Requêtes par jour<input name="requestsPerDay" type="number" min="0" max="1000000" step="1" required [(ngModel)]="scenario.requestsPerDay" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" /></label>
-              <label>Budget du scénario USD (optionnel)<input name="scenarioBudget" type="number" min="0.00000001" max="1000000000" step="any" [(ngModel)]="scenario.monthlyBudgetUsd" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" /></label>
-              <label>Tokens moyens d’entrée<input name="inputTokens" type="number" min="0" max="10000000" step="any" required [(ngModel)]="scenario.inputTokens" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" /></label>
-              <label>Tokens moyens de sortie<input name="outputTokens" type="number" min="0" max="10000000" step="any" required [(ngModel)]="scenario.outputTokens" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" /></label>
-              <button [disabled]="scenarioForm.invalid || simulationState() === 'loading'" class="finops-button col-span-full">Simuler sans appel IA</button>
+              <label class="col-span-full">{{ 'finops.modele' | transloco }}<select name="model" [(ngModel)]="scenario.model" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" required>@for (price of data.pricing; track price.model) { <option [value]="price.model">{{ 'finops.entree_sortie_usd_par_million' | transloco: { value1: (price.model), value2: (ui.number(price.inputUsdPerMillion)), value3: (ui.number(price.outputUsdPerMillion)) } }}</option> }</select></label>
+              <label>{{ 'finops.requetes_par_jour' | transloco }}<input name="requestsPerDay" type="number" min="0" max="1000000" step="1" required [(ngModel)]="scenario.requestsPerDay" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" /></label>
+              <label>{{ 'finops.budget_du_scenario_usd_optionnel' | transloco }}<input name="scenarioBudget" type="number" min="0.00000001" max="1000000000" step="any" [(ngModel)]="scenario.monthlyBudgetUsd" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" /></label>
+              <label>{{ 'finops.tokens_moyens_d_entree' | transloco }}<input name="inputTokens" type="number" min="0" max="10000000" step="any" required [(ngModel)]="scenario.inputTokens" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" /></label>
+              <label>{{ 'finops.tokens_moyens_de_sortie' | transloco }}<input name="outputTokens" type="number" min="0" max="10000000" step="any" required [(ngModel)]="scenario.outputTokens" (ngModelChange)="simulation.set(null); simulationState.set('idle')" [disabled]="simulationState() === 'loading'" /></label>
+              <button [disabled]="scenarioForm.invalid || simulationState() === 'loading'" class="finops-button col-span-full">{{ 'finops.simuler_sans_appel_ia' | transloco }}</button>
             </form>
           }
-          @if (simulationState() === 'loading') { <p role="status" class="finops-state">Calcul de la simulation…</p> }
-          @if (simulationState() === 'error') { <p role="alert" class="finops-state finops-error">Simulation impossible : vérifiez les valeurs et réessayez.</p> }
+          @if (simulationState() === 'loading') { <p role="status" class="finops-state">{{ 'finops.calcul_de_la_simulation' | transloco }}</p> }
+          @if (simulationState() === 'error') { <p role="alert" class="finops-state finops-error">{{ 'finops.simulation_impossible_verifiez_les_valeurs_et_reessayez' | transloco }}</p> }
           @if (simulation(); as result) {
-            @if (result.status === 'unavailable') { <p role="status" class="finops-state finops-warning">Simulation indisponible : tarif non configuré ou résultat non calculable.</p> }
-            @else { <div role="status" class="finops-result"><p>Coût estimé par requête : <strong>{{ cost(result.costPerRequestUsd) }}</strong></p><p>Coût mensuel projeté : <strong>{{ cost(result.monthlyCostUsd, 2) }}</strong> ({{ result.monthDays }} jours dans le mois UTC courant)</p>@if (result.budget; as status) { <p>Budget simulé : {{ alert(status) }}</p> }</div> }
+            @if (result.status === 'unavailable') { <p role="status" class="finops-state finops-warning">{{ 'finops.simulation_indisponible_tarif_non_configure_ou_resultat' | transloco }}</p> }
+            @else { <div role="status" class="finops-result"><p>{{ 'finops.cout_estime_par_requete' | transloco }} <strong>{{ cost(result.costPerRequestUsd) }}</strong></p><p>{{ 'finops.cout_mensuel_projete' | transloco }} <strong>{{ cost(result.monthlyCostUsd, 2) }}</strong> {{ 'finops.jours_dans_le_mois_utc_courant' | transloco: { value1: (ui.number(result.monthDays)) } }}</p>@if (result.budget; as status) { <p>{{ 'finops.budget_simule' | transloco: { value1: (alert(status)) } }}</p> }</div> }
           }
         </section>
         <section class="finops-card" aria-labelledby="finops-models-title">
-          <p class="finops-eyebrow">Répartition & couverture</p><h3 id="finops-models-title">Coûts estimés par modèle · mois courant</h3>
+          <p class="finops-eyebrow">{{ 'finops.repartition_couverture' | transloco }}</p><h3 id="finops-models-title">{{ 'finops.couts_estimes_par_modele_mois_courant' | transloco }}</h3>
           @if (data.models.length) {
-            <div class="finops-table-scroll"><table><caption class="sr-only">Répartition des coûts estimés du mois par modèle</caption><thead><tr><th scope="col">Modèle</th><th scope="col">Tarifées / total</th><th scope="col">Sous-total connu USD</th></tr></thead><tbody>@for (model of data.models; track model.model) { <tr><th scope="row">{{ model.model || 'Indisponible' }}</th><td>{{ model.pricedRequestCount }} / {{ model.requestCount }}</td><td>{{ cost(model.estimatedCostUsd) }}</td></tr> }</tbody></table></div>
-          } @else { <p class="finops-state">Aucun coût par modèle disponible.</p> }
-          <dl class="finops-budget-summary" aria-label="Projections complémentaires"><div><dt>Projection sur 7 jours</dt><dd>{{ cost(data.projected7DaysUsd, 2) }}</dd></div><div><dt>Projection sur 30 jours</dt><dd>{{ cost(data.projected30DaysUsd, 2) }}</dd></div></dl>
-          <p class="finops-note">Estimation à rythme constant · {{ data.monthPricedRequestCount }} / {{ data.monthRequestCount }} requêtes du mois tarifées · {{ data.monthCoverageComplete ? 'couverture complète des traces' : 'sous-total partiel uniquement' }}</p>
-          <div class="finops-coverage"><p class="finops-note">Couverture de l’échantillon</p><strong class="my-1 block text-sm">{{ data.sample.pricedRequestCount }} / {{ data.sample.requestCount }} requêtes tarifées</strong>
-            @if (data.sample.requestCount > 0) { <progress [max]="data.sample.requestCount" [value]="data.sample.pricedRequestCount" aria-label="Requêtes tarifées dans l’échantillon"></progress> }
-            <p class="finops-note">{{ data.sample.days }} jours calendaires · {{ data.sample.activeDays }} jours actifs</p>
+            <div class="finops-table-scroll"><table><caption class="sr-only">{{ 'finops.repartition_des_couts_estimes_du_mois_par' | transloco }}</caption><thead><tr><th scope="col">{{ 'finops.modele' | transloco }}</th><th scope="col">{{ 'finops.tarifees_total' | transloco }}</th><th scope="col">{{ 'finops.sous_total_connu_usd' | transloco }}</th></tr></thead><tbody>@for (model of data.models; track model.model) { <tr><th scope="row">{{ model.model || ('finops.indisponible' | transloco) }}</th><td>{{ ui.number(model.pricedRequestCount) }} / {{ ui.number(model.requestCount) }}</td><td>{{ cost(model.estimatedCostUsd) }}</td></tr> }</tbody></table></div>
+          } @else { <p class="finops-state">{{ 'finops.aucun_cout_par_modele_disponible' | transloco }}</p> }
+          <dl class="finops-budget-summary" [attr.aria-label]="'finops.projections_complementaires' | transloco"><div><dt>{{ 'finops.projection_sur_7_jours' | transloco }}</dt><dd>{{ cost(data.projected7DaysUsd, 2) }}</dd></div><div><dt>{{ 'finops.projection_sur_30_jours' | transloco }}</dt><dd>{{ cost(data.projected30DaysUsd, 2) }}</dd></div></dl>
+          <p class="finops-note">{{ 'finops.estimation_a_rythme_constant_requetes_du_mois' | transloco: { value1: (ui.number(data.monthPricedRequestCount)), value2: (ui.number(data.monthRequestCount)), value3: (data.monthCoverageComplete ? ('finops.couverture_complete_des_traces' | transloco) : ('finops.sous_total_partiel_uniquement' | transloco)) } }}</p>
+          <div class="finops-coverage"><p class="finops-note">{{ 'finops.couverture_de_l_echantillon' | transloco }}</p><strong class="my-1 block text-sm">{{ 'finops.requetes_tarifees' | transloco: { value1: (ui.number(data.sample.pricedRequestCount)), value2: (ui.number(data.sample.requestCount)) } }}</strong>
+            @if (data.sample.requestCount > 0) { <progress [max]="data.sample.requestCount" [value]="data.sample.pricedRequestCount" [attr.aria-label]="'finops.requetes_tarifees_dans_l_echantillon' | transloco"></progress> }
+            <p class="finops-note">{{ 'finops.jours_calendaires_jours_actifs' | transloco: { value1: (ui.number(data.sample.days)), value2: (ui.number(data.sample.activeDays)) } }}</p>
           </div>
         </section>
       </div>
-  <p class="finops-note">Estimations des appels RAG /api/chat enregistrés, jamais des montants facturés. Récapitulatifs arrondis à deux décimales. Les autres appels IA et les coûts des tentatives échouées ne sont pas intégralement couverts.</p>
-      <div class="finops-period"><span>Mois UTC en cours : {{ data.monthStart }} → {{ data.today }}</span><span>Indépendant du filtre de période des métriques.</span></div>
-      <details class="finops-method"><summary>Méthode et détail de l’échantillon</summary><p class="finops-note">Échantillon : {{ data.sample.days }} jours calendaires terminés ({{ data.sample.from || 'aucun début' }} → {{ data.sample.to }}), {{ data.sample.activeDays }} jours actifs, {{ data.sample.pricedRequestCount }} / {{ data.sample.requestCount }} requêtes tarifées. Hypothèse : activité et tarifs stables; les jours sans requête enregistrée comptent pour zéro.</p></details>
+  <p class="finops-note">{{ 'finops.estimations_des_appels_rag_api_chat_enregistres' | transloco }}</p>
+      <div class="finops-period"><span>{{ 'finops.mois_utc_en_cours_2' | transloco: { value1: (ui.date(data.monthStart)), value2: (ui.date(data.today)) } }}</span><span>{{ 'finops.independant_du_filtre_de_periode_des_metriques' | transloco }}</span></div>
+      <details class="finops-method"><summary>{{ 'finops.methode_et_detail_de_l_echantillon' | transloco }}</summary><p class="finops-note">{{ 'finops.echantillon_jours_calendaires_termines_jours_actifs_requetes' | transloco: { value1: (ui.number(data.sample.days)), value2: (data.sample.from ? ui.date(data.sample.from) : ('finops.aucun_debut' | transloco)), value3: (ui.date(data.sample.to)), value4: (ui.number(data.sample.activeDays)), value5: (ui.number(data.sample.pricedRequestCount)), value6: (ui.number(data.sample.requestCount)) } }}</p></details>
     }
   }
 </section>

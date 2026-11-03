@@ -1,97 +1,97 @@
 <section class="mx-auto w-full max-w-[1500px] space-y-3 text-slate-800" aria-labelledby="architecture-title">
   <header class="architecture-hero space-y-1">
-    <p class="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-700"><svg lucideWorkflow class="h-3.5 w-3.5"></svg> Enterprise AI Dashboard · Architecture Explorer</p>
-    <h1 id="architecture-title" class="mt-1 text-xl font-bold tracking-tight text-slate-950">Explorez les flux réels du système</h1>
-    <p class="mt-1 max-w-3xl text-xs leading-5 text-slate-600">Une carte interactive des parcours réellement présents: génération de formulaires, recherche lexicale PDF, observabilité locale et moteur interne à outils (sans interface).</p>
+    <p class="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-700"><svg lucideWorkflow class="h-3.5 w-3.5"></svg> {{ 'architecture.enterprise_ai_dashboard_architecture_explorer' | transloco }}</p>
+    <h1 id="architecture-title" class="mt-1 text-xl font-bold tracking-tight text-slate-950">{{ 'architecture.explorez_les_flux_reels_du_systeme' | transloco }}</h1>
+    <p class="mt-1 max-w-3xl text-xs leading-5 text-slate-600">{{ 'architecture.une_carte_interactive_des_parcours_reellement_presents' | transloco }}</p>
   </header>
 
   <section class="space-y-2" aria-labelledby="flow-selector-title">
     <div class="flex flex-wrap items-end justify-between gap-3">
-      <div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">Parcours</p><h2 id="flow-selector-title" class="mt-1 text-base font-bold text-slate-900">Choisir un flux métier</h2></div>
-      <span class="text-xs text-slate-600">Les nœuds et connexions sont mis en évidence selon le flux choisi.</span>
+      <div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">{{ 'architecture.parcours' | transloco }}</p><h2 id="flow-selector-title" class="mt-1 text-base font-bold text-slate-900">{{ 'architecture.choisir_un_flux_metier' | transloco }}</h2></div>
+      <span class="text-xs text-slate-600">{{ 'architecture.les_n_uds_et_connexions_sont_mis' | transloco }}</span>
     </div>
-    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4" role="group" aria-label="Sélection du flux d’architecture">
+    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4" role="group" [attr.aria-label]="'architecture.selection_du_flux_d_architecture' | transloco">
       @for (flow of flows; track flow.id) {
-        <button type="button" (click)="selectFlow(flow)" [attr.aria-label]="'Choisir le flux ' + flow.title" [attr.aria-pressed]="selectedFlowId() === flow.id"
+        <button type="button" (click)="selectFlow(flow)" [attr.aria-label]="'workspace.selectFlow' | transloco: { title: (flow.title | transloco) }" [attr.aria-pressed]="selectedFlowId() === flow.id"
           class="rounded-xl border p-3 text-left outline-none transition duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-blue-400 motion-reduce:transform-none motion-reduce:transition-none"
           [class.border-blue-300]="selectedFlowId() === flow.id" [class.bg-blue-50]="selectedFlowId() === flow.id" [class.shadow-md]="selectedFlowId() === flow.id" [class.shadow-blue-100]="selectedFlowId() === flow.id"
           [class.border-slate-200]="selectedFlowId() !== flow.id" [class.bg-white]="selectedFlowId() !== flow.id">
-          <span class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">Flux 0{{ $index + 1 }}</span>
-          <span class="mt-1 block text-xs font-bold text-slate-900">{{ flow.title }}</span>
-          <span class="mt-1 block text-xs leading-5 text-slate-600">{{ flow.purpose }}</span>
+          <span class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">{{ 'architecture.flux_0' | transloco: { value1: ($index + 1) } }}</span>
+          <span class="mt-1 block text-xs font-bold text-slate-900">{{ flow.title | transloco }}</span>
+          <span class="mt-1 block text-xs leading-5 text-slate-600">{{ flow.purpose | transloco }}</span>
         </button>
       }
     </div>
   </section>
 
-  <section class="architecture-workbench" aria-label="Diagramme interactif et inspection">
+  <section class="architecture-workbench" [attr.aria-label]="'architecture.diagramme_interactif_et_inspection' | transloco">
     <div class="architecture-stage">
-      <div class="architecture-stage-heading"><div><p>EXPLORATEUR INTERACTIF</p><h2 id="architecture-map-title">{{ activeFlow().title }}</h2></div><span>{{ diagramNodes().length }} composants · {{ flowEdges().length }} connexions</span></div>
-      <div class="architecture-map-scroll" tabindex="0" role="region" aria-label="Schéma architectural du flux sélectionné, défilement horizontal possible" aria-describedby="architecture-map-help">
-        <div class="architecture-canvas" role="group" [attr.aria-label]="'Composants et connexions du flux : ' + activeFlow().title" [style.height.px]="diagramHeight()">
+      <div class="architecture-stage-heading"><div><p>{{ 'architecture.explorateur_interactif' | transloco }}</p><h2 id="architecture-map-title">{{ activeFlow().title | transloco }}</h2></div><span>{{ 'architecture.composants_connexions' | transloco: { value1: (diagramNodes().length), value2: (flowEdges().length) } }}</span></div>
+      <div class="architecture-map-scroll" tabindex="0" role="region" [attr.aria-label]="'architecture.schema_architectural_du_flux_selectionne_defilement_horizontal' | transloco" aria-describedby="architecture-map-help">
+        <div class="architecture-canvas" role="group" [attr.aria-label]="'workspace.flowDiagram' | transloco: { title: (activeFlow().title | transloco) }" [style.height.px]="diagramHeight()">
           <svg class="architecture-map" [attr.viewBox]="'0 0 800 ' + diagramHeight()" aria-hidden="true">
             <defs><marker id="architecture-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="var(--purple)" /></marker></defs>
             @for (edge of flowEdges(); track edge.id; let index = $index) {
               <path [attr.data-edge-id]="edge.id" [attr.data-kind]="edge.connectionType" [attr.d]="diagramPath(edge, index)" [class.architecture-edge-selected]="edge.sourceNodeId === selectedNodeId() || edge.targetNodeId === selectedNodeId()" class="architecture-edge" marker-end="url(#architecture-arrow)" />
             }
           </svg>
-          @for (layer of layers; track layer.id; let column = $index) { <div class="architecture-lane" [style.left.px]="20 + column * 190">{{ layer.name }}</div> }
+          @for (layer of layers; track layer.id; let column = $index) { <div class="architecture-lane" [style.left.px]="20 + column * 190">{{ layer.name | transloco }}</div> }
           @for (node of diagramNodes(); track node.id) {
-            <button type="button" class="architecture-map-node" [attr.data-node-id]="node.id" [attr.data-layer]="node.layerId" [class.architecture-selected]="selectedNodeId() === node.id" [style.left.px]="diagramPoint(node.id).x" [style.top.px]="diagramPoint(node.id).y" (click)="selectNode(node)" (keydown)="onDiagramKeydown($event, node)" [attr.aria-label]="'Inspecter ' + node.name" [attr.aria-pressed]="selectedNodeId() === node.id" aria-describedby="selected-node-details">
+            <button type="button" class="architecture-map-node" [attr.data-node-id]="node.id" [attr.data-layer]="node.layerId" [class.architecture-selected]="selectedNodeId() === node.id" [style.left.px]="diagramPoint(node.id).x" [style.top.px]="diagramPoint(node.id).y" (click)="selectNode(node)" (keydown)="onDiagramKeydown($event, node)" [attr.aria-label]="'workspace.inspect' | transloco: { name: (node.name | transloco) }" [attr.aria-pressed]="selectedNodeId() === node.id" aria-describedby="selected-node-details">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 @if (node.layerId === 'data') { <ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5 M4 12c0 4 16 4 16 0"/> }
                 @else if (node.layerId === 'api') { <path d="m8 5-6 7 6 7 M16 5l6 7-6 7 M14 3l-4 18"/> }
                 @else if (node.layerId === 'ai') { <rect x="4" y="6" width="16" height="14" rx="4"/><path d="M12 2v4 M8 12h1 M15 12h1 M8 16h8"/> }
                 @else { <rect x="2" y="3" width="20" height="15" rx="3"/><path d="M8 22h8 M12 18v4"/> }
               </svg>
-              <span><strong>{{ node.name }}</strong><small>{{ node.layerId === 'client' ? 'Angular' : node.layerId === 'api' ? 'Backend Express' : node.layerId === 'data' ? (node.id === 'sqlite-documents' ? 'SQLite FTS5' : 'SQLite') : node.id.startsWith('groq-') ? 'Fournisseur Groq' : 'Outils approuvés' }}</small></span>
+              <span><strong>{{ node.name | transloco }}</strong><small>{{ node.layerId === 'client' ? 'Angular' : node.layerId === 'api' ? 'Backend Express' : node.layerId === 'data' ? (node.id === 'sqlite-documents' ? 'SQLite FTS5' : 'SQLite') : node.id.startsWith('groq-') ? ('architecture.fournisseur_groq' | transloco) : ('architecture.outils_approuves' | transloco) }}</small></span>
             </button>
           }
         </div>
       </div>
-      <div class="architecture-legend" aria-label="Légende des couches et connexions"><span data-tone="client">● Frontend</span><span data-tone="api">● API</span><span data-tone="ai">● IA / outils</span><span data-tone="data">● SQLite</span>@for (type of connectionTypes(); track type) { <span class="architecture-connection-key" [attr.data-kind]="type">{{ type }}</span> }</div>
-      <p id="architecture-map-help" class="architecture-map-help">Sélectionnez un nœud au clic ou avec Tab puis Entrée/Espace, ou flèches gauche/droite. Les flèches représentent les connexions documentées, sans ordre chronologique implicite. Les descriptions complètes restent disponibles ci-dessous.</p>
+      <div class="architecture-legend" [attr.aria-label]="'architecture.legende_des_couches_et_connexions' | transloco"><span data-tone="client">{{ 'architecture.frontend' | transloco }}</span><span data-tone="api">{{ 'architecture.api' | transloco }}</span><span data-tone="ai">{{ 'architecture.ia_outils' | transloco }}</span><span data-tone="data">{{ 'architecture.sqlite' | transloco }}</span>@for (type of connectionTypes(); track type) { <span class="architecture-connection-key" [attr.data-kind]="type">{{ type | uiStatus }}</span> }</div>
+      <p id="architecture-map-help" class="architecture-map-help">{{ 'architecture.selectionnez_un_n_ud_au_clic_ou' | transloco }}</p>
     </div>
     <aside id="selected-node-details" class="architecture-details min-w-0 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm" aria-labelledby="node-details-title" aria-live="polite">
-      <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">Inspection du composant</p>
-      <h2 id="node-details-title" class="mt-2 text-lg font-bold text-slate-950">{{ selectedNode().name }}</h2>
-      <span class="mt-2 inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold" [class]="layerTone(selectedNode().layerId)">{{ selectedNode().layerId }}</span>
+      <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">{{ 'architecture.inspection_du_composant' | transloco }}</p>
+      <h2 id="node-details-title" class="mt-2 text-lg font-bold text-slate-950">{{ selectedNode().name | transloco }}</h2>
+      <span class="mt-2 inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold" [class]="layerTone(selectedNode().layerId)">{{ selectedNode().layerId | uiStatus }}</span>
       <dl class="mt-3 space-y-3 text-xs">
-        <div><dt class="font-semibold text-slate-600">Technologie</dt><dd class="mt-1 leading-5 text-slate-800">{{ selectedNode().technology }}</dd></div>
-        <div><dt class="font-semibold text-slate-600">Responsabilité</dt><dd class="mt-1 leading-5 text-slate-800">{{ selectedNode().responsibility }}</dd></div>
-        <div><dt class="font-semibold text-slate-600">Description vérifiée</dt><dd class="mt-1 leading-5 text-slate-700">{{ selectedNode().description }}</dd></div>
-        <div><dt class="font-semibold text-slate-600">Présent dans le flux</dt><dd class="mt-1 text-slate-700">{{ isNodeInFlow(selectedNodeId()) ? 'Oui · flux sélectionné' : 'Non · autre parcours' }}</dd></div>
+        <div><dt class="font-semibold text-slate-600">{{ 'architecture.technologie' | transloco }}</dt><dd class="mt-1 leading-5 text-slate-800">{{ selectedNode().technology.startsWith('workspace.') ? (selectedNode().technology | transloco) : selectedNode().technology }}</dd></div>
+        <div><dt class="font-semibold text-slate-600">{{ 'architecture.responsabilite' | transloco }}</dt><dd class="mt-1 leading-5 text-slate-800">{{ selectedNode().responsibility | transloco }}</dd></div>
+        <div><dt class="font-semibold text-slate-600">{{ 'architecture.description_verifiee' | transloco }}</dt><dd class="mt-1 leading-5 text-slate-700">{{ selectedNode().description | transloco }}</dd></div>
+        <div><dt class="font-semibold text-slate-600">{{ 'architecture.present_dans_le_flux' | transloco }}</dt><dd class="mt-1 text-slate-700">{{ isNodeInFlow(selectedNodeId()) ? ('architecture.oui_flux_selectionne' | transloco) : ('architecture.non_autre_parcours' | transloco) }}</dd></div>
       </dl>
     </aside>
   </section>
 
-  <section class="min-w-0" aria-label="Catalogue et documentation des flux">
+  <section class="min-w-0" [attr.aria-label]="'architecture.catalogue_et_documentation_des_flux' | transloco">
     <div class="min-w-0 space-y-3">
       <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
         <div class="flex flex-col gap-2 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-600">Catalogue des composants</p><h2 class="mt-1 text-sm font-bold text-slate-900">{{ activeFlow().title }}</h2></div>
-          <span class="inline-flex items-center gap-2 text-[10px] font-semibold text-slate-600"><span class="h-2 w-2 rounded-full bg-blue-500"></span> Composants et connexions du flux sélectionné</span>
+          <div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-600">{{ 'architecture.catalogue_des_composants' | transloco }}</p><h2 class="mt-1 text-sm font-bold text-slate-900">{{ activeFlow().title | transloco }}</h2></div>
+          <span class="inline-flex items-center gap-2 text-[10px] font-semibold text-slate-600"><span class="h-2 w-2 rounded-full bg-blue-500"></span> {{ 'architecture.composants_et_connexions_du_flux_selectionne' | transloco }}</span>
         </div>
 
-        <div class="grid grid-cols-1 gap-2 p-3 md:grid-cols-2 xl:grid-cols-4" aria-label="Composants du système par couche">
+        <div class="grid grid-cols-1 gap-2 p-3 md:grid-cols-2 xl:grid-cols-4" [attr.aria-label]="'architecture.composants_du_systeme_par_couche' | transloco">
           @for (layer of layers; track layer.id) {
             <section class="min-w-0 rounded-2xl border p-2.5" [class]="layerTone(layer.id)" [attr.aria-labelledby]="'layer-' + layer.id">
               <div class="mb-2 flex items-start justify-between gap-2">
-                <div><h3 [id]="'layer-' + layer.id" class="text-[11px] font-bold uppercase tracking-wide text-slate-700">{{ layer.name }}</h3><p class="mt-0.5 text-[10px] text-slate-600">{{ layer.summary }}</p></div>
+                <div><h3 [id]="'layer-' + layer.id" class="text-[11px] font-bold uppercase tracking-wide text-slate-700">{{ layer.name | transloco }}</h3><p class="mt-0.5 text-[10px] text-slate-600">{{ layer.summary | transloco }}</p></div>
                 <span class="rounded-lg border px-2 py-1 text-[9px] font-bold" [class]="layerTone(layer.id)">{{ nodesForLayer(layer.id).length }}</span>
               </div>
               <div class="space-y-2">
                 @for (node of nodesForLayer(layer.id); track node.id) {
-                  <button type="button" (click)="selectNode(node)" [attr.aria-label]="'Sélectionner ' + node.name" [attr.aria-pressed]="selectedNodeId() === node.id" aria-describedby="selected-node-details"
+                  <button type="button" (click)="selectNode(node)" [attr.aria-label]="'workspace.selectNode' | transloco: { name: (node.name | transloco) }" [attr.aria-pressed]="selectedNodeId() === node.id" aria-describedby="selected-node-details"
                     class="w-full rounded-xl border p-2.5 text-left outline-none transition duration-150 focus-visible:ring-2 focus-visible:ring-blue-400 motion-reduce:transition-none"
                     [class.border-blue-300]="isNodeInFlow(node.id)" [class.bg-white]="isNodeInFlow(node.id)" [class.shadow-sm]="isNodeInFlow(node.id)"
                     [class.border-slate-300]="!isNodeInFlow(node.id)" [class.bg-slate-100]="!isNodeInFlow(node.id)"
                     [class.ring-2]="selectedNodeId() === node.id" [class.ring-blue-400]="selectedNodeId() === node.id">
-                    <span class="block text-xs font-bold" [class.text-slate-900]="isNodeInFlow(node.id)" [class.text-slate-700]="!isNodeInFlow(node.id)">{{ node.name }}</span>
-                    <span class="mt-1 block break-words text-[10px] font-medium text-slate-600">{{ node.technology }}</span>
-                    <span class="sr-only">{{ node.responsibility }}</span>
+                    <span class="block text-xs font-bold" [class.text-slate-900]="isNodeInFlow(node.id)" [class.text-slate-700]="!isNodeInFlow(node.id)">{{ node.name | transloco }}</span>
+                    <span class="mt-1 block break-words text-[10px] font-medium text-slate-600">{{ node.technology.startsWith('workspace.') ? (node.technology | transloco) : node.technology }}</span>
+                    <span class="sr-only">{{ node.responsibility | transloco }}</span>
                     @if (!isNodeInFlow(node.id)) {
-                      <span class="mt-1 block text-[9px] font-semibold text-slate-600">Hors du flux sélectionné</span>
+                      <span class="mt-1 block text-[9px] font-semibold text-slate-600">{{ 'architecture.hors_du_flux_selectionne' | transloco }}</span>
                     }
                   </button>
                 }
@@ -101,12 +101,12 @@
         </div>
 
         <section class="border-t border-slate-100 px-3 py-3" aria-labelledby="connections-title">
-          <div class="flex flex-wrap items-baseline justify-between gap-2"><h3 id="connections-title" class="text-xs font-bold text-slate-800">Connexions du flux · {{ activeFlow().edgeIds.length }}</h3><span class="text-[10px] text-slate-600">Description textuelle accessible du diagramme</span></div>
+          <div class="flex flex-wrap items-baseline justify-between gap-2"><h3 id="connections-title" class="text-xs font-bold text-slate-800">{{ 'architecture.connexions_du_flux' | transloco: { value1: (activeFlow().edgeIds.length) } }}</h3><span class="text-[10px] text-slate-600">{{ 'architecture.description_textuelle_accessible_du_diagramme' | transloco }}</span></div>
           <ol class="mt-3 grid grid-cols-1 gap-2 lg:grid-cols-2">
             @for (edge of flowEdges(); track edge.id) {
               <li class="rounded-xl border border-blue-100 bg-blue-50/50 p-3">
-                <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-slate-800"><span>{{ nodeName(edge.sourceNodeId) }}</span><span class="text-blue-500" aria-hidden="true">→</span><span>{{ nodeName(edge.targetNodeId) }}</span><span class="rounded-full bg-white px-2 py-0.5 text-[9px] font-bold uppercase text-blue-700">{{ edge.connectionType }}</span></p>
-                <p class="mt-1 text-[11px] leading-5 text-slate-700">{{ edge.description }}</p>
+                <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-slate-800"><span>{{ nodeName(edge.sourceNodeId) | transloco }}</span><span class="text-blue-500" aria-hidden="true">→</span><span>{{ nodeName(edge.targetNodeId) | transloco }}</span><span class="rounded-full bg-white px-2 py-0.5 text-[9px] font-bold uppercase text-blue-700">{{ edge.connectionType | uiStatus }}</span></p>
+                <p class="mt-1 text-[11px] leading-5 text-slate-700">{{ edge.description | transloco }}</p>
               </li>
             }
           </ol>
@@ -114,14 +114,14 @@
       </div>
 
       <section class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm" aria-labelledby="flow-steps-title">
-        <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">Du besoin au résultat</p>
-        <h2 id="flow-steps-title" class="mt-1 text-base font-bold text-slate-900">{{ activeFlow().title }}</h2>
-        <p class="mt-1 text-sm text-slate-600">{{ activeFlow().purpose }}</p>
+        <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">{{ 'architecture.du_besoin_au_resultat' | transloco }}</p>
+        <h2 id="flow-steps-title" class="mt-1 text-base font-bold text-slate-900">{{ activeFlow().title | transloco }}</h2>
+        <p class="mt-1 text-sm text-slate-600">{{ activeFlow().purpose | transloco }}</p>
         <ol class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           @for (step of activeFlow().steps; track $index) {
             <li class="flex gap-2 rounded-xl bg-slate-50 p-3">
               <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">{{ $index + 1 }}</span>
-              <div><h3 class="text-xs font-bold text-slate-900">{{ step.title }}</h3><p class="mt-1 text-xs leading-5 text-slate-700">{{ step.explanation }}</p></div>
+              <div><h3 class="text-xs font-bold text-slate-900">{{ step.title | transloco }}</h3><p class="mt-1 text-xs leading-5 text-slate-700">{{ step.explanation | transloco }}</p></div>
             </li>
           }
         </ol>
@@ -131,8 +131,8 @@
 
   </section>
 
-  <section class="grid grid-cols-1 gap-4 lg:grid-cols-2" aria-label="État des capacités et feuille de route">
-    <article class="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/80 to-white p-3 shadow-sm"><div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span><h2 class="text-sm font-bold text-emerald-950">Capacités implémentées</h2></div><ul class="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-700 sm:grid-cols-2"><li>SQLite FTS5 lexical, sans embeddings</li><li>Citations reliées aux chunks retrouvés</li><li>Historique d’inférence metadata-only</li><li>Prévision des coûts IA et simulation budgétaire</li><li>Moteur interne à outils de lecture seule · sans interface</li></ul></article>
-    <article class="rounded-2xl border border-amber-200/80 bg-gradient-to-br from-amber-50/80 to-white p-3 shadow-sm"><div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span><h2 class="text-sm font-bold text-amber-950">Pistes futures · non implémentées</h2></div><ul class="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-700 sm:grid-cols-2"><li>Intégration n8n</li><li>Authentification et multi-tenancy</li><li>Embeddings / recherche sémantique</li></ul></article>
+  <section class="grid grid-cols-1 gap-4 lg:grid-cols-2" [attr.aria-label]="'architecture.etat_des_capacites_et_feuille_de_route' | transloco">
+    <article class="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/80 to-white p-3 shadow-sm"><div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span><h2 class="text-sm font-bold text-emerald-950">{{ 'architecture.capacites_implementees' | transloco }}</h2></div><ul class="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-700 sm:grid-cols-2"><li>{{ 'architecture.sqlite_fts5_lexical_sans_embeddings' | transloco }}</li><li>{{ 'architecture.citations_reliees_aux_chunks_retrouves' | transloco }}</li><li>{{ 'architecture.historique_d_inference_metadata_only' | transloco }}</li><li>{{ 'architecture.prevision_des_couts_ia_et_simulation_budgetaire' | transloco }}</li><li>{{ 'architecture.moteur_interne_a_outils_de_lecture_seule' | transloco }}</li></ul></article>
+    <article class="rounded-2xl border border-amber-200/80 bg-gradient-to-br from-amber-50/80 to-white p-3 shadow-sm"><div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span><h2 class="text-sm font-bold text-amber-950">{{ 'architecture.pistes_futures_non_implementees' | transloco }}</h2></div><ul class="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-700 sm:grid-cols-2"><li>{{ 'architecture.integration_n8n' | transloco }}</li><li>{{ 'architecture.authentification_et_multi_tenancy' | transloco }}</li><li>{{ 'architecture.embeddings_recherche_semantique' | transloco }}</li></ul></article>
   </section>
 </section>

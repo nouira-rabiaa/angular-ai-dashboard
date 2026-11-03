@@ -1,3 +1,4 @@
+import { UiLanguageService } from './i18n/ui-language.service';
 import { provideUiI18n } from './i18n/ui-i18n.providers';
 import { UI_LANGUAGE_STORAGE_KEY } from './i18n/ui-language.service';
 import { ErrorService } from './services/error.service';
@@ -20,6 +21,7 @@ describe('AppComponent', () => {
         provideHttpClientTesting()
       ]
     }).compileComponents();
+    await TestBed.inject(UiLanguageService).ready;
   });
 
   it('presents real global errors as a dismissible accessible notification', () => {

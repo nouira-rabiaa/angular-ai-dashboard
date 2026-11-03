@@ -22,6 +22,7 @@ describe('Bilingual application shell', () => {
     await TestBed.configureTestingModule({ imports: [AppComponent], providers: [
       provideRouter(routes), ...provideUiI18n(), provideHttpClient(withInterceptors([errorInterceptor])), provideHttpClientTesting()
     ] }).compileComponents();
+    await TestBed.inject(UiLanguageService).ready;
   });
   afterEach(() => { TestBed.inject(HttpTestingController).verify();localStorage.removeItem(UI_LANGUAGE_STORAGE_KEY); });
   const create = () => { const fixture = TestBed.createComponent(AppComponent);fixture.detectChanges();return fixture; };
@@ -79,6 +80,9 @@ describe('Bilingual application shell', () => {
     const instructions = studio.form.controls.systemInstructions.value;
     await TestBed.inject(UiLanguageService).use('en');fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('#support-name')).toBe(input);expect(input.value).toBe('Brouillon non enregistré');
+    expect(fixture.nativeElement.querySelector('h1').textContent).toBe('Support Agent Studio');
+    expect(fixture.nativeElement.querySelector('label[for="support-instructions"]').textContent).toContain('System instructions');
+    expect(Array.from(fixture.nativeElement.querySelectorAll('nav[aria-label="Support Agent Studio workspaces"] button')).map((button: any) => button.textContent.trim())).toEqual(['Configuration', 'Knowledge Base', 'Test agent', 'Conversations']);
     expect(studio.form.dirty).toBe(true);expect(studio.form.controls.language.value).toBe('fr');expect(studio.selected()?.language).toBe('fr');
     expect(studio.form.controls.systemInstructions.value).toBe(instructions);studio.selectSpace('knowledge');expect(studio.activeSpace()).toBe('configuration');
     TestBed.inject(HttpTestingController).expectNone(() => true);
@@ -96,6 +100,8 @@ describe('Bilingual application shell', () => {
     expect(knowledge.selection()).toEqual([1, 2]);expect(studio.knowledgeDirty()).toBe(true);
     await TestBed.inject(UiLanguageService).use('en');fixture.detectChanges();
     expect(fixture.debugElement.query(By.directive(AgentKnowledgeComponent)).componentInstance).toBe(knowledge);
+    expect(fixture.nativeElement.querySelector('#associated-title').textContent).toContain('Assigned documents');
+    expect(fixture.nativeElement.querySelector('#catalog-title').textContent).toBe('Available documents');
     expect(knowledge.selection()).toEqual([1, 2]);expect(knowledge.dirty()).toBe(true);
     studio.selectSpace('test');expect(studio.activeSpace()).toBe('knowledge');http.expectNone(() => true);
   });
@@ -109,7 +115,10 @@ describe('Bilingual application shell', () => {
     http.expectOne(base + '/' + agent.id + '/conversations/' + conversation.id + '?limit=30').flush({ conversation, nextBefore: null, items: [{ id: 'message', sequence: 1, requestId: 'request', role: 'assistant', content: 'Texte métier conservé', status: 'completed', createdAt: '2026-01-01', sources: [], stale: false, metadata: {} }] });fixture.detectChanges();
     const chat = fixture.debugElement.query(By.directive(AgentConversationsComponent)).componentInstance as AgentConversationsComponent;
     const selected = chat.selected();const messages = chat.messages();
-    await TestBed.inject(UiLanguageService).use('en');fixture.detectChanges();await TestBed.inject(UiLanguageService).use('fr');fixture.detectChanges();
+    await TestBed.inject(UiLanguageService).use('en');fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Your message');expect(fixture.nativeElement.querySelector('[aria-label="Saved conversations"]')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Texte métier conservé');
+    await TestBed.inject(UiLanguageService).use('fr');fixture.detectChanges();
     expect(chat.selected()).toBe(selected);expect(chat.messages()).toBe(messages);expect(chat.messages()[0].content).toBe('Texte métier conservé');
     expect(chat.agent.language).toBe('fr');http.expectNone(() => true);
   });

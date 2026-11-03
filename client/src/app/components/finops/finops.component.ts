@@ -1,3 +1,5 @@
+import { TranslocoPipe } from '@jsverse/transloco';
+import { UiLanguageService } from '../../i18n/ui-language.service';
 import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,11 +8,12 @@ import { Subject, takeUntil } from 'rxjs';
 import { BudgetStatus, FinopsService, FinopsSummary, SimulationInput, SimulationResult } from '../../services/finops.service';
 
 @Component({
-  selector: 'app-finops', standalone: true, imports: [CommonModule, FormsModule, LucideCircleDollarSign, LucideChartNoAxesCombined],
+  selector: 'app-finops', standalone: true, imports: [TranslocoPipe, CommonModule, FormsModule, LucideCircleDollarSign, LucideChartNoAxesCombined],
   templateUrl: './finops.component.html',
   styleUrl: './finops.component.scss'
 })
 export class FinopsComponent implements OnInit, OnDestroy {
+  readonly ui = inject(UiLanguageService);
   private readonly api = inject(FinopsService);
   private readonly destroyed = new Subject<void>();
   readonly state = signal<'loading' | 'ready' | 'error'>('loading');
@@ -44,8 +47,8 @@ export class FinopsComponent implements OnInit, OnDestroy {
   saveBudget() {
     this.saving.set(true); this.budgetMessage.set('');
     this.api.saveBudget(this.budget).pipe(takeUntil(this.destroyed)).subscribe({
-      next: () => { this.saving.set(false); this.budgetMessage.set('Budget enregistré.'); this.load(); },
-      error: () => { this.saving.set(false); this.budgetMessage.set('Budget non enregistré : vérifiez le montant et l’accès local.'); }
+      next: () => { this.saving.set(false); this.budgetMessage.set('finops.budget_enregistre_2'); this.load(); },
+      error: () => { this.saving.set(false); this.budgetMessage.set('finops.budget_non_enregistre_verifiez_le_montant_et'); }
     });
   }
   simulate() {
@@ -55,13 +58,13 @@ export class FinopsComponent implements OnInit, OnDestroy {
       error: () => this.simulationState.set('error')
     });
   }
-  cost(value: number | null | undefined, decimals = 8) { return typeof value === 'number' && Number.isFinite(value) ? `$${value.toFixed(decimals)} USD` : 'Indisponible'; }
+  cost(value: number | null | undefined, decimals = 8) { return this.ui.currency(value, 'USD', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }); }
   alert(status: BudgetStatus) {
     switch (status.level) {
-      case 'exceeded': return 'Alerte 100 % : budget atteint ou dépassé';
-      case 'warning': return 'Alerte 80 % : seuil de vigilance atteint';
-      case 'ok': return 'Sous le seuil de 80 %';
-      default: return 'Évaluation indisponible';
+      case 'exceeded': return this.ui.text('finops.alerte_100_budget_atteint_ou_depasse');
+      case 'warning': return this.ui.text('finops.alerte_80_seuil_de_vigilance_atteint');
+      case 'ok': return this.ui.text('finops.sous_le_seuil_de_80');
+      default: return this.ui.text('finops.evaluation_indisponible');
     }
   }
   progress(status: BudgetStatus) { return Math.max(0, Math.min(100, status.percent ?? (status.level === 'exceeded' ? 100 : 0))); }

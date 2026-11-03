@@ -1,45 +1,45 @@
 <section class="conversation" aria-labelledby="conversations-title">
-  <header><div><p class="eyebrow">Mémoire documentaire · locale</p><h2 id="conversations-title">Conversations</h2></div><button type="button" (click)="loadList()" [disabled]="loading() || sending()">Recharger</button></header>
-  <p class="privacy">Échanges enregistrés en clair dans SQLite sur ce serveur. Ne saisissez pas de secrets. 50 conversations par agent, 200 messages par conversation ; suppression manuelle.</p>
-  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
-  @if (agent.status !== 'active') { <p class="notice" role="status">Agent inactif : historique consultable, génération désactivée.</p> }
+  <header><div><p class="eyebrow">{{ 'conversations.memoire_documentaire_locale' | transloco }}</p><h2 id="conversations-title">{{ 'conversations.conversations' | transloco }}</h2></div><button type="button" (click)="loadList()" [disabled]="loading() || sending()">{{ 'conversations.recharger' | transloco }}</button></header>
+  <p class="privacy">{{ 'conversations.echanges_enregistres_en_clair_dans_sqlite_sur' | transloco }}</p>
+  @if (error()) { <p class="error" role="alert">{{ error() | transloco }}</p> }
+  @if (agent.status !== 'active') { <p class="notice" role="status">{{ 'conversations.agent_inactif_historique_consultable_generation_desactivee' | transloco }}</p> }
   <div class="conversation-layout">
-    <aside aria-label="Conversations enregistrées">
-      <button type="button" class="primary" (click)="create()" [disabled]="sending() || loading() || agent.status !== 'active'">+ Nouvelle conversation</button>
-      @if (!loading() && !conversations().length) { <p class="empty">Aucun échange pour cet agent. Créez votre première conversation documentaire.</p> }
-      <nav aria-label="Sélection de conversation">
+    <aside [attr.aria-label]="'conversations.conversations_enregistrees' | transloco">
+      <button type="button" class="primary" (click)="create()" [disabled]="sending() || loading() || agent.status !== 'active'">{{ 'conversations.nouvelle_conversation' | transloco }}</button>
+      @if (!loading() && !conversations().length) { <p class="empty">{{ 'conversations.aucun_echange_pour_cet_agent_creez_votre' | transloco }}</p> }
+      <nav [attr.aria-label]="'conversations.selection_de_conversation' | transloco">
         @for (conversation of conversations(); track conversation.id) {
-          <div class="conversation-item"><button type="button" class="select" [attr.aria-pressed]="selected()?.id === conversation.id" (click)="open(conversation)" [disabled]="sending()"><strong>{{ conversation.title }}</strong><small>{{ conversation.updated_at | date:'short' }}</small></button><button type="button" class="delete" [attr.aria-label]="'Supprimer ' + conversation.title" (click)="confirming.set(conversation)" [disabled]="sending()">×</button></div>
+          <div class="conversation-item"><button type="button" class="select" [attr.aria-pressed]="selected()?.id === conversation.id" (click)="open(conversation)" [disabled]="sending()"><strong>{{ conversation.title }}</strong><small>{{ conversation.updated_at | uiDate:'short' }}</small></button><button type="button" class="delete" [attr.aria-label]="'workspace.deleteConversation' | transloco: { title: conversation.title }" (click)="confirming.set(conversation)" [disabled]="sending()">{{ 'conversations.label' | transloco }}</button></div>
         }
       </nav>
-      @if (conversations().length < total()) { <button type="button" (click)="loadList(true)" [disabled]="loading() || sending()">Charger d’autres conversations</button> }
+      @if (conversations().length < total()) { <button type="button" (click)="loadList(true)" [disabled]="loading() || sending()">{{ 'conversations.charger_d_autres_conversations' | transloco }}</button> }
     </aside>
     <div class="discussion">
       @if (confirming(); as conversation) {
-        <div class="confirmation" role="group" aria-label="Confirmer la suppression"><p>Supprimer définitivement « {{ conversation.title }} » et tous ses messages de SQLite ?</p><button type="button" class="delete" (click)="remove()" [disabled]="sending()">Confirmer la suppression</button><button type="button" (click)="confirming.set(null)" [disabled]="sending()">Annuler</button></div>
+        <div class="confirmation" role="group" [attr.aria-label]="'conversations.confirmer_la_suppression' | transloco"><p>{{ 'conversations.supprimer_definitivement_et_tous_ses_messages_de' | transloco: { value1: (conversation.title) } }}</p><button type="button" class="delete" (click)="remove()" [disabled]="sending()">{{ 'conversations.confirmer_la_suppression' | transloco }}</button><button type="button" (click)="confirming.set(null)" [disabled]="sending()">{{ 'conversations.annuler' | transloco }}</button></div>
       }
       @if (selected(); as conversation) {
         <h3>{{ conversation.title }}</h3>
-        @if (nextBefore()) { <button type="button" (click)="read(true)" [disabled]="loading() || sending()">Messages précédents</button> }
-        <div class="messages" role="region" aria-label="Historique des messages" tabindex="0" [attr.aria-busy]="loading()">
+        @if (nextBefore()) { <button type="button" (click)="read(true)" [disabled]="loading() || sending()">{{ 'conversations.messages_precedents' | transloco }}</button> }
+        <div class="messages" role="region" [attr.aria-label]="'conversations.historique_des_messages' | transloco" tabindex="0" [attr.aria-busy]="loading()">
           @for (message of messages(); track message.id) {
             <article [class.user]="message.role === 'user'" [class.failed]="message.status === 'failed'">
-              <div class="message-heading"><strong>{{ message.role === 'user' ? 'Vous' : 'Assistant' }}</strong><small>{{ message.createdAt | date:'shortTime' }}</small></div>
-              @if (message.status === 'pending') { <p>Génération en cours…</p> }
-              @else if (message.status === 'failed') { <p>Réponse non générée · {{ message.metadata.code || 'erreur technique' }}. Vous pouvez envoyer une nouvelle demande.</p> }
+              <div class="message-heading"><strong>{{ message.role === 'user' ? ('conversations.vous' | transloco) : ('conversations.assistant' | transloco) }}</strong><small>{{ message.createdAt | uiDate:'shortTime' }}</small></div>
+              @if (message.status === 'pending') { <p>{{ 'conversations.generation_en_cours' | transloco }}</p> }
+              @else if (message.status === 'failed') { <p>{{ 'conversations.reponse_non_generee_vous_pouvez_envoyer_une' | transloco: { value1: (message.metadata.code || ('conversations.erreur_technique' | transloco)) } }}</p> }
               @else { <p class="content">{{ message.content }}</p> }
-              @if (message.status === 'abstained') { <small class="notice">Abstention : les documents autorisés ne permettent pas une réponse vérifiable.</small> }
-              @if (message.stale) { <small class="notice">Source révoquée ou supprimée. Historique potentiellement obsolète.</small> }
+              @if (message.status === 'abstained') { <small class="notice">{{ 'conversations.abstention_les_documents_autorises_ne_permettent_pas' | transloco }}</small> }
+              @if (message.stale) { <small class="notice">{{ 'conversations.source_revoquee_ou_supprimee_historique_potentiellement_obsolete' | transloco }}</small> }
               @for (source of message.sources; track source.label) {
-                <details><summary>[{{ source.label }}] {{ source.filename }}{{ source.pageNumber ? ' · page ' + source.pageNumber : '' }}</summary><p class="content">{{ source.excerpt }}</p><small>Référence documentaire ; l’exactitude de chaque affirmation n’est pas garantie.</small></details>
+                <details><summary>[{{ source.label }}] {{ source.filename }}{{ source.pageNumber ? ('conversations.page' | transloco) + source.pageNumber : '' }}</summary><p class="content">{{ source.excerpt }}</p><small>{{ 'conversations.reference_documentaire_l_exactitude_de_chaque_affirmation' | transloco }}</small></details>
               }
             </article>
-          } @empty { @if (!loading()) { <p class="empty">Posez une question sur les documents autorisés de cet agent.</p> } }
+          } @empty { @if (!loading()) { <p class="empty">{{ 'conversations.posez_une_question_sur_les_documents_autorises' | transloco }}</p> } }
         </div>
-        <form (submit)="$event.preventDefault(); send()"><label for="conversation-question">Votre message</label><textarea id="conversation-question" [formControl]="question" rows="3" maxlength="2000" [readOnly]="sending()" aria-describedby="conversation-help"></textarea><div class="compose-footer"><small id="conversation-help">{{ question.value.length }} / 2 000 · nouvelle recherche à chaque tour</small><button type="submit" class="primary" [disabled]="question.invalid || sending() || loading() || agent.status !== 'active'">{{ sending() ? 'Génération…' : 'Envoyer' }}</button></div></form>
-      } @else { <div class="empty"><h3>Votre espace d’échange</h3><p>Sélectionnez une conversation ou créez-en une nouvelle. L’historique vient du serveur et reste disponible après rechargement.</p></div> }
-      @if (loading()) { <p role="status">Chargement…</p> }
-      <p role="status" class="sr-only">{{ sending() ? 'Génération en cours' : '' }}</p>
+        <form (submit)="$event.preventDefault(); send()"><label for="conversation-question">{{ 'conversations.votre_message' | transloco }}</label><textarea id="conversation-question" [formControl]="question" rows="3" maxlength="2000" [readOnly]="sending()" aria-describedby="conversation-help"></textarea><div class="compose-footer"><small id="conversation-help">{{ 'conversations.2_000_nouvelle_recherche_a_chaque_tour' | transloco: { value1: (question.value.length) } }}</small><button type="submit" class="primary" [disabled]="question.invalid || sending() || loading() || agent.status !== 'active'">{{ sending() ? ('conversations.generation' | transloco) : ('conversations.envoyer' | transloco) }}</button></div></form>
+      } @else { <div class="empty"><h3>{{ 'conversations.votre_espace_d_echange' | transloco }}</h3><p>{{ 'conversations.selectionnez_une_conversation_ou_creez_en_une' | transloco }}</p></div> }
+      @if (loading()) { <p role="status">{{ 'conversations.chargement' | transloco }}</p> }
+      <p role="status" class="sr-only">{{ sending() ? ('conversations.generation_en_cours_2' | transloco) : '' }}</p>
     </div>
   </div>
 </section>

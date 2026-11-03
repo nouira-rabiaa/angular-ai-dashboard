@@ -1,3 +1,6 @@
+import { UiDatePipe, UiStatusPipe } from '../../i18n/ui-format.pipe';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { UiLanguageService } from '../../i18n/ui-language.service';
 import { FinopsComponent } from '../finops/finops.component';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
@@ -44,7 +47,7 @@ export interface CiStatus {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [
+  imports: [TranslocoPipe, UiDatePipe, UiStatusPipe,
     CommonModule, FormsModule, RouterLink, FinopsComponent,
     LucideArrowDownToLine, LucideCalendarDays,
     LucideChartNoAxesCombined, LucideChevronLeft, LucideChevronRight,
@@ -56,15 +59,16 @@ export interface CiStatus {
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
+  readonly ui = inject(UiLanguageService);
   private readonly dashboardData = inject(DashboardDataService);
   private readonly http = inject(HttpClient);
 
   readonly pageSize = 25;
   readonly views: { id: DashboardView; label: string }[] = [
-    { id: 'overview', label: 'Vue d’ensemble' },
-    { id: 'inferences', label: 'Historique IA' },
-    { id: 'documents', label: 'Documents' },
-    { id: 'forms', label: 'Soumissions' }
+    { id: 'overview', label: 'dashboard.vue_d_ensemble' },
+    { id: 'inferences', label: 'dashboard.historique_ia' },
+    { id: 'documents', label: 'dashboard.documents' },
+    { id: 'forms', label: 'dashboard.form_submissions' }
   ];
 
   activeView = signal<DashboardView>('overview');
@@ -91,7 +95,7 @@ export class DashboardComponent implements OnInit {
   submissionState = signal<LoadState>('loading');
   overviewState = signal<LoadState>('loading');
   errorMessage = signal('');
-  ciStatus = signal<CiStatus>({ status: 'unknown', message: 'Status unavailable', loading: true });
+  ciStatus = signal<CiStatus>({ status: 'unknown', message: 'dashboard.statut_indisponible', loading: true });
 
   ngOnInit(): void {
     this.loadOverview();
@@ -210,7 +214,7 @@ export class DashboardComponent implements OnInit {
     this.selectedTrace.set(null);
     this.dashboardData.getInferenceDetail(item.traceId).subscribe({
       next: trace => this.selectedTrace.set(trace),
-      error: () => this.errorMessage.set('Unable to load execution detail.')
+      error: () => this.errorMessage.set('dashboard.impossible_de_charger_le_detail_d_execution')
     });
   }
 
@@ -234,7 +238,7 @@ export class DashboardComponent implements OnInit {
       next: data => {
         const run = data.workflow_runs?.[0];
         if (!run) {
-          this.ciStatus.set({ status: 'unknown', message: 'No workflow run available', loading: false });
+          this.ciStatus.set({ status: 'unknown', message: 'dashboard.aucune_execution_de_workflow_disponible', loading: false });
           return;
         }
         const status: CiStatus['status'] = run.status === 'in_progress'
@@ -246,13 +250,13 @@ export class DashboardComponent implements OnInit {
               : 'unknown';
         this.ciStatus.set({
           status,
-          message: status === 'success' ? 'Workflow succeeded' : status === 'failure' ? 'Workflow failed' : status === 'running' ? 'Workflow running' : 'Workflow status unavailable',
+          message: status === 'success' ? 'dashboard.workflow_reussi' : status === 'failure' ? 'dashboard.workflow_echoue' : status === 'running' ? 'dashboard.workflow_en_cours' : 'dashboard.statut_du_workflow_indisponible',
           runNumber: run.run_number,
           branch: run.head_branch,
           loading: false
         });
       },
-      error: () => this.ciStatus.set({ status: 'unknown', message: 'GitHub Actions unavailable', loading: false })
+      error: () => this.ciStatus.set({ status: 'unknown', message: 'dashboard.github_actions_indisponible', loading: false })
     });
   }
 
@@ -261,15 +265,15 @@ export class DashboardComponent implements OnInit {
   }
 
   formatCost(value: number | null, decimals = 8): string {
-    return value === null ? 'Not available' : `$${value.toFixed(decimals)} USD`;
+    return this.ui.currency(value, 'USD', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   }
 
   formatTokens(value: number | null): string {
-    return value === null ? 'Not available' : value.toLocaleString();
+    return this.ui.number(value);
   }
 
   formatDate(value: string): string {
-    return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+    return this.ui.date(value, { dateStyle: 'medium', timeStyle: 'short', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone });
   }
 
   chartHeight(value: number | null, series: DashboardTimeseriesItem[]): number {
@@ -284,7 +288,7 @@ export class DashboardComponent implements OnInit {
   }
 
   chartXLabel(date: string): string {
-    return new Date(`${date}T00:00:00`).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+    return this.ui.date(date, { day: '2-digit', month: 'short' });
   }
 
   latencyChartPoints(series: DashboardTimeseriesItem[]): string {
@@ -320,7 +324,7 @@ export class DashboardComponent implements OnInit {
   }
 
   private pageLabel(offset: number, count: number, total: number): string {
-    return total === 0 ? '0 items' : `${offset + 1}-${offset + count} of ${total}`;
+    return this.ui.text(total === 0 ? 'workspace.noItems' : 'workspace.pageRange', { from: this.ui.number(offset + 1), to: this.ui.number(offset + count), total: this.ui.number(total) });
   }
 
   private defaultRange(): { from: string; to: string } {

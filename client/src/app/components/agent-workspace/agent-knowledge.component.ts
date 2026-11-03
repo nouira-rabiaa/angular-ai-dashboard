@@ -1,3 +1,5 @@
+import { TranslocoPipe } from '@jsverse/transloco';
+import { UiLanguageService } from '../../i18n/ui-language.service';
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, Input, OnChanges, Output, EventEmitter, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -8,9 +10,10 @@ import { AgentService } from '../../services/agent.service';
 import { DashboardDataService, IndexedDocument } from '../../services/dashboard-data.service';
 import { SupportAgent, AgentKnowledge, SupportAnswer } from '../../models/support-agent.model';
 
-@Component({ selector: 'app-agent-knowledge', standalone: true, imports: [CommonModule, FormsModule],
+@Component({ selector: 'app-agent-knowledge', standalone: true, imports: [TranslocoPipe, CommonModule, FormsModule],
   templateUrl: './agent-knowledge.component.html', styleUrl: './agent-knowledge.component.scss' })
 export class AgentKnowledgeComponent implements OnChanges {
+  readonly ui = inject(UiLanguageService);
   @Input({ required: true }) agent!: SupportAgent;
   @Input() mode: 'knowledge' | 'test' = 'knowledge';
   @Output() dirtyChange = new EventEmitter<boolean>();
@@ -44,7 +47,7 @@ export class AgentKnowledgeComponent implements OnChanges {
     this.catalogLoading.set(true);this.catalogError.set('');
     this.catalog.getDocuments(25, offset).pipe(timeout(15000), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: page => { if (request === this.requestId) { this.documents.set(page.items);this.total.set(page.total);this.offset.set(page.offset);this.catalogLoading.set(false); } },
-      error: () => { if (request === this.requestId) { this.catalogLoading.set(false);this.catalogError.set('Catalogue indisponible. Rechargez la liste des documents.'); } }
+      error: () => { if (request === this.requestId) { this.catalogLoading.set(false);this.catalogError.set('knowledge.catalogue_indisponible_rechargez_la_liste_des_documents'); } }
     });
   }
   page(direction: number): void {
@@ -61,14 +64,14 @@ export class AgentKnowledgeComponent implements OnChanges {
   private setDirty(value: boolean): void { this.dirty.set(value);this.dirtyChange.emit(value); }
   cancel(): void {
     if (this.busy()) return;
-    this.selection.set([...(this.knowledge()?.documentIds ?? [])]);this.setDirty(false);this.error.set('');this.message.set('Sélection annulée, associations enregistrées conservées.');
+    this.selection.set([...(this.knowledge()?.documentIds ?? [])]);this.setDirty(false);this.error.set('');this.message.set('knowledge.selection_annulee_associations_enregistrees_conservees');
   }
   save(): void {
     const scope = this.knowledge();if (!scope || this.busy() || !this.dirty()) return;
-    if (this.selection().length > 100) { this.error.set('Au maximum 100 documents autorisés par agent.');return; }
+    if (this.selection().length > 100) { this.error.set('knowledge.au_maximum_100_documents_autorises_par_agent');return; }
     this.begin();
     this.api.setAgentDocuments(this.agent.id, this.selection(), scope.scopeVersion).pipe(timeout(15000), takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: data => { this.knowledge.set(data);this.selection.set([...data.documentIds]);this.setDirty(false);this.end();this.message.set('Périmètre documentaire enregistré dans SQLite.');this.response.set(null); },
+      next: data => { this.knowledge.set(data);this.selection.set([...data.documentIds]);this.setDirty(false);this.end();this.message.set('knowledge.perimetre_documentaire_enregistre_dans_sqlite');this.response.set(null); },
       error: error => { this.end();this.error.set(this.errorText(error)); }
     });
   }
@@ -83,21 +86,21 @@ export class AgentKnowledgeComponent implements OnChanges {
   private end(): void { this.busy.set(false);this.busyChange.emit(false); }
   reason(value: string | null): string {
     switch (value) {
-      case 'no_documents': return 'Aucun document autorisé pour cet agent.';
-      case 'no_matching_context': return 'Aucun contexte lexical suffisant dans les documents autorisés.';
-      case 'model_abstained': return 'Le modèle indique que les passages ne suffisent pas.';
-      case 'invalid_citations': return 'Les références du modèle sont absentes ou invalides : réponse non affichée.';
-      default: return 'Aucune réponse documentaire validable. Le message de secours est affiché.';
+      case 'no_documents': return this.ui.text('knowledge.aucun_document_autorise_pour_cet_agent');
+      case 'no_matching_context': return this.ui.text('knowledge.aucun_contexte_lexical_suffisant_dans_les_documents');
+      case 'model_abstained': return this.ui.text('knowledge.le_modele_indique_que_les_passages_ne');
+      case 'invalid_citations': return this.ui.text('knowledge.les_references_du_modele_sont_absentes_ou');
+      default: return this.ui.text('knowledge.aucune_reponse_documentaire_validable_le_message_de');
     }
   }
   private errorText(error: HttpErrorResponse): string {
-    if (error.status === 409) return 'Configuration inactive ou périmètre modifié. Annulez les changements locaux et rechargez les données.';
-    if (error.status === 403) return 'Accès refusé : vérifiez le mode local et le document autorisé.';
-    if (error.status === 404) return 'Agent ou document introuvable. Rechargez avant de réessayer.';
-    if (error.status === 400) return 'Requête refusée. Vérifiez les identifiants et la longueur de la question.';
-    if (error.status === 429) return 'Un test est déjà en cours. Réessayez après sa fin.';
-    if (error.status === 504) return 'Délai du fournisseur dépassé. Aucune réponse à afficher.';
-    if (error.status === 502) return 'Fournisseur IA indisponible. Aucune réponse à afficher.';
-    return 'Chargement ou enregistrement impossible. Vérifiez la connexion locale ; vos saisies sont conservées.';
+    if (error.status === 409) return 'knowledge.configuration_inactive_ou_perimetre_modifie_annulez_les';
+    if (error.status === 403) return 'knowledge.acces_refuse_verifiez_le_mode_local_et';
+    if (error.status === 404) return 'knowledge.agent_ou_document_introuvable_rechargez_avant_de';
+    if (error.status === 400) return 'knowledge.requete_refusee_verifiez_les_identifiants_et_la';
+    if (error.status === 429) return 'knowledge.un_test_est_deja_en_cours_reessayez';
+    if (error.status === 504) return 'knowledge.delai_du_fournisseur_depasse_aucune_reponse_a';
+    if (error.status === 502) return 'knowledge.fournisseur_ia_indisponible_aucune_reponse_a_afficher';
+    return 'knowledge.chargement_ou_enregistrement_impossible_verifiez_la_connexion';
   }
 }

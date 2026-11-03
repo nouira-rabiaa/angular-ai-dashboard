@@ -1,6 +1,9 @@
+import { UiStatusPipe } from '../../i18n/ui-format.pipe';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { UiLanguageService } from '../../i18n/ui-language.service';
 import { ARCHITECTURE_EDGES, ARCHITECTURE_FLOWS, ARCHITECTURE_NODES } from '../architecture-explorer/architecture.data';
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnDestroy, computed, signal, viewChild } from '@angular/core';
+import { inject, Component, ElementRef, OnDestroy, computed, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   GuidedDemoStepId,
@@ -20,11 +23,12 @@ const INITIAL_STATUSES: Record<GuidedDemoStepId, GuidedDemoStepStatus> = {
 @Component({
   selector: 'app-guided-demo',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [TranslocoPipe, UiStatusPipe, CommonModule, RouterLink],
   templateUrl: './guided-demo.component.html',
   styleUrl: './guided-demo.component.scss'
 })
 export class GuidedDemoComponent implements OnDestroy {
+  readonly ui = inject(UiLanguageService);
   private focusFrame: number | null = null;
   readonly steps = GUIDED_DEMO_STEPS;
   readonly currentStepIndex = signal(0);
@@ -64,10 +68,10 @@ export class GuidedDemoComponent implements OnDestroy {
 
   statusLabel(status: GuidedDemoStepStatus): string {
     switch (status) {
-      case 'viewed': return 'Consultée';
-      case 'user-confirmed': return 'Confirmée par vous';
-      case 'technically-verified': return 'Vérifiée automatiquement';
-      default: return 'À découvrir';
+      case 'viewed': return this.ui.text('demo.consultee');
+      case 'user-confirmed': return this.ui.text('demo.confirmee_par_vous');
+      case 'technically-verified': return this.ui.text('demo.verifiee_automatiquement');
+      default: return this.ui.text('demo.a_decouvrir');
     }
   }
 

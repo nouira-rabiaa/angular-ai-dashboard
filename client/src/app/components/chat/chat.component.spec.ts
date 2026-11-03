@@ -1,3 +1,5 @@
+const usdFr = (value: number, decimals: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'USD', minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
+import { provideUiI18nTesting } from '../../i18n/ui-i18n.testing';
 import { ErrorService } from '../../services/error.service';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
@@ -16,7 +18,7 @@ describe('ChatComponent', () => {
     uploadDocument = jest.fn();
     await TestBed.configureTestingModule({
       imports: [ChatComponent],
-      providers: [
+      providers: [...provideUiI18nTesting(),
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -299,16 +301,16 @@ describe('ChatComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Détails d’exécution');
-    expect(text).toContain('success');
-    expect(text).toContain('1,615.79 ms');
+    expect(text).toContain('Succès');
+    expect(text).toContain(new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(1615.79) + ' ms');
     expect(text).toContain('Recherche SQLite FTS5');
-    expect(text).toContain('4.63 ms');
+    expect(text).toContain(new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(4.63) + ' ms');
     expect(text).toContain('Inférence Groq');
-    expect(text).toContain('1,603.31 ms');
+    expect(text).toContain(new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(1603.31) + ' ms');
     expect(text).toContain('40');
     expect(text).toContain('12');
     expect(text).toContain('52');
-    expect(text).toContain('$0.00002200 USD');
+    expect(text).toContain(usdFr(0.00002200, 8));
     expect(text).toContain('non facturé');
     expect(text).toContain('openai/gpt-oss-120b');
     expect(text).toContain('1');
@@ -351,7 +353,7 @@ describe('ChatComponent', () => {
     expect(text).toContain('ne dispose pas de source documentaire');
     expect(text).toContain('Indisponible');
     expect(text).toContain('Tous les documents');
-    expect(text).not.toContain('$0.00000000 USD');
+    expect(text).not.toContain(usdFr(0.00000000, 8));
   });
 
   it('renders partial execution trace returned with an API error', () => {
@@ -382,10 +384,10 @@ describe('ChatComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Chat request failed.');
+    expect(text).toContain('La requête IA a échoué.');
     expect(text).toContain('trace-failed');
     expect(text).toContain('Inférence Groq');
-    expect(text).toContain('error');
+    expect(text).toContain('Erreur');
     expect(text).toContain('Indisponible');
   });
 });
