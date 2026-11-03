@@ -115,7 +115,7 @@ export class ChatComponent {
           const errorResponse = err.error as ChatErrorResponse | undefined;
           this.messages.update(msgs => [...msgs, {
             sender: 'ai',
-            text: errorResponse?.error || 'Chat request failed.',
+            text: errorResponse?.error || 'La requête IA a échoué.',
             chatResponse: true,
             sources: [],
             executionTrace: errorResponse?.executionTrace
@@ -140,28 +140,28 @@ export class ChatComponent {
 
   formatTraceStepName(name: string): string {
     switch (name) {
-      case 'request-validation': return 'Request validation';
-      case 'sqlite-fts5-retrieval': return 'SQLite FTS5 retrieval';
-      case 'context-preparation': return 'Context preparation';
-      case 'groq-inference': return 'Groq inference';
+      case 'request-validation': return 'Validation de la requête';
+      case 'sqlite-fts5-retrieval': return 'Recherche SQLite FTS5';
+      case 'context-preparation': return 'Préparation du contexte';
+      case 'groq-inference': return 'Inférence Groq';
       default: return name;
     }
   }
 
   getStepDuration(trace: ChatExecutionTrace, name: string): string {
     const step = trace.steps.find(item => item.name === name);
-    return step ? this.formatDuration(step.durationMs) : 'Not available';
+    return step ? this.formatDuration(step.durationMs) : 'Indisponible';
   }
 
   formatDuration(durationMs: number): string {
-    if (!Number.isFinite(durationMs) || durationMs < 0) return 'Not available';
+    if (!Number.isFinite(durationMs) || durationMs < 0) return 'Indisponible';
     return `${durationMs.toLocaleString(undefined, { maximumFractionDigits: 2 })} ms`;
   }
 
   formatCost(cost?: number | null): string {
     return typeof cost === 'number' && Number.isFinite(cost)
       ? `$${cost.toFixed(8)} USD`
-      : 'Not available';
+      : 'Indisponible';
   }
 
   onFormSubmit(formData: any) {
