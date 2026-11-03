@@ -1,0 +1,36 @@
+// Semantic tokens shared by Tailwind utilities and component SCSS.
+:root {
+  color-scheme: dark;
+  --ui-bg: #101820;
+  --ui-surface: #17242c;
+  --ui-raised: #20303a;
+  --ui-border: #30434d;
+  --ui-text: #f1f5f9;
+  --ui-muted: #a6b8c3;
+  --ui-accent: #22d3ee;
+  --ui-on-accent: #101820;
+  --ui-selected: #123e49;
+  --ui-success: #34d399;
+  --ui-success-bg: #113b30;
+  --ui-warning: #fcd34d;
+  --ui-warning-bg: #3c3018;
+  --ui-error: #fda4af;
+  --ui-error-bg: #431f2b;
+  --ui-focus: #67e8f9;
+  --ui-purple: #c4b5fd;
+  --ui-purple-bg: #2d2848;
+  --ui-font-page: clamp(1.35rem,2vw,1.8rem);
+  --ui-font-section: 1.05rem;
+  --ui-font-body: .875rem;
+  --ui-font-label: .8rem;
+  --ui-font-caption: .75rem;
+  --ui-font-kpi: clamp(1.1rem,2vw,1.6rem);
+}
+body { margin: 0; background: var(--ui-bg); color: var(--ui-text); font-family: Inter, ui-sans-serif, system-ui, sans-serif; line-height: 1.5; }
+button, input, select, textarea { font: inherit; }
+:where(button, a, input, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
+:where(button, input, select, textarea):disabled { cursor: not-allowed; }
+::selection { background: var(--ui-selected); color: var(--ui-text); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}
