@@ -156,7 +156,16 @@ function toFtsQuery(text) {
   return terms.map(term => `"${term.replaceAll('"', '""')}"`).join(' OR ');
 }
 
-export function searchDocumentChunks(db, query, limit = DEFAULT_RESULT_LIMIT, documentId = null) {
+export function searchDocumentChunks(db, query, limit = DEFAULT_RESULT_LIMIT, documentId = null, authorizedScope = null) {
+  const scoped = authorizedScope !== null;
+  if (scoped && (typeof authorizedScope !== 'object' || typeof authorizedScope.agentId !== 'string' || !authorizedScope.agentId)) {
+    throw new TypeError('An explicit agent scope is required.');
+  }
+  const scopeSql = scoped ? `AND chunk.document_id IN (
+    SELECT binding.document_id FROM support_agent_documents AS binding
+    JOIN support_agents AS agent ON agent.id = binding.agent_id
+    WHERE binding.agent_id = ? AND agent.status = 'active'
+  )` : '';
   const ftsQuery = toFtsQuery(query);
   if (!ftsQuery) return [];
 
@@ -175,9 +184,10 @@ export function searchDocumentChunks(db, query, limit = DEFAULT_RESULT_LIMIT, do
     JOIN documents_history AS document ON document.id = chunk.document_id
     WHERE document_chunks_fts MATCH ?
       AND (? IS NULL OR chunk.document_id = ?)
+      ${scopeSql}
     ORDER BY rank ASC, chunk.id ASC
     LIMIT ?
-  `).all(ftsQuery, documentId, documentId, limit);
+  `).all(ftsQuery, documentId, documentId, ...(scoped ? [authorizedScope.agentId] : []), limit);
 }
 
 function makePdfPageRenderer(pages) {

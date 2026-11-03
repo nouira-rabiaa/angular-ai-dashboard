@@ -1,3 +1,4 @@
+import { DashboardDataService } from '../../services/dashboard-data.service';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { of, Subject, throwError } from 'rxjs';
@@ -14,12 +15,12 @@ const page = (items: SupportAgent[] = []): SupportAgentPage => ({ items, total: 
 describe('AgentConfigurationComponent', () => {
   let fixture: ComponentFixture<AgentConfigurationComponent>;
   let component: AgentConfigurationComponent;
-  let api: Record<'listAgents' | 'getAgent' | 'createAgent' | 'updateAgent' | 'setAgentStatus', jest.Mock>;
+  let api: Record<'listAgents' | 'getAgent' | 'createAgent' | 'updateAgent' | 'setAgentStatus' | 'getAgentDocuments', jest.Mock>;
   beforeEach(async () => {
-    api = { listAgents: jest.fn().mockReturnValue(of(page())), getAgent: jest.fn().mockReturnValue(of(record())),
+    api = { getAgentDocuments: jest.fn().mockReturnValue(of({ documentIds: [], documents: [], scopeVersion: 'scope' })), listAgents: jest.fn().mockReturnValue(of(page())), getAgent: jest.fn().mockReturnValue(of(record())),
       createAgent: jest.fn().mockReturnValue(of(record())), updateAgent: jest.fn().mockReturnValue(of(record({ version: 2 }))),
       setAgentStatus: jest.fn().mockReturnValue(of(record({ status: 'active', version: 2 }))) };
-    await TestBed.configureTestingModule({ imports: [AgentConfigurationComponent], providers: [{ provide: AgentService, useValue: api }] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [AgentConfigurationComponent], providers: [{ provide: AgentService, useValue: api }, { provide: DashboardDataService, useValue: { getDocuments: jest.fn().mockReturnValue(of({ items: [], total: 0, offset: 0, limit: 25 })) } }] }).compileComponents();
     fixture = TestBed.createComponent(AgentConfigurationComponent);component = fixture.componentInstance;
   });
   const text = () => fixture.nativeElement.textContent as string;
@@ -87,7 +88,7 @@ describe('AgentConfigurationComponent', () => {
     expect(api.setAgentStatus).toHaveBeenCalledWith(record().id, 'active', 1);expect(text()).toContain('Configuration activée.');
     api.setAgentStatus.mockReturnValue(of(record({ status: 'inactive', version: 3 })));
     button('Désactiver').click();fixture.detectChanges();expect(api.setAgentStatus).toHaveBeenLastCalledWith(record().id, 'inactive', 2);
-    expect(text()).toContain('Configuration désactivée.');expect(text()).toContain('Aucune inférence');
+    expect(text()).toContain('Configuration désactivée.');expect(text()).toContain('Les sauvegardes ne lancent aucune inférence');
   });
 
   it.each([400, 403, 404, 409, 500, 0])('keeps a failed save editable without false success for HTTP %s', status => {
@@ -96,6 +97,20 @@ describe('AgentConfigurationComponent', () => {
     expect(component.saving()).toBe(false);expect(component.form.controls.name.value).toBe('Mon agent');
     expect(component.form.dirty).toBe(true);expect(fixture.nativeElement.querySelector('form [role="alert"]')).not.toBeNull();
     expect(text()).not.toContain('Configuration enregistrée dans SQLite');
+  });
+
+  it('keeps the 5A form mounted across three spaces and protects configuration and document drafts', () => {
+    fixture.detectChanges();component.openAgent(record());fixture.detectChanges();
+    const name = fixture.nativeElement.querySelector('#support-name');
+    component.selectSpace('knowledge');fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#studio-config-panel').hidden).toBe(true);
+    expect(fixture.nativeElement.querySelector('#support-name')).toBe(name);
+    expect(text()).toContain('Knowledge Base');
+    component.knowledgeDraft(true);component.selectSpace('test');expect(component.activeSpace()).toBe('knowledge');
+    component.knowledgeDraft(false);component.selectSpace('test');fixture.detectChanges();expect(text()).toContain('Prévisualisation documentaire');
+    component.selectSpace('configuration');fixture.detectChanges();
+    fillDraft();component.selectSpace('knowledge');fixture.detectChanges();expect(component.activeSpace()).toBe('configuration');
+    expect(component.form.controls.name.value).toBe('Mon agent');
   });
 
   it('does not let an older catalogue response hide a newly saved agent', () => {

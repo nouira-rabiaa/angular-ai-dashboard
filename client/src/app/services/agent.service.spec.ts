@@ -34,6 +34,14 @@ describe('AgentService', () => {
     http.expectNone('http://localhost:3000/api/agent/run');
   });
 
+  it('uses scoped document and preview endpoints without calling legacy run/chat', () => {
+    const url = 'http://localhost:3000/api/agents/id';
+    service.getAgentDocuments('id').subscribe();http.expectOne(url + '/documents').flush({ documentIds: [], documents: [], scopeVersion: 'scope' });
+    service.setAgentDocuments('id', [1], 'scope').subscribe();const update = http.expectOne(url + '/documents');expect(update.request.method).toBe('PUT');expect(update.request.body).toEqual({ documentIds: [1], scopeVersion: 'scope' });update.flush({ documentIds: [1], documents: [], scopeVersion: 'next' });
+    service.askAgent('id', 'retour article', 1).subscribe();const ask = http.expectOne(url + '/ask');expect(ask.request.body).toEqual({ question: 'retour article', documentId: 1 });ask.flush({ status: 'abstained', sources: [] });
+    http.expectNone('http://localhost:3000/api/agent/run');http.expectNone('http://localhost:3000/api/chat');
+  });
+
   it('posts the goal and returns the typed run response', () => {
     const response: AgentRunResponse = {
       runId: 'run-123',

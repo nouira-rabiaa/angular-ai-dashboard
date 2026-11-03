@@ -1,9 +1,9 @@
 <section class="studio" aria-labelledby="support-studio-title">
   <header class="studio-hero">
-    <div><p class="studio-eyebrow">Enterprise AI Dashboard · Phase 5A</p><h1 id="support-studio-title">Support Agent Studio</h1><p>Configure, manage and deploy intelligent customer support agents.</p></div>
-    <span class="studio-badge">Configuration persistante · démo locale</span>
+    <div><p class="studio-eyebrow">Enterprise AI Dashboard · Phases 5A / 5B</p><h1 id="support-studio-title">Support Agent Studio</h1><p>Configure, manage and deploy intelligent customer support agents.</p></div>
+    <span class="studio-badge">Configuration et RAG autorisé · démo locale</span>
   </header>
-  <p class="studio-scope">5A : créez et enregistrez vos configurations. Le chat de support, les documents autorisés et le transfert humain ne sont pas encore connectés. Aucune inférence ni mise en production depuis ce studio.</p>
+  <p class="studio-scope">Configurez l’agent, associez ses documents puis testez une question documentaire. Les sauvegardes ne lancent aucune inférence. Le test est sans conversation persistante ni transfert humain.</p>
   <div class="studio-layout">
     <aside class="studio-panel studio-list" aria-labelledby="agent-list-title">
       <div class="studio-panel-heading"><div><p class="studio-eyebrow">Catalogue</p><h2 id="agent-list-title">Vos agents</h2></div><button type="button" class="studio-icon-button" aria-label="Recharger les configurations" (click)="reload()" [disabled]="listState() === 'loading' || saving() || loadingDetail()">↻</button></div>
@@ -21,7 +21,14 @@
       @if (total()) { <footer class="studio-pagination"><span>{{ offset() + 1 }}–{{ offset() + agents().length }} / {{ total() }}</span><button type="button" aria-label="Agents précédents" (click)="page(-1)" [disabled]="offset() === 0 || listState() === 'loading' || saving() || loadingDetail()">←</button><button type="button" aria-label="Agents suivants" (click)="page(1)" [disabled]="offset() + pageSize >= total() || listState() === 'loading' || saving() || loadingDetail()">→</button></footer> }
     </aside>
 
-    <form class="studio-panel studio-editor" [formGroup]="form" (ngSubmit)="save()" aria-labelledby="config-title">
+    <div class="min-w-0">
+      <nav aria-label="Espaces du Support Agent Studio" class="mb-3 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-2">
+        @for (space of spaces; track space.id) {
+          <button type="button" [class.studio-primary]="activeSpace() === space.id" [class.studio-secondary]="activeSpace() !== space.id" [attr.aria-pressed]="activeSpace() === space.id" [attr.aria-controls]="space.id === 'configuration' ? 'studio-config-panel' : 'studio-extra-panel'" (click)="selectSpace(space.id)" [disabled]="saving() || loadingDetail() || workspaceBusy()">{{ space.label }}</button>
+        }
+      </nav>
+      @if (navigationMessage()) { <p role="status" class="studio-unsaved">{{ navigationMessage() }}</p> }
+    <form id="studio-config-panel" [hidden]="activeSpace() !== 'configuration'" class="studio-panel studio-editor" [formGroup]="form" (ngSubmit)="save()" aria-labelledby="config-title">
       <header class="studio-panel-heading"><div><p class="studio-eyebrow">{{ selected() ? 'Configuration enregistrée' : 'Nouvelle configuration' }}</p><h2 id="config-title">{{ selected()?.name || 'Créer votre agent de support' }}</h2></div>
         @if (selected(); as agent) { <button type="button" class="studio-secondary" (click)="toggleStatus()" [disabled]="saving() || loadingDetail() || form.dirty">{{ agent.status === 'active' ? 'Désactiver' : 'Activer' }}</button> }
       </header>
@@ -47,7 +54,7 @@
       </fieldset>
       <fieldset [disabled]="saving() || loadingDetail()">
         <legend>Configuration du modèle</legend>
-        <p class="studio-help">Paramètres conservés pour les futures exécutions. Aucun appel Groq à l’enregistrement.</p>
+        <p class="studio-help">Paramètres utilisés pour les tests documentaires de la configuration enregistrée. Aucun appel Groq à l’enregistrement.</p>
         <div class="studio-fields">
           <label for="support-model" class="studio-wide">Modèle pris en charge<select id="support-model" formControlName="model"><option value="openai/gpt-oss-120b">Groq · openai/gpt-oss-120b</option></select></label>
           <label for="support-temperature">Température<input id="support-temperature" type="number" formControlName="temperature" min="0" max="2" step="any" [attr.aria-invalid]="invalid('temperature')" /><span>De 0 à 2 : une valeur plus basse favorise des réponses plus stables.</span>@if (invalid('temperature')) { <em>Nombre requis entre 0 et 2.</em> }</label>
@@ -58,10 +65,18 @@
         <legend>Réponses de secours et support</legend>
         <label for="support-fallback">Message de secours *<textarea id="support-fallback" formControlName="fallbackMessage" rows="3" maxlength="2000" [attr.aria-invalid]="invalid('fallbackMessage')"></textarea>@if (invalid('fallbackMessage')) { <em>Message requis, 2 000 caractères maximum.</em> }</label>
         <label class="studio-check" for="support-escalation"><input id="support-escalation" type="checkbox" formControlName="escalationEnabled" />Autoriser l’escalade humaine dans la configuration</label>
-        <p class="studio-help">Option mémorisée uniquement. Aucun conseiller n’est contacté et aucune demande d’escalade n’est créée en 5A.</p>
-        <label for="support-status">Statut de la configuration<select id="support-status" formControlName="status"><option value="inactive">Inactive</option><option value="active">Active</option></select><span>Ce statut ne déploie pas l’agent et n’active pas de chat client en 5A.</span></label>
+        <p class="studio-help">Option mémorisée uniquement. Aucun conseiller n’est contacté et aucune demande d’escalade n’est créée en 5B.</p>
+        <label for="support-status">Statut de la configuration<select id="support-status" formControlName="status"><option value="inactive">Inactive</option><option value="active">Active</option></select><span>Une configuration active peut être testée sur ses documents autorisés ; aucun chat client persistant n’est déployé.</span></label>
       </fieldset>
       <footer class="studio-actions"><span class="studio-help">{{ selected() ? 'Modifiez puis enregistrez pour mettre à jour SQLite.' : 'Rien n’est enregistré avant votre validation.' }}</span><button type="button" class="studio-secondary" (click)="cancel()" [disabled]="saving() || loadingDetail()">Annuler</button><button type="submit" class="studio-primary" [disabled]="saving() || loadingDetail()">{{ saving() ? 'Enregistrement…' : 'Enregistrer' }}</button></footer>
     </form>
+    <div id="studio-extra-panel" [hidden]="activeSpace() === 'configuration'">
+      @if (activeSpace() !== 'configuration') {
+        @if (selected(); as agent) {
+          <app-agent-knowledge [agent]="agent" [mode]="activeSpace() === 'knowledge' ? 'knowledge' : 'test'" (dirtyChange)="knowledgeDraft($event)" (busyChange)="workspaceBusy.set($event)" />
+        } @else { <div class="studio-panel"><h2>Enregistrez ou sélectionnez un agent</h2><p class="studio-scope">La base documentaire et les tests utilisent uniquement une configuration persistée. Aucun document n’est associé automatiquement.</p><button type="button" class="studio-secondary" (click)="selectSpace('configuration')">Ouvrir Configuration</button></div> }
+      }
+    </div>
+    </div>
   </div>
 </section>

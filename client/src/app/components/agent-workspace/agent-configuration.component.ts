@@ -1,3 +1,4 @@
+import { AgentKnowledgeComponent } from './agent-knowledge.component';
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, HostListener, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -8,7 +9,7 @@ import { SupportAgent, SupportAgentConfig, emptySupportAgent } from '../../model
 
 @Component({
   selector: 'app-agent-configuration', standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, AgentKnowledgeComponent],
   templateUrl: './agent-configuration.component.html',
   styleUrl: './agent-configuration.component.scss'
 })
@@ -38,6 +39,17 @@ export class AgentConfigurationComponent implements OnInit {
   readonly message = signal('');
   readonly error = signal('');
   readonly pageSize = 50;
+  readonly activeSpace = signal<'configuration' | 'knowledge' | 'test'>('configuration');
+  readonly spaces = [{ id: 'configuration', label: 'Configuration' }, { id: 'knowledge', label: 'Knowledge Base' }, { id: 'test', label: 'Tester l’agent' }] as const;
+  readonly knowledgeDirty = signal(false);
+  readonly workspaceBusy = signal(false);
+  readonly navigationMessage = signal('');
+  selectSpace(space: 'configuration' | 'knowledge' | 'test'): void {
+    if (space === this.activeSpace() || !this.mayLeaveDraft()) return;
+    this.navigationMessage.set('');this.activeSpace.set(space);
+  }
+  knowledgeDraft(value: boolean): void { this.knowledgeDirty.set(value);if (!value) this.navigationMessage.set(''); }
+
   private listRequestId = 0;
 
   ngOnInit(): void {
@@ -47,10 +59,12 @@ export class AgentConfigurationComponent implements OnInit {
     this.load();
   }
   @HostListener('window:beforeunload', ['$event'])
-  beforeUnload(event: BeforeUnloadEvent): void { if (this.form.dirty) event.preventDefault(); }
+  beforeUnload(event: BeforeUnloadEvent): void { if (this.form.dirty || this.knowledgeDirty()) event.preventDefault(); }
 
   private mayLeaveDraft(): boolean {
-    if (this.form.dirty) { this.message.set('Modifications non enregistrées : enregistrez ou annulez avant de changer d’agent.'); return false; }
+    if (this.knowledgeDirty()) { this.navigationMessage.set('Modifications documentaires non enregistrées : enregistrez ou annulez avant de changer d’espace ou d’agent.');return false; }
+    if (this.workspaceBusy()) { this.navigationMessage.set('Attendez la fin de l’opération en cours.');return false; }
+    if (this.form.dirty) { this.message.set('Modifications non enregistrées : enregistrez ou annulez avant de changer d’agent.');this.navigationMessage.set('Enregistrez ou annulez la configuration avant de changer d’espace.'); return false; }
     return !this.saving() && !this.loadingDetail();
   }
   load(offset = this.offset()): void {
@@ -73,7 +87,7 @@ export class AgentConfigurationComponent implements OnInit {
   }
   newAgent(): void {
     if (!this.mayLeaveDraft()) return;
-    this.selected.set(null);this.form.reset(emptySupportAgent());this.message.set('Nouvelle configuration, non enregistrée.');this.error.set('');
+    this.selected.set(null);this.activeSpace.set('configuration');this.navigationMessage.set('');this.form.reset(emptySupportAgent());this.message.set('Nouvelle configuration, non enregistrée.');this.error.set('');
   }
   openAgent(agent: SupportAgent): void {
     if (!this.mayLeaveDraft()) return;
@@ -91,7 +105,7 @@ export class AgentConfigurationComponent implements OnInit {
   cancel(): void {
     if (this.saving() || this.loadingDetail()) return;
     const agent = this.selected();if (agent) this.apply(agent);else this.form.reset(emptySupportAgent());
-    this.error.set('');this.message.set('Modifications annulées. Aucune nouvelle donnée enregistrée.');
+    this.navigationMessage.set('');this.error.set('');this.message.set('Modifications annulées. Aucune nouvelle donnée enregistrée.');
   }
   save(): void {
     if (this.saving() || this.loadingDetail()) return;
