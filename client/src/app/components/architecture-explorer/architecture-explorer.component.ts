@@ -1,5 +1,8 @@
+import { UiStatusPipe } from '../../i18n/ui-format.pipe';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { UiLanguageService } from '../../i18n/ui-language.service';
 import { CommonModule } from '@angular/common';
-import { Component, signal } from '@angular/core';
+import { inject, Component, signal } from '@angular/core';
 import { LucideWorkflow } from '@lucide/angular';
 import {
   ARCHITECTURE_EDGES,
@@ -18,11 +21,12 @@ import {
 @Component({
   selector: 'app-architecture-explorer',
   standalone: true,
-  imports: [CommonModule, LucideWorkflow],
+  imports: [TranslocoPipe, UiStatusPipe, CommonModule, LucideWorkflow],
   templateUrl: './architecture-explorer.component.html',
   styleUrl: './architecture-explorer.component.scss'
 })
 export class ArchitectureExplorerComponent {
+  readonly ui = inject(UiLanguageService);
   readonly layers = ARCHITECTURE_LAYERS;
   readonly nodes = ARCHITECTURE_NODES;
   readonly edges = ARCHITECTURE_EDGES;
@@ -66,7 +70,7 @@ export class ArchitectureExplorerComponent {
   }
 
   nodeName(nodeId: string): string {
-    return this.nodes.find(node => node.id === nodeId)?.name ?? 'Unknown component';
+    return this.nodes.find(node => node.id === nodeId)?.name ?? 'architecture.composant_inconnu';
   }
 
   // Presentation only: the map uses the existing flow's nodes and directed edges.

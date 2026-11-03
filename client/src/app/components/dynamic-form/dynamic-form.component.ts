@@ -1,4 +1,6 @@
-import { Component, Input, Output, EventEmitter, signal, ViewEncapsulation } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { UiLanguageService } from '../../i18n/ui-language.service';
+import { inject, Component, Input, Output, EventEmitter, signal, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { DynamicFormSchema } from '../../models/dynamic-form.model';
@@ -6,12 +8,13 @@ import { DynamicFormSchema } from '../../models/dynamic-form.model';
 @Component({
   selector: 'app-dynamic-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [TranslocoPipe, CommonModule, ReactiveFormsModule],
   templateUrl: './dynamic-form.component.html',
   styleUrl: './dynamic-form.component.scss',
   encapsulation: ViewEncapsulation.None // 🟢 Force l'application globale des styles du formulaire
 })
 export class DynamicFormComponent {
+  readonly ui = inject(UiLanguageService);
   @Input() schema!: DynamicFormSchema;
   @Output() formSubmit = new EventEmitter<any>();
 

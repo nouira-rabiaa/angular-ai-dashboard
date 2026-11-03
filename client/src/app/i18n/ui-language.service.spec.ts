@@ -52,7 +52,7 @@ describe('UI language infrastructure', () => {
     expect(await service.use('en')).toBe(false);expect(service.language()).toBe('fr');expect(service.loadFailed()).toBe(true);expect(document.documentElement.lang).toBe('fr');
   });
   it('keeps the last requested language when async loading resolves out of order', async () => {
-    const service = TestBed.inject(UiLanguageService);const translations = TestBed.inject(TranslocoService);const pending = new Subject<typeof english>();
+    const service = TestBed.inject(UiLanguageService);await service.ready;const translations = TestBed.inject(TranslocoService);const pending = new Subject<typeof english>();
     jest.spyOn(translations, 'load').mockReturnValue(pending);const first = service.use('en');await service.use('fr');pending.next(english);
     expect(await first).toBe(false);expect(service.language()).toBe('fr');expect(localStorage.getItem(UI_LANGUAGE_STORAGE_KEY)).toBe('fr');
   });

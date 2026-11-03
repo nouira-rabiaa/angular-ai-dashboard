@@ -1,3 +1,4 @@
+import { provideUiI18nTesting } from '../../i18n/ui-i18n.testing';
 import { DashboardDataService } from '../../services/dashboard-data.service';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -20,7 +21,7 @@ describe('AgentConfigurationComponent', () => {
     api = { getAgentDocuments: jest.fn().mockReturnValue(of({ documentIds: [], documents: [], scopeVersion: 'scope' })), listAgents: jest.fn().mockReturnValue(of(page())), getAgent: jest.fn().mockReturnValue(of(record())),
       createAgent: jest.fn().mockReturnValue(of(record())), updateAgent: jest.fn().mockReturnValue(of(record({ version: 2 }))),
       setAgentStatus: jest.fn().mockReturnValue(of(record({ status: 'active', version: 2 }))) };
-    await TestBed.configureTestingModule({ imports: [AgentConfigurationComponent], providers: [{ provide: AgentService, useValue: api }, { provide: DashboardDataService, useValue: { getDocuments: jest.fn().mockReturnValue(of({ items: [], total: 0, offset: 0, limit: 25 })) } }] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [AgentConfigurationComponent], providers: [...provideUiI18nTesting(), { provide: AgentService, useValue: api }, { provide: DashboardDataService, useValue: { getDocuments: jest.fn().mockReturnValue(of({ items: [], total: 0, offset: 0, limit: 25 })) } }] }).compileComponents();
     fixture = TestBed.createComponent(AgentConfigurationComponent);component = fixture.componentInstance;
   });
   const text = () => fixture.nativeElement.textContent as string;
@@ -105,7 +106,7 @@ describe('AgentConfigurationComponent', () => {
     component.selectSpace('knowledge');fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('#studio-config-panel').hidden).toBe(true);
     expect(fixture.nativeElement.querySelector('#support-name')).toBe(name);
-    expect(text()).toContain('Knowledge Base');
+    expect(text()).toContain('Base documentaire');
     component.knowledgeDraft(true);component.selectSpace('conversations');expect(component.activeSpace()).toBe('knowledge');component.selectSpace('test');expect(component.activeSpace()).toBe('knowledge');
     component.knowledgeDraft(false);component.selectSpace('test');fixture.detectChanges();expect(text()).toContain('Prévisualisation documentaire');
     component.selectSpace('configuration');fixture.detectChanges();

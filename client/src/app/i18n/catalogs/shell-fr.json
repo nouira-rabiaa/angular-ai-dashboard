@@ -1,0 +1,48 @@
+{
+  "brand": {
+    "name": "Enterprise AI Dashboard",
+    "subtitle": "Plateforme d’opérations IA et FinOps"
+  },
+  "shell": {
+    "localDemo": "Démo locale",
+    "openNavigation": "Ouvrir le menu de navigation",
+    "closeNotification": "Fermer la notification",
+    "close": "Fermer",
+    "language": "Langue de l’interface",
+    "french": "Français",
+    "english": "Anglais",
+    "languageLoading": "Chargement de la langue…",
+    "languageError": "Langue indisponible. L’interface reste en français."
+  },
+  "nav": {
+    "workspace": "Espace de travail",
+    "main": "Navigation principale",
+    "closeNavigation": "Fermer la navigation",
+    "closeMenu": "Fermer le menu",
+    "collapse": "Réduire le menu",
+    "collapseLabel": "Réduire le menu latéral",
+    "expandLabel": "Développer le menu latéral",
+    "dashboard": "Tableau de bord",
+    "generator": "Générateur IA",
+    "guidedDemo": "Démo guidée",
+    "architecture": "Explorateur d’architecture",
+    "studio": "Studio d’agents de support"
+  },
+  "common": {
+    "unavailable": "Indisponible",
+    "pageTitle": "{{page}} · Enterprise AI Dashboard"
+  },
+  "errors": {
+    "generic": "Une erreur est survenue. Réessayez ou vérifiez le serveur local.",
+    "network": "Connexion au serveur impossible. Vérifiez le serveur local et réessayez.",
+    "badRequest": "Requête invalide. Vérifiez les valeurs saisies.",
+    "unauthorized": "Accès non autorisé.",
+    "forbidden": "Accès refusé. Vérifiez les autorisations et l’activation du mode local.",
+    "notFound": "Ressource introuvable. Rechargez les données.",
+    "conflict": "Les données ont changé ou une opération est en cours. Rechargez avant de réessayer.",
+    "rateLimited": "Trop de requêtes. Patientez avant de réessayer.",
+    "server": "Le serveur n’a pas pu traiter la demande. Réessayez plus tard.",
+    "http": "La requête a échoué (HTTP {{status}}). Réessayez.",
+    "upload": "Échec du traitement du document par le serveur. Réessayez l’import."
+  }
+}

@@ -1,3 +1,4 @@
+import french from '../../i18n/catalogs/fr.json';
 import {
   ARCHITECTURE_EDGES,
   ARCHITECTURE_FLOWS,
@@ -56,7 +57,7 @@ describe('Architecture Explorer curated model', () => {
   });
 
   it('describes limitations instead of overclaiming RAG, citations or price accuracy', () => {
-    const serialized = JSON.stringify({ ARCHITECTURE_NODES, ARCHITECTURE_FLOWS });
+    const serialized = JSON.stringify({ ARCHITECTURE_NODES, ARCHITECTURE_FLOWS, descriptions: french.architecture });
     expect(serialized).toContain('n’utilise pas automatiquement la recherche RAG');
     expect(serialized).toContain('ne prouve pas l’exactitude factuelle');
     expect(serialized).toContain('pas une facture');

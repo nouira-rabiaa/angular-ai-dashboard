@@ -1,18 +1,18 @@
 <section class="generator-shell" aria-labelledby="generator-title">
   <header class="generator-header">
-    <div><p class="generator-eyebrow">Espace de travail IA</p><h1 id="generator-title">Générateur IA</h1><p>Documents, réponses sourcées et formulaires dynamiques.</p></div>
-    <span class="generator-badge">Recherche lexicale · FTS5</span>
+    <div><p class="generator-eyebrow">{{ 'generator.espace_de_travail_ia' | transloco }}</p><h1 id="generator-title">{{ 'generator.generateur_ia' | transloco }}</h1><p>{{ 'generator.documents_reponses_sourcees_et_formulaires_dynamiques' | transloco }}</p></div>
+    <span class="generator-badge">{{ 'generator.recherche_lexicale_fts5' | transloco }}</span>
   </header>
   <div class="generator-body">
     <section class="generator-thread ui-card" aria-labelledby="generator-conversation-title">
-      <header class="generator-thread-heading"><h2 id="generator-conversation-title">Conversation</h2><span>Vos échanges dans cet onglet</span></header>
-      <div class="generator-messages" role="region" aria-label="Messages et citations" tabindex="0" [attr.aria-busy]="isLoading()">
+      <header class="generator-thread-heading"><h2 id="generator-conversation-title">{{ 'generator.conversation' | transloco }}</h2><span>{{ 'generator.vos_echanges_dans_cet_onglet' | transloco }}</span></header>
+      <div class="generator-messages" role="region" [attr.aria-label]="'generator.messages_et_citations' | transloco" tabindex="0" [attr.aria-busy]="isLoading()">
       @if (messages().length === 0) {
         <div class="generator-empty">
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" /></svg>
-          <h3>Un espace pour vos questions et vos formulaires</h3>
-          <p>Interrogez vos documents ou décrivez le formulaire à générer. Les réponses, formulaires et citations apparaîtront dans cette conversation.</p>
-          <span>Aucun appel IA avant l’envoi de votre demande.</span>
+          <h3>{{ 'generator.un_espace_pour_vos_questions_et_vos' | transloco }}</h3>
+          <p>{{ 'generator.interrogez_vos_documents_ou_decrivez_le_formulaire' | transloco }}</p>
+          <span>{{ 'generator.aucun_appel_ia_avant_l_envoi_de' | transloco }}</span>
         </div>
       }
 
@@ -28,20 +28,21 @@
         } @else {
           <div class="flex justify-start">
             <div class="max-w-full bg-slate-50 text-slate-800 px-4 py-3 rounded-2xl rounded-bl-none shadow-sm text-sm border border-slate-200 space-y-3">
+              @if (msg.uiKey) { <p style="white-space: pre-wrap; margin: 0;">{{ msg.uiKey | transloco: messageParams(msg) }}</p> }
               @if (msg.text) {
                 <p style="white-space: pre-wrap; margin: 0;">{{ msg.text }}</p>
               }
               @if (msg.chatResponse) {
-                <section class="border-t border-slate-200 pt-3 space-y-2" aria-label="Sources documentaires">
+                <section class="border-t border-slate-200 pt-3 space-y-2" [attr.aria-label]="'generator.sources_documentaires' | transloco">
                   <div class="flex items-center justify-between gap-2">
-                    <h3 class="text-xs font-bold text-slate-700 m-0">Sources</h3>
+                    <h3 class="text-xs font-bold text-slate-700 m-0">{{ 'generator.sources' | transloco }}</h3>
                     @if (msg.sources?.length) {
-                      <span class="text-[11px] text-slate-500">{{ msg.sources?.length }} passage(s) retrouvé(s)</span>
+                      <span class="text-[11px] text-slate-500">{{ 'generator.passage_s_retrouve_s' | transloco: { value1: (msg.sources?.length) } }}</span>
                     }
                   </div>
 
                   @if (msg.sources?.length) {
-                    <p class="text-[11px] text-slate-500 m-0">Les labels identifient les passages retrouvés ; ils ne garantissent pas que chaque affirmation est étayée.</p>
+                    <p class="text-[11px] text-slate-500 m-0">{{ 'generator.les_labels_identifient_les_passages_retrouves_ils' | transloco }}</p>
                     <div class="space-y-2">
                       @for (source of msg.sources; track source.chunkId) {
                         <details open class="rounded-lg border border-slate-200 bg-white">
@@ -49,54 +50,53 @@
                             <span class="font-bold text-blue-700">[{{ source.label }}]</span>
                             <span class="font-semibold text-slate-800 break-all">{{ source.filename }}</span>
                             @if (source.pageNumber !== undefined && source.pageNumber !== null) {
-                              <span class="text-slate-500">Page {{ source.pageNumber }}</span>
+                              <span class="text-slate-500">{{ 'generator.page' | transloco: { value1: (source.pageNumber) } }}</span>
                             }
                             @if (source.cited) {
-                              <span class="ml-auto text-emerald-700 font-semibold">Cité</span>
+                              <span class="ml-auto text-emerald-700 font-semibold">{{ 'generator.cite' | transloco }}</span>
                             } @else {
-                              <span class="ml-auto text-slate-500 font-semibold">Retrouvé, non cité</span>
+                              <span class="ml-auto text-slate-500 font-semibold">{{ 'generator.retrouve_non_cite' | transloco }}</span>
                             }
                           </summary>
-                          <blockquote class="m-0 border-t border-slate-100 px-3 py-2 text-xs leading-relaxed text-slate-700 whitespace-pre-wrap">{{ source.excerpt }}@if (source.excerptTruncated) { <span class="text-slate-500">… (extrait raccourci)</span> }</blockquote>
+                          <blockquote class="m-0 border-t border-slate-100 px-3 py-2 text-xs leading-relaxed text-slate-700 whitespace-pre-wrap">{{ source.excerpt }}@if (source.excerptTruncated) { <span class="text-slate-500">{{ 'generator.extrait_raccourci' | transloco }}</span> }</blockquote>
                         </details>
                       }
                     </div>
                   } @else {
-                    <p class="text-xs text-slate-500 m-0">Aucun passage pertinent n’a été retrouvé. Cette réponse ne dispose pas de source documentaire.</p>
+                    <p class="text-xs text-slate-500 m-0">{{ 'generator.aucun_passage_pertinent_n_a_ete_retrouve' | transloco }}</p>
                   }
 
                   @if (msg.citationValidation?.invalidLabels?.length) {
                     <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md p-2 m-0" role="status">
-                      Labels de citation non reconnus : {{ msg.citationValidation?.invalidLabels?.join(', ') }}. Ces labels ne correspondent à aucune source retrouvée.
-                    </p>
+                      {{ 'generator.labels_de_citation_non_reconnus_ces_labels' | transloco: { value1: (msg.citationValidation?.invalidLabels?.join(', ')) } }}</p>
                   }
                 </section>
 
                 @if (msg.executionTrace; as trace) {
                   <details class="border-t border-slate-200 pt-2" data-testid="execution-details">
-                    <summary class="cursor-pointer text-xs font-semibold text-slate-700 py-1">Détails d’exécution</summary>
+                    <summary class="cursor-pointer text-xs font-semibold text-slate-700 py-1">{{ 'generator.details_d_execution' | transloco }}</summary>
                     <div class="mt-2 space-y-3 text-xs">
                       <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 m-0">
-                        <div><dt class="text-slate-500">État</dt><dd class="m-0 font-semibold">{{ trace.status }}</dd></div>
-                        <div><dt class="text-slate-500">Durée totale</dt><dd class="m-0 font-semibold">{{ formatDuration(trace.totalDurationMs) }}</dd></div>
-                        <div><dt class="text-slate-500">Recherche SQLite</dt><dd class="m-0 font-semibold">{{ getStepDuration(trace, 'sqlite-fts5-retrieval') }}</dd></div>
-                        <div><dt class="text-slate-500">Inférence Groq</dt><dd class="m-0 font-semibold">{{ getStepDuration(trace, 'groq-inference') }}</dd></div>
-                        <div><dt class="text-slate-500">Tokens d’entrée</dt><dd class="m-0 font-semibold">{{ msg.usage?.inputTokens ?? 'Indisponible' }}</dd></div>
-                        <div><dt class="text-slate-500">Tokens de sortie</dt><dd class="m-0 font-semibold">{{ msg.usage?.outputTokens ?? 'Indisponible' }}</dd></div>
-                        <div><dt class="text-slate-500">Tokens totaux</dt><dd class="m-0 font-semibold">{{ msg.usage?.totalTokens ?? 'Indisponible' }}</dd></div>
-                        <div><dt class="text-slate-500">Coût estimé (non facturé)</dt><dd class="m-0 font-semibold">{{ formatCost(msg.cost?.estimatedCostUsd) }}</dd></div>
-                        <div><dt class="text-slate-500">Modèle</dt><dd class="m-0 font-semibold break-all">{{ trace.modelIdentifier ?? 'Indisponible' }}</dd></div>
-                        <div><dt class="text-slate-500">Passages retrouvés</dt><dd class="m-0 font-semibold">{{ trace.retrieval.retrievedChunkCount }}</dd></div>
-                        <div><dt class="text-slate-500">Portée</dt><dd class="m-0 font-semibold">{{ trace.retrieval.scope === 'document' ? ('Document actif #' + trace.retrieval.documentId) : 'Tous les documents' }}</dd></div>
-                        <div><dt class="text-slate-500">Identifiant de trace</dt><dd class="m-0 font-mono break-all">{{ trace.traceId }}</dd></div>
-                        <div><dt class="text-slate-500">Horodatage</dt><dd class="m-0 font-semibold">{{ trace.timestamp | date: 'medium' }}</dd></div>
+                        <div><dt class="text-slate-500">{{ 'generator.etat' | transloco }}</dt><dd class="m-0 font-semibold">{{ trace.status | uiStatus }}</dd></div>
+                        <div><dt class="text-slate-500">{{ 'generator.duree_totale' | transloco }}</dt><dd class="m-0 font-semibold">{{ formatDuration(trace.totalDurationMs) }}</dd></div>
+                        <div><dt class="text-slate-500">{{ 'generator.recherche_sqlite' | transloco }}</dt><dd class="m-0 font-semibold">{{ getStepDuration(trace, 'sqlite-fts5-retrieval') }}</dd></div>
+                        <div><dt class="text-slate-500">{{ 'generator.inference_groq' | transloco }}</dt><dd class="m-0 font-semibold">{{ getStepDuration(trace, 'groq-inference') }}</dd></div>
+                        <div><dt class="text-slate-500">{{ 'generator.tokens_d_entree' | transloco }}</dt><dd class="m-0 font-semibold">{{ msg.usage?.inputTokens ?? ('generator.indisponible' | transloco) }}</dd></div>
+                        <div><dt class="text-slate-500">{{ 'generator.tokens_de_sortie' | transloco }}</dt><dd class="m-0 font-semibold">{{ msg.usage?.outputTokens ?? ('generator.indisponible' | transloco) }}</dd></div>
+                        <div><dt class="text-slate-500">{{ 'generator.tokens_totaux' | transloco }}</dt><dd class="m-0 font-semibold">{{ msg.usage?.totalTokens ?? ('generator.indisponible' | transloco) }}</dd></div>
+                        <div><dt class="text-slate-500">{{ 'generator.cout_estime_non_facture' | transloco }}</dt><dd class="m-0 font-semibold">{{ formatCost(msg.cost?.estimatedCostUsd) }}</dd></div>
+                        <div><dt class="text-slate-500">{{ 'generator.modele' | transloco }}</dt><dd class="m-0 font-semibold break-all">{{ trace.modelIdentifier ?? ('generator.indisponible' | transloco) }}</dd></div>
+                        <div><dt class="text-slate-500">{{ 'generator.passages_retrouves' | transloco }}</dt><dd class="m-0 font-semibold">{{ trace.retrieval.retrievedChunkCount }}</dd></div>
+                        <div><dt class="text-slate-500">{{ 'generator.portee' | transloco }}</dt><dd class="m-0 font-semibold">{{ trace.retrieval.scope === 'document' ? (('generator.document_actif_2' | transloco) + trace.retrieval.documentId) : ('generator.tous_les_documents' | transloco) }}</dd></div>
+                        <div><dt class="text-slate-500">{{ 'generator.identifiant_de_trace' | transloco }}</dt><dd class="m-0 font-mono break-all">{{ trace.traceId }}</dd></div>
+                        <div><dt class="text-slate-500">{{ 'generator.horodatage' | transloco }}</dt><dd class="m-0 font-semibold">{{ trace.timestamp | uiDate:'medium' }}</dd></div>
                       </dl>
-                      <p class="m-0 text-[11px] text-slate-500">Le coût est une estimation fondée sur les tarifs configurés, pas une facture fournisseur.</p>
+                      <p class="m-0 text-[11px] text-slate-500">{{ 'generator.le_cout_est_une_estimation_fondee_sur' | transloco }}</p>
                       <ol class="m-0 pl-5 space-y-1 border-l border-slate-200">
                         @for (step of trace.steps; track $index) {
                           <li class="pl-1">
                             <span class="font-semibold">{{ formatTraceStepName(step.name) }}</span>
-                            <span class="text-slate-500"> · {{ step.status }} · {{ formatDuration(step.durationMs) }}</span>
+                            <span class="text-slate-500"> · {{ step.status | uiStatus }} · {{ formatDuration(step.durationMs) }}</span>
                           </li>
                         }
                       </ol>
@@ -119,14 +119,14 @@
 
       @if (isLoading()) {
         <div role="status" class="p-3.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-700 animate-pulse text-sm flex items-center gap-3">
-          <span>🧠</span> Recherche documentaire et génération en cours…
+          <span>🧠</span> {{ 'generator.recherche_documentaire_et_generation_en_cours' | transloco }}
         </div>
       }
 
       </div>
       <div class="generator-composer">
-        <label for="generator-prompt">Votre demande</label>
-        <p id="generator-prompt-help">Posez une question ou demandez la création d’un formulaire. La touche Entrée conserve son action d’envoi.</p>
+        <label for="generator-prompt">{{ 'generator.votre_demande' | transloco }}</label>
+        <p id="generator-prompt-help">{{ 'generator.posez_une_question_ou_demandez_la_creation' | transloco }}</p>
         <div class="generator-input">
         <textarea
           [ngModel]="userPrompt()"
@@ -134,8 +134,8 @@
           (keyup.enter)="sendMessage()"
           aria-describedby="generator-prompt-help"
           id="generator-prompt"
-          aria-label="Instructions ou question documentaire"
-          placeholder="Saisissez vos instructions pour la génération dynamique ou interrogez le contexte RAG..."
+          [attr.aria-label]="'generator.instructions_ou_question_documentaire' | transloco"
+          [placeholder]="'generator.saisissez_vos_instructions_pour_la_generation_dynamique' | transloco"
           rows="4"
           class="generator-prompt"
         ></textarea>
@@ -145,7 +145,7 @@
           [disabled]="isLoading() || !userPrompt().trim()"
           class="generator-send"
         >
-          <span>Exécuter</span>
+          <span>{{ 'generator.executer' | transloco }}</span>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </button>
 
@@ -153,28 +153,28 @@
       </div>
     </section>
     <aside class="generator-documents ui-card" aria-labelledby="generator-documents-title">
-      <div><p class="generator-eyebrow">Contexte documentaire</p><h2 id="generator-documents-title">Documents et recherche</h2></div>
-      <p class="generator-context-help">Importez un PDF, TXT ou CSV pour disposer d’un document actif.</p>
-        <label class="generator-upload" title="Joindre un fichier PDF/TXT/CSV pour le RAG">
-          <span aria-hidden="true">↥</span> Importer un document
-          <input aria-label="Importer un document PDF, TXT ou CSV" type="file" (change)="onFileSelected($event)" accept=".pdf,.txt,.csv" class="sr-only" [disabled]="isUploadingDoc()" />
+      <div><p class="generator-eyebrow">{{ 'generator.contexte_documentaire' | transloco }}</p><h2 id="generator-documents-title">{{ 'generator.documents_et_recherche' | transloco }}</h2></div>
+      <p class="generator-context-help">{{ 'generator.importez_un_pdf_txt_ou_csv_pour' | transloco }}</p>
+        <label class="generator-upload" [title]="'generator.joindre_un_fichier_pdf_txt_csv_pour' | transloco">
+          <span aria-hidden="true">↥</span> {{ 'generator.importer_un_document' | transloco }}
+          <input [attr.aria-label]="'generator.importer_un_document_pdf_txt_ou_csv' | transloco" type="file" (change)="onFileSelected($event)" accept=".pdf,.txt,.csv" class="sr-only" [disabled]="isUploadingDoc()" />
         </label>
-      <p class="generator-file-help">PDF · TXT · CSV</p>
+      <p class="generator-file-help">{{ 'generator.pdf_txt_csv' | transloco }}</p>
       @if (isUploadingDoc()) {
         <div class="p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs flex items-center gap-2">
-          <span>⏳</span> Extraction et indexation lexicale FTS5 en cours…
+          <span>⏳</span> {{ 'generator.extraction_et_indexation_lexicale_fts5_en_cours' | transloco }}
         </div>
       }
 
       @if (attachedDocument(); as doc) {
         <div class="p-2 px-3 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center text-blue-800 text-xs">
-          <span>📎 Contexte actif : <strong>{{ doc.name }}</strong></span>
-          <button (click)="removeDocument()" aria-label="Retirer le document actif" class="text-rose-600 hover:text-rose-800 font-bold text-sm">✕</button>
+          <span>{{ 'generator.contexte_actif' | transloco }} <strong>{{ doc.name }}</strong></span>
+          <button (click)="removeDocument()" [attr.aria-label]="'generator.retirer_le_document_actif' | transloco" class="text-rose-600 hover:text-rose-800 font-bold text-sm">✕</button>
         </div>
       }
 
-      <div class="flex flex-wrap items-center gap-2 text-xs" role="group" aria-label="Portée de la recherche documentaire">
-        <span class="font-semibold text-slate-600">Portée de recherche</span>
+      <div class="flex flex-wrap items-center gap-2 text-xs" role="group" [attr.aria-label]="'generator.portee_de_la_recherche_documentaire' | transloco">
+        <span class="font-semibold text-slate-600">{{ 'generator.portee_de_recherche' | transloco }}</span>
         <button
           type="button"
           (click)="setRetrievalScope('active')"
@@ -187,7 +187,7 @@
           [class.bg-white]="retrievalScope() !== 'active'"
           [class.border-slate-200]="retrievalScope() !== 'active'"
           [class.text-slate-600]="retrievalScope() !== 'active'"
-        >Document actif</button>
+        >{{ 'generator.document_actif' | transloco }}</button>
         <button
           type="button"
           (click)="setRetrievalScope('all')"
@@ -199,13 +199,13 @@
           [class.bg-white]="retrievalScope() !== 'all'"
           [class.border-slate-200]="retrievalScope() !== 'all'"
           [class.text-slate-600]="retrievalScope() !== 'all'"
-        >Tous les documents</button>
-        <span class="text-slate-500">{{ retrievalScope() === 'active' ? 'Seul le document actif est interrogé.' : 'La recherche peut inclure tous les documents indexés.' }}</span>
+        >{{ 'generator.tous_les_documents' | transloco }}</button>
+        <span class="text-slate-500">{{ retrievalScope() === 'active' ? ('generator.seul_le_document_actif_est_interroge' | transloco) : ('generator.la_recherche_peut_inclure_tous_les_documents' | transloco) }}</span>
       </div>
 
 
-      @if (!attachedDocument()) { <p class="generator-no-document">Aucun document actif. Vous pouvez importer un fichier ou utiliser la portée « Tous les documents ».</p> }
-      <p class="generator-context-help generator-boundary">La génération de formulaires reste indépendante de la recherche documentaire. Les citations identifient des passages ; elles ne garantissent pas l’exactitude de chaque affirmation.</p>
+      @if (!attachedDocument()) { <p class="generator-no-document">{{ 'generator.aucun_document_actif_vous_pouvez_importer_un' | transloco }}</p> }
+      <p class="generator-context-help generator-boundary">{{ 'generator.la_generation_de_formulaires_reste_independante_de' | transloco }}</p>
     </aside>
   </div>
 </section>

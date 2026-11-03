@@ -1,3 +1,5 @@
+const usdFr = (value: number, decimals: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'USD', minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
+import { provideUiI18nTesting } from '../../i18n/ui-i18n.testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -47,7 +49,7 @@ describe('DashboardComponent', () => {
     data = service;
     TestBed.configureTestingModule({
       imports: [DashboardComponent],
-      providers: [
+      providers: [...provideUiI18nTesting(),
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -61,7 +63,7 @@ describe('DashboardComponent', () => {
 
   beforeEach(() => {
     jest.spyOn(DashboardComponent.prototype as any, 'fetchCiStatus').mockImplementation(function(this: DashboardComponent) {
-      this.ciStatus.set({ status: 'unknown', message: 'Unavailable in tests', loading: false });
+      this.ciStatus.set({ status: 'unknown', message: 'dashboard.statut_indisponible', loading: false });
     });
   });
 
@@ -76,9 +78,9 @@ describe('DashboardComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Requêtes IA');
     expect(text).toContain('8');
-    expect(text).toContain('$0.00 USD');
+    expect(text).toContain(usdFr(0.00, 2));
     expect(component.metrics()?.estimatedCostUsd).toBe(0.0012);
-    expect(component.formatCost(0.0012)).toBe('$0.00120000 USD');
+    expect(component.formatCost(0.0012)).toBe(usdFr(0.00120000, 8));
     expect(text).toContain('5 tarifées · 3 sans tarif');
     expect(text).toContain('120,5 ms');
     expect(text).not.toContain('142');
@@ -102,7 +104,7 @@ describe('DashboardComponent', () => {
     fixture.detectChanges();
     const labels = Array.from(fixture.nativeElement.querySelectorAll('[role="tab"]'))
       .map((tab: Element) => tab.textContent?.trim());
-    expect(labels).toEqual(['Vue d’ensemble', 'Historique IA', 'Documents', 'Soumissions']);
+    expect(labels).toEqual(['Vue d’ensemble', 'Historique IA', 'Documents', 'Soumissions de formulaires']);
 
     component.selectView('forms');
     fixture.detectChanges();
@@ -130,7 +132,7 @@ describe('DashboardComponent', () => {
     }));
     component.selectView('inferences');
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Not available');
+    expect(fixture.nativeElement.textContent).toContain('Indisponible');
     expect(fixture.nativeElement.textContent).toContain('100,25 ms');
     expect(fixture.nativeElement.textContent).toContain('trace-1');
 
@@ -143,8 +145,8 @@ describe('DashboardComponent', () => {
     (fixture.nativeElement.querySelector('tbody button') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Étapes d’exécution');
-    expect(fixture.nativeElement.textContent).toContain('request-validation');
-    expect(fixture.nativeElement.textContent).toContain('groq-inference');
+    expect(fixture.nativeElement.textContent).toContain('Validation de la requête');
+    expect(fixture.nativeElement.textContent).toContain('Inférence');
     expect(data.getInferenceDetail).toHaveBeenCalledWith('trace-1');
     (fixture.nativeElement.querySelector('button[aria-label="Fermer les détails"]') as HTMLButtonElement).click();
     fixture.detectChanges();
@@ -189,9 +191,9 @@ describe('DashboardComponent', () => {
 
   it('displays unknown CI status instead of fabricated success on unavailable data', () => {
     createComponent();
-    component.ciStatus.set({ status: 'unknown', message: 'GitHub Actions unavailable', loading: false });
+    component.ciStatus.set({ status: 'unknown', message: 'dashboard.github_actions_indisponible', loading: false });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Unavailable in tests');
+    expect(fixture.nativeElement.textContent).toContain('Statut indisponible');
     expect(fixture.nativeElement.textContent).not.toContain('All Tests Passing');
   });
 

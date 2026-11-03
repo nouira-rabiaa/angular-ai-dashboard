@@ -2,14 +2,13 @@ import { DOCUMENT } from '@angular/common';
 import { Injectable, effect, inject, isDevMode } from '@angular/core';
 import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
 import { TranslocoLoader, TranslocoMissingHandler, TranslocoMissingHandlerData, TranslocoService, provideTransloco, provideTranslocoMissingHandler } from '@jsverse/transloco';
-import { from, map, of, throwError } from 'rxjs';
-import french from './catalogs/fr.json';
+import { from, map, throwError } from 'rxjs';
 import { UiLanguageService } from './ui-language.service';
 
 @Injectable()
 export class UiCatalogLoader implements TranslocoLoader {
   getTranslation(language: string) {
-    if (language === 'fr') return of(french);
+    if (language === 'fr') return from(import('./catalogs/fr.json')).pipe(map(module => module.default));
     if (language === 'en') return from(import('./catalogs/en.json')).pipe(map(module => module.default));
     return throwError(() => new Error('Unsupported UI language.'));
   }

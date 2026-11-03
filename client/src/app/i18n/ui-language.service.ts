@@ -2,7 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { DestroyRef, Injectable, InjectionToken, computed, inject, signal } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
-import french from './catalogs/fr.json';
+import french from './catalogs/shell-fr.json';
 
 export type UiLanguage = 'fr' | 'en';
 export const UI_LANGUAGE_STORAGE_KEY = 'enterprise-ai-dashboard.ui-language';
@@ -26,7 +26,6 @@ export class UiLanguageService {
   private request = 0;
 
   constructor() {
-    this.translations.setTranslation(french, 'fr', { emitChange: false });
     this.translations.setActiveLang('fr');this.document.documentElement.lang = 'fr';
     inject(DestroyRef).onDestroy(() => { this.request++; });
     let saved: string | null = null;
@@ -38,6 +37,9 @@ export class UiLanguageService {
     if (language !== 'fr' && language !== 'en') return false;
     const request = ++this.request;this.loading.set(true);this.loadFailed.set(false);
     try {
+      if (!this.translations.getTranslation('fr')['workspace.noItems']) {
+        await firstValueFrom(this.translations.load('fr'));
+      }
       if (language === 'en') {
         await firstValueFrom(this.translations.load('en'));
         if (!Object.keys(this.translations.getTranslation('en')).length) throw new Error('English catalog unavailable.');
@@ -48,9 +50,15 @@ export class UiLanguageService {
       this.loading.set(false);return true;
     } catch {
       if (request !== this.request) return false;
+      if (!Object.keys(this.translations.getTranslation('fr')).length) this.translations.setTranslation(french, 'fr');
       this.translations.setActiveLang('fr');this.active.set('fr');this.document.documentElement.lang = 'fr';
       this.loading.set(false);this.loadFailed.set(true);return false;
     }
+  }
+
+  text(key: string, params: Record<string, unknown> = {}): string {
+    this.language();
+    return key ? this.translations.translate(key, params) : '';
   }
 
   number(value: number | null | undefined, options: Intl.NumberFormatOptions = {}): string {

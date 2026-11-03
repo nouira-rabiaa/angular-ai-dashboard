@@ -6,168 +6,168 @@ import {
 } from '../../models/architecture.model';
 
 export const ARCHITECTURE_LAYERS: readonly ArchitectureLayer[] = [
-  { id: 'client', name: 'Interface', summary: 'Parcours utilisateur Angular' },
-  { id: 'api', name: 'API applicative', summary: 'Orchestration Express' },
-  { id: 'ai', name: 'Services IA', summary: 'Appels Groq et outils approuvés' },
-  { id: 'data', name: 'Données', summary: 'SQLite, FTS5 et historique metadata-only' }
+  { id: 'client', name: "architecture.interface", summary: "architecture.parcours_utilisateur_angular" },
+  { id: 'api', name: "architecture.api_applicative", summary: "architecture.orchestration_express" },
+  { id: 'ai', name: "architecture.services_ia", summary: "architecture.appels_groq_et_outils_approuves" },
+  { id: 'data', name: "architecture.donnees", summary: "architecture.sqlite_fts5_et_historique_metadata_only" }
 ];
 
 export const ARCHITECTURE_NODES: readonly ArchitectureNode[] = [
   {
-    id: 'chat-ui', name: 'Chat IA', layerId: 'client', technology: 'Angular 19 · Signals',
-    responsibility: 'Questions RAG et génération de schémas de formulaires.',
-    description: 'Le chat conserve le document actif, envoie le scope choisi et affiche réponses, citations et détails d’exécution. La génération de formulaires est un parcours distinct.'
+    id: 'chat-ui', name: "architecture.chat_ia", layerId: 'client', technology: 'Angular 19 · Signals',
+    responsibility: "architecture.questions_rag_et_generation_de_schemas_de",
+    description: "architecture.le_chat_conserve_le_document_actif_envoie"
   },
   {
-    id: 'dynamic-form-ui', name: 'Formulaire dynamique', layerId: 'client', technology: 'Angular Reactive Forms',
-    responsibility: 'Rendu du schéma JSON retourné par la génération IA.',
-    description: 'Le schéma de formulaire est rendu dans Angular puis soumis séparément. La génération ne lance pas automatiquement la recherche RAG.'
+    id: 'dynamic-form-ui', name: "architecture.formulaire_dynamique", layerId: 'client', technology: 'Angular Reactive Forms',
+    responsibility: "architecture.rendu_du_schema_json_retourne_par_la",
+    description: "architecture.le_schema_de_formulaire_est_rendu_dans"
   },
   {
-    id: 'operations-dashboard-ui', name: 'Dashboard local', layerId: 'client', technology: 'Angular · HttpClient',
-    responsibility: 'Présentation des métriques et historiques autorisés pour la démo locale.',
-    description: 'Le dashboard lit des agrégats, séries, exécutions, documents et métadonnées de soumissions. Les endpoints de télémétrie sont restreints au mode démo local.'
+    id: 'operations-dashboard-ui', name: "architecture.dashboard_local", layerId: 'client', technology: 'Angular · HttpClient',
+    responsibility: "architecture.presentation_des_metriques_et_historiques_autorises_pour",
+    description: "architecture.le_dashboard_lit_des_agregats_series_executions"
   },
   {
-    id: 'express-form-api', name: 'API formulaires', layerId: 'api', technology: 'Express · POST /api/generate-form',
-    responsibility: 'Demande à Groq un schéma JSON de formulaire.',
-    description: 'Le serveur construit l’instruction de génération structurée et retourne le schéma à Angular. Le contexte RAG n’est pas ajouté automatiquement par le client actuel.'
+    id: 'express-form-api', name: "architecture.api_formulaires", layerId: 'api', technology: 'Express · POST /api/generate-form',
+    responsibility: "architecture.demande_a_groq_un_schema_json_de",
+    description: "architecture.le_serveur_construit_l_instruction_de_generation"
   },
   {
-    id: 'express-submit-api', name: 'API soumissions', layerId: 'api', technology: 'Express · POST /api/submit-form',
-    responsibility: 'Persiste le payload soumis dans la table métier des formulaires.',
-    description: 'Les valeurs sont stockées dans SQLite. Le Dashboard n’en expose que les métadonnées par défaut; l’API de soumission existante retourne encore les données au client émetteur.'
+    id: 'express-submit-api', name: "architecture.api_soumissions", layerId: 'api', technology: 'Express · POST /api/submit-form',
+    responsibility: "architecture.persiste_le_payload_soumis_dans_la_table",
+    description: "architecture.les_valeurs_sont_stockees_dans_sqlite_le"
   },
   {
-    id: 'express-rag-api', name: 'API Chat RAG', layerId: 'api', technology: 'Express · POST /api/chat',
-    responsibility: 'Valide la portée, récupère les chunks FTS5, appelle Groq et construit les références de sources.',
-    description: 'La recherche est lexicale SQLite FTS5, filtrable par documentId. Les libellés de citation identifient les sources retrouvées, sans prouver l’exactitude factuelle.'
+    id: 'express-rag-api', name: "architecture.api_chat_rag", layerId: 'api', technology: 'Express · POST /api/chat',
+    responsibility: "architecture.valide_la_portee_recupere_les_chunks_fts5",
+    description: "architecture.la_recherche_est_lexicale_sqlite_fts5_filtrable"
   },
   {
-    id: 'express-document-api', name: 'API ingestion', layerId: 'api', technology: 'Express · Multer · pdf-parse',
-    responsibility: 'Extrait le texte reçu et déclenche sa persistance/indexation.',
-    description: 'L’endpoint de parsing retourne notamment documentId, nom de fichier, texte extrait et nombre de chunks au client qui a envoyé le document.'
+    id: 'express-document-api', name: "architecture.api_ingestion", layerId: 'api', technology: 'Express · Multer · pdf-parse',
+    responsibility: "architecture.extrait_le_texte_recu_et_declenche_sa",
+    description: "architecture.l_endpoint_de_parsing_retourne_notamment_documentid"
   },
   {
-    id: 'express-agent-api', name: 'API Agent', layerId: 'api', technology: 'Express · POST /api/agent/run',
-    responsibility: 'Valide le but, exécute la boucle Groq et limite les appels aux outils approuvés.',
-    description: 'Le handler Agent est une voie indépendante du chat RAG. Il n’effectue ni recherche FTS5 ni génération de citations documentaires.'
+    id: 'express-agent-api', name: "architecture.api_agent", layerId: 'api', technology: 'Express · POST /api/agent/run',
+    responsibility: "architecture.valide_le_but_execute_la_boucle_groq",
+    description: "architecture.le_handler_agent_est_une_voie_independante"
   },
   {
-    id: 'groq-form-model', name: 'Groq · génération', layerId: 'ai', technology: 'Groq Chat Completions',
-    responsibility: 'Produit le schéma JSON demandé par le générateur.',
-    description: 'Le modèle utilisé par la route de formulaire est actuellement configuré côté serveur; ce flux ne reçoit pas automatiquement le document actif du chat.'
+    id: 'groq-form-model', name: "architecture.groq_generation", layerId: 'ai', technology: 'Groq Chat Completions',
+    responsibility: "architecture.produit_le_schema_json_demande_par_le",
+    description: "architecture.le_modele_utilise_par_la_route_de"
   },
   {
-    id: 'groq-rag-model', name: 'Groq · réponse RAG', layerId: 'ai', technology: 'Groq Chat Completions',
-    responsibility: 'Répond aux questions à partir des passages retrouvés et reçoit les labels de sources.',
-    description: 'L’API consomme l’usage fournisseur quand disponible. Elle peut utiliser un modèle de secours; l’exécution indique le modèle effectivement utilisé.'
+    id: 'groq-rag-model', name: "architecture.groq_reponse_rag", layerId: 'ai', technology: 'Groq Chat Completions',
+    responsibility: "architecture.repond_aux_questions_a_partir_des_passages",
+    description: "architecture.l_api_consomme_l_usage_fournisseur_quand"
   },
   {
-    id: 'groq-agent-model', name: 'Groq · agent interne', layerId: 'ai', technology: 'Tool calling · raisonnement masqué',
-    responsibility: 'Choisit uniquement parmi les opérations de lecture définies par le moteur interne conservé pour réutilisation.',
-    description: 'Le runner borne durée, itérations et nombre d’appels; des demandes d’outils non autorisées sont rejetées.'
+    id: 'groq-agent-model', name: "architecture.groq_agent_interne", layerId: 'ai', technology: 'workspace.toolTechnology',
+    responsibility: "architecture.choisit_uniquement_parmi_les_operations_de_lecture",
+    description: "architecture.le_runner_borne_duree_iterations_et_nombre"
   },
   {
-    id: 'sqlite-documents', name: 'Documents et FTS5', layerId: 'data', technology: 'SQLite · better-sqlite3 · FTS5',
-    responsibility: 'Conserve métadonnées de documents, chunks et index lexical persistant.',
-    description: 'Les chunks sont liés à un document, recherchés lexicalement par FTS5 et filtrés dans SQL par documentId lorsqu’un scope de document est demandé. Aucun embedding vectoriel n’est utilisé.'
+    id: 'sqlite-documents', name: "architecture.documents_et_fts5", layerId: 'data', technology: 'SQLite · better-sqlite3 · FTS5',
+    responsibility: "architecture.conserve_metadonnees_de_documents_chunks_et_index",
+    description: "architecture.les_chunks_sont_lies_a_un_document"
   },
   {
-    id: 'sqlite-form-submissions', name: 'Soumissions', layerId: 'data', technology: 'SQLite · form_submissions',
-    responsibility: 'Persiste les valeurs de formulaires soumises.',
-    description: 'Le payload métier est conservé dans la base. Il ne doit pas être exposé dans les vues publiques d’architecture ou de démonstration.'
+    id: 'sqlite-form-submissions', name: "architecture.soumissions", layerId: 'data', technology: 'SQLite · form_submissions',
+    responsibility: "architecture.persiste_les_valeurs_de_formulaires_soumises",
+    description: "architecture.le_payload_metier_est_conserve_dans_la"
   },
   {
-    id: 'observability-runtime', name: 'Observabilité RAG', layerId: 'api', technology: 'performance.now · usage Groq · configuration tarifaire',
-    responsibility: 'Mesure étapes, durée totale, usage fournisseur et coût estimé configurable.',
-    description: 'Les montants sont des estimations fondées sur les tarifs configurés, non des factures. Les valeurs d’usage absentes restent indisponibles.'
+    id: 'observability-runtime', name: "architecture.observabilite_rag", layerId: 'api', technology: 'workspace.telemetryTechnology',
+    responsibility: "architecture.mesure_etapes_duree_totale_usage_fournisseur_et",
+    description: "architecture.les_montants_sont_des_estimations_fondees_sur"
   },
   {
-    id: 'sqlite-inference-history', name: 'Historique d’exécution', layerId: 'data', technology: 'SQLite · inference_history · inference_steps',
-    responsibility: 'Persiste les seules métadonnées de trace et les durées des étapes.',
-    description: 'L’historique ne conserve pas prompts, réponses, extraits documentaires, payloads, clés ou en-têtes.'
+    id: 'sqlite-inference-history', name: "architecture.historique_d_execution", layerId: 'data', technology: 'SQLite · inference_history · inference_steps',
+    responsibility: "architecture.persiste_les_seules_metadonnees_de_trace_et",
+    description: "architecture.l_historique_ne_conserve_pas_prompts_reponses"
   },
   {
-    id: 'agent-readonly-tools', name: 'Outils approuvés', layerId: 'api', technology: 'Liste blanche · SQL paramétré',
-    responsibility: 'Compte les formulaires et lit un historique limité sans retourner les payloads ou noms de fichiers.',
-    description: 'Les outils sont codés côté serveur et n’acceptent pas de SQL arbitraire. Leur retour est constitué de métadonnées autorisées.'
+    id: 'agent-readonly-tools', name: "architecture.outils_approuves", layerId: 'api', technology: 'workspace.allowedToolsTechnology',
+    responsibility: "architecture.compte_les_formulaires_et_lit_un_historique",
+    description: "architecture.les_outils_sont_codes_cote_serveur_et"
   },
   {
-    id: 'sqlite-dashboard-metadata', name: 'Métadonnées Dashboard', layerId: 'data', technology: 'SQLite · form_submissions · documents_history',
-    responsibility: 'Alimente les outils de lecture de l’Agent avec compteurs et métadonnées d’historique.',
-    description: 'La voie Agent lit les métadonnées de soumission et de document; elle ne lit pas le contenu des documents ni les payloads de formulaires.'
+    id: 'sqlite-dashboard-metadata', name: "architecture.metadonnees_dashboard", layerId: 'data', technology: 'SQLite · form_submissions · documents_history',
+    responsibility: "architecture.alimente_les_outils_de_lecture_de_l",
+    description: "architecture.la_voie_agent_lit_les_metadonnees_de"
   }
 ];
 
 export const ARCHITECTURE_EDGES: readonly ArchitectureEdge[] = [
-  { id: 'chat-generate-request', sourceNodeId: 'chat-ui', targetNodeId: 'express-form-api', connectionType: 'http', description: 'POST /api/generate-form avec la demande de génération.' },
-  { id: 'generate-inference', sourceNodeId: 'express-form-api', targetNodeId: 'groq-form-model', connectionType: 'inference', description: 'Appel Groq pour produire un schéma JSON.' },
-  { id: 'generate-schema-to-api', sourceNodeId: 'groq-form-model', targetNodeId: 'express-form-api', connectionType: 'response', description: 'Groq retourne le schéma JSON à la route Express.' },
-  { id: 'generate-schema-return', sourceNodeId: 'express-form-api', targetNodeId: 'dynamic-form-ui', connectionType: 'response', description: 'Express retourne le schéma que le composant Angular rend.' },
-  { id: 'form-submit-request', sourceNodeId: 'dynamic-form-ui', targetNodeId: 'express-submit-api', connectionType: 'http', description: 'POST /api/submit-form avec les valeurs soumises.' },
-  { id: 'form-submit-write', sourceNodeId: 'express-submit-api', targetNodeId: 'sqlite-form-submissions', connectionType: 'sql', description: 'Insertion des valeurs dans form_submissions.' },
-  { id: 'chat-rag-request', sourceNodeId: 'chat-ui', targetNodeId: 'express-rag-api', connectionType: 'http', description: 'POST /api/chat avec le prompt et le scope de document facultatif.' },
-  { id: 'rag-retrieve', sourceNodeId: 'express-rag-api', targetNodeId: 'sqlite-documents', connectionType: 'sql', description: 'Recherche lexicale FTS5 avec filtre documentId lorsqu’il est fourni.' },
-  { id: 'rag-inference', sourceNodeId: 'express-rag-api', targetNodeId: 'groq-rag-model', connectionType: 'inference', description: 'Passages retrouvés et citations candidates fournis à Groq.' },
-  { id: 'rag-model-response', sourceNodeId: 'groq-rag-model', targetNodeId: 'express-rag-api', connectionType: 'response', description: 'Groq retourne le texte et l’usage fournisseur à la route Express.' },
-  { id: 'rag-response', sourceNodeId: 'express-rag-api', targetNodeId: 'chat-ui', connectionType: 'response', description: 'Express retourne réponse, labels validés, références de sources et métadonnées d’exécution.' },
-  { id: 'ingestion-write', sourceNodeId: 'express-document-api', targetNodeId: 'sqlite-documents', connectionType: 'sql', description: 'Persistance des métadonnées/chunks et mise à jour de FTS5.' },
-  { id: 'chat-observability', sourceNodeId: 'express-rag-api', targetNodeId: 'observability-runtime', connectionType: 'tool', description: 'Mesure les étapes du handler, usage et estimation tarifaire.' },
-  { id: 'observability-persist', sourceNodeId: 'observability-runtime', targetNodeId: 'sqlite-inference-history', connectionType: 'sql', description: 'Écrit une trace metadata-only et ses étapes ordonnées.' },
-  { id: 'dashboard-history-read', sourceNodeId: 'sqlite-inference-history', targetNodeId: 'operations-dashboard-ui', connectionType: 'response', description: 'Endpoints de métriques et d’historique local-only.' },
-  { id: 'agent-inference', sourceNodeId: 'express-agent-api', targetNodeId: 'groq-agent-model', connectionType: 'inference', description: 'Appel Groq avec outils explicitement déclarés et limites d’exécution.' },
-  { id: 'agent-tools', sourceNodeId: 'groq-agent-model', targetNodeId: 'agent-readonly-tools', connectionType: 'tool', description: 'Seuls les noms et arguments de la liste blanche sont exécutés.' },
-  { id: 'agent-metadata-query', sourceNodeId: 'agent-readonly-tools', targetNodeId: 'sqlite-dashboard-metadata', connectionType: 'sql', description: 'Lectures bornées de compteurs et d’historique metadata-only.' },
+  { id: 'chat-generate-request', sourceNodeId: 'chat-ui', targetNodeId: 'express-form-api', connectionType: 'http', description: "architecture.post_api_generate_form_avec_la_demande" },
+  { id: 'generate-inference', sourceNodeId: 'express-form-api', targetNodeId: 'groq-form-model', connectionType: 'inference', description: "architecture.appel_groq_pour_produire_un_schema_json" },
+  { id: 'generate-schema-to-api', sourceNodeId: 'groq-form-model', targetNodeId: 'express-form-api', connectionType: 'response', description: "architecture.groq_retourne_le_schema_json_a_la" },
+  { id: 'generate-schema-return', sourceNodeId: 'express-form-api', targetNodeId: 'dynamic-form-ui', connectionType: 'response', description: "architecture.express_retourne_le_schema_que_le_composant" },
+  { id: 'form-submit-request', sourceNodeId: 'dynamic-form-ui', targetNodeId: 'express-submit-api', connectionType: 'http', description: "architecture.post_api_submit_form_avec_les_valeurs" },
+  { id: 'form-submit-write', sourceNodeId: 'express-submit-api', targetNodeId: 'sqlite-form-submissions', connectionType: 'sql', description: "architecture.insertion_des_valeurs_dans_form_submissions" },
+  { id: 'chat-rag-request', sourceNodeId: 'chat-ui', targetNodeId: 'express-rag-api', connectionType: 'http', description: "architecture.post_api_chat_avec_le_prompt_et" },
+  { id: 'rag-retrieve', sourceNodeId: 'express-rag-api', targetNodeId: 'sqlite-documents', connectionType: 'sql', description: "architecture.recherche_lexicale_fts5_avec_filtre_documentid_lorsqu" },
+  { id: 'rag-inference', sourceNodeId: 'express-rag-api', targetNodeId: 'groq-rag-model', connectionType: 'inference', description: "architecture.passages_retrouves_et_citations_candidates_fournis_a" },
+  { id: 'rag-model-response', sourceNodeId: 'groq-rag-model', targetNodeId: 'express-rag-api', connectionType: 'response', description: "architecture.groq_retourne_le_texte_et_l_usage" },
+  { id: 'rag-response', sourceNodeId: 'express-rag-api', targetNodeId: 'chat-ui', connectionType: 'response', description: "architecture.express_retourne_reponse_labels_valides_references_de" },
+  { id: 'ingestion-write', sourceNodeId: 'express-document-api', targetNodeId: 'sqlite-documents', connectionType: 'sql', description: "architecture.persistance_des_metadonnees_chunks_et_mise_a" },
+  { id: 'chat-observability', sourceNodeId: 'express-rag-api', targetNodeId: 'observability-runtime', connectionType: 'tool', description: "architecture.mesure_les_etapes_du_handler_usage_et" },
+  { id: 'observability-persist', sourceNodeId: 'observability-runtime', targetNodeId: 'sqlite-inference-history', connectionType: 'sql', description: "architecture.ecrit_une_trace_metadata_only_et_ses" },
+  { id: 'dashboard-history-read', sourceNodeId: 'sqlite-inference-history', targetNodeId: 'operations-dashboard-ui', connectionType: 'response', description: "architecture.endpoints_de_metriques_et_d_historique_local" },
+  { id: 'agent-inference', sourceNodeId: 'express-agent-api', targetNodeId: 'groq-agent-model', connectionType: 'inference', description: "architecture.appel_groq_avec_outils_explicitement_declares_et" },
+  { id: 'agent-tools', sourceNodeId: 'groq-agent-model', targetNodeId: 'agent-readonly-tools', connectionType: 'tool', description: "architecture.seuls_les_noms_et_arguments_de_la" },
+  { id: 'agent-metadata-query', sourceNodeId: 'agent-readonly-tools', targetNodeId: 'sqlite-dashboard-metadata', connectionType: 'sql', description: "architecture.lectures_bornees_de_compteurs_et_d_historique" },
 ];
 
 export const ARCHITECTURE_FLOWS: readonly ArchitectureFlow[] = [
   {
-    id: 'form-generation', title: 'Génération de formulaires',
-    purpose: 'Transformer une demande en schéma de formulaire, puis enregistrer les valeurs soumises.',
+    id: 'form-generation', title: "architecture.generation_de_formulaires",
+    purpose: "architecture.transformer_une_demande_en_schema_de_formulaire",
     nodeIds: ['chat-ui', 'express-form-api', 'groq-form-model', 'dynamic-form-ui', 'express-submit-api', 'sqlite-form-submissions'],
     edgeIds: ['chat-generate-request', 'generate-inference', 'generate-schema-to-api', 'generate-schema-return', 'form-submit-request', 'form-submit-write'],
     steps: [
-      { title: 'Demande', explanation: 'Le chat détecte la demande de génération et l’envoie à la route dédiée.' },
-      { title: 'Schéma IA', explanation: 'Express sollicite Groq avec une consigne JSON structurée; la génération n’utilise pas automatiquement la recherche RAG.' },
-      { title: 'Rendu Angular', explanation: 'Le schéma reçu est transformé en contrôles réactifs Angular.' },
-      { title: 'Soumission', explanation: 'À l’envoi, Express stocke les valeurs dans SQLite; ces données métier restent privées.' }
+      { title: "architecture.demande", explanation: "architecture.le_chat_detecte_la_demande_de_generation" },
+      { title: "architecture.schema_ia", explanation: "architecture.express_sollicite_groq_avec_une_consigne_json" },
+      { title: "architecture.rendu_angular", explanation: "architecture.le_schema_recu_est_transforme_en_controles" },
+      { title: "architecture.soumission", explanation: "architecture.a_l_envoi_express_stocke_les_valeurs" }
     ]
   },
   {
-    id: 'pdf-rag', title: 'PDF RAG et citations',
-    purpose: 'Retrouver des passages lexicalement dans un document choisi et fournir des sources traçables.',
+    id: 'pdf-rag', title: "architecture.pdf_rag_et_citations",
+    purpose: "architecture.retrouver_des_passages_lexicalement_dans_un_document",
     nodeIds: ['chat-ui', 'express-rag-api', 'sqlite-documents', 'groq-rag-model'],
     edgeIds: ['chat-rag-request', 'rag-retrieve', 'rag-inference', 'rag-model-response', 'rag-response'],
     steps: [
-      { title: 'Question et scope', explanation: 'Angular transmet la question et, en mode document actif, son documentId.' },
-      { title: 'Recherche SQLite FTS5', explanation: 'La requête FTS5 filtre les chunks sur le document choisi, ou interroge tous les documents si ce mode a été sélectionné.' },
-      { title: 'Inférence', explanation: 'Les passages retrouvés sont envoyés à Groq avec des labels de citation locaux à la requête.' },
-      { title: 'Réponse vérifiable', explanation: 'Le serveur valide que les labels cités existent parmi les sources retrouvées; cela ne prouve pas l’exactitude factuelle de la réponse.' }
+      { title: "architecture.question_et_scope", explanation: "architecture.angular_transmet_la_question_et_en_mode" },
+      { title: "architecture.recherche_sqlite_fts5", explanation: "architecture.la_requete_fts5_filtre_les_chunks_sur" },
+      { title: "architecture.inference", explanation: "architecture.les_passages_retrouves_sont_envoyes_a_groq" },
+      { title: "architecture.reponse_verifiable", explanation: "architecture.le_serveur_valide_que_les_labels_cites" }
     ]
   },
   {
-    id: 'rag-observability', title: 'Observabilité IA',
-    purpose: 'Mesurer les requêtes RAG et conserver une trace opérationnelle sans contenu privé.',
+    id: 'rag-observability', title: "architecture.observabilite_ia",
+    purpose: "architecture.mesurer_les_requetes_rag_et_conserver_une",
     nodeIds: ['express-rag-api', 'observability-runtime', 'sqlite-inference-history', 'operations-dashboard-ui'],
     edgeIds: ['chat-observability', 'observability-persist', 'dashboard-history-read'],
     steps: [
-      { title: 'Mesures', explanation: 'Le handler mesure la validation, la recherche, la préparation de contexte et les appels Groq.' },
-      { title: 'Usage et coût', explanation: 'Les tokens viennent de l’usage fournisseur lorsqu’il est disponible; le coût est une estimation selon les tarifs configurés, pas une facture.' },
-      { title: 'Historique metadata-only', explanation: 'SQLite conserve trace ID, statut, scope, compteurs, usage nullable, coûts estimés et durées ordonnées; aucun prompt, réponse ou extrait.' },
-      { title: 'Vue locale', explanation: 'Le Dashboard agrège ces métadonnées derrière le mode de démonstration local.' }
+      { title: "architecture.mesures", explanation: "architecture.le_handler_mesure_la_validation_la_recherche" },
+      { title: "architecture.usage_et_cout", explanation: "architecture.les_tokens_viennent_de_l_usage_fournisseur" },
+      { title: "architecture.historique_metadata_only", explanation: "architecture.sqlite_conserve_trace_id_statut_scope_compteurs" },
+      { title: "architecture.vue_locale", explanation: "architecture.le_dashboard_agrege_ces_metadonnees_derriere_le" }
     ]
   },
   {
-    id: 'agent-workspace', title: 'Moteur interne · outils',
-    purpose: 'Module backend local conservé pour 5E, sans interface ni raccordement automatique au Support Agent Studio.',
+    id: 'agent-workspace', title: "architecture.moteur_interne_outils",
+    purpose: "architecture.module_backend_local_conserve_pour_5e_sans",
     nodeIds: ['express-agent-api', 'groq-agent-model', 'agent-readonly-tools', 'sqlite-dashboard-metadata'],
     edgeIds: ['agent-inference', 'agent-tools', 'agent-metadata-query'],
     steps: [
-      { title: 'Objectif', explanation: 'Un appel technique local autorisé peut transmettre un but à /api/agent/run; ce parcours ne passe pas par le chat RAG et ne possède plus d’interface produit.' },
-      { title: 'Outils limités', explanation: 'Groq ne peut demander que le comptage des soumissions ou la lecture d’un historique metadata-only borné.' },
-      { title: 'Validation serveur', explanation: 'Le runner valide les noms/arguments, limites le temps, les itérations et le nombre d’appels; les outils arbitraires sont rejetés.' },
-      { title: 'Résultat', explanation: 'Le backend retourne à l’appelant technique la réponse et la trace d’outils, sans noms de fichiers ni payloads. Aucune validation humaine n’est encore implémentée.' }
+      { title: "architecture.objectif", explanation: "architecture.un_appel_technique_local_autorise_peut_transmettre" },
+      { title: "architecture.outils_limites", explanation: "architecture.groq_ne_peut_demander_que_le_comptage" },
+      { title: "architecture.validation_serveur", explanation: "architecture.le_runner_valide_les_noms_arguments_limites" },
+      { title: "architecture.resultat", explanation: "architecture.le_backend_retourne_a_l_appelant_technique" }
     ]
   }
 ];

@@ -1,3 +1,5 @@
+import { TranslocoPipe } from '@jsverse/transloco';
+import { UiLanguageService } from '../../i18n/ui-language.service';
 import { AgentConversationsComponent } from './agent-conversations.component';
 import { AgentKnowledgeComponent } from './agent-knowledge.component';
 import { CommonModule } from '@angular/common';
@@ -10,11 +12,12 @@ import { SupportAgent, SupportAgentConfig, emptySupportAgent } from '../../model
 
 @Component({
   selector: 'app-agent-configuration', standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, AgentKnowledgeComponent, AgentConversationsComponent],
+  imports: [TranslocoPipe, CommonModule, ReactiveFormsModule, AgentKnowledgeComponent, AgentConversationsComponent],
   templateUrl: './agent-configuration.component.html',
   styleUrl: './agent-configuration.component.scss'
 })
 export class AgentConfigurationComponent implements OnInit {
+  readonly ui = inject(UiLanguageService);
   private readonly api = inject(AgentService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder).nonNullable;
@@ -41,7 +44,7 @@ export class AgentConfigurationComponent implements OnInit {
   readonly error = signal('');
   readonly pageSize = 50;
   readonly activeSpace = signal<'configuration' | 'knowledge' | 'test' | 'conversations'>('configuration');
-  readonly spaces = [{ id: 'configuration', label: 'Configuration' }, { id: 'knowledge', label: 'Knowledge Base' }, { id: 'test', label: 'Tester l’agent' }, { id: 'conversations', label: 'Conversations' }] as const;
+  readonly spaces = [{ id: 'configuration', label: 'workspace.configuration' }, { id: 'knowledge', label: 'configuration.knowledge_base' }, { id: 'test', label: 'configuration.tester_l_agent' }, { id: 'conversations', label: 'workspace.conversations' }] as const;
   readonly knowledgeDirty = signal(false);
   readonly workspaceBusy = signal(false);
   readonly navigationMessage = signal('');
@@ -63,9 +66,9 @@ export class AgentConfigurationComponent implements OnInit {
   beforeUnload(event: BeforeUnloadEvent): void { if (this.form.dirty || this.knowledgeDirty()) event.preventDefault(); }
 
   private mayLeaveDraft(): boolean {
-    if (this.knowledgeDirty()) { this.navigationMessage.set('Modifications documentaires non enregistrées : enregistrez ou annulez avant de changer d’espace ou d’agent.');return false; }
-    if (this.workspaceBusy()) { this.navigationMessage.set('Attendez la fin de l’opération en cours.');return false; }
-    if (this.form.dirty) { this.message.set('Modifications non enregistrées : enregistrez ou annulez avant de changer d’agent.');this.navigationMessage.set('Enregistrez ou annulez la configuration avant de changer d’espace.'); return false; }
+    if (this.knowledgeDirty()) { this.navigationMessage.set('configuration.modifications_documentaires_non_enregistrees_enregistrez_ou_annulez');return false; }
+    if (this.workspaceBusy()) { this.navigationMessage.set('configuration.attendez_la_fin_de_l_operation_en');return false; }
+    if (this.form.dirty) { this.message.set('configuration.modifications_non_enregistrees_enregistrez_ou_annulez_avant');this.navigationMessage.set('configuration.enregistrez_ou_annulez_la_configuration_avant_de'); return false; }
     return !this.saving() && !this.loadingDetail();
   }
   load(offset = this.offset()): void {
@@ -88,7 +91,7 @@ export class AgentConfigurationComponent implements OnInit {
   }
   newAgent(): void {
     if (!this.mayLeaveDraft()) return;
-    this.selected.set(null);this.activeSpace.set('configuration');this.navigationMessage.set('');this.form.reset(emptySupportAgent());this.message.set('Nouvelle configuration, non enregistrée.');this.error.set('');
+    this.selected.set(null);this.activeSpace.set('configuration');this.navigationMessage.set('');this.form.reset(emptySupportAgent());this.message.set('configuration.nouvelle_configuration_non_enregistree');this.error.set('');
   }
   openAgent(agent: SupportAgent): void {
     if (!this.mayLeaveDraft()) return;
@@ -106,17 +109,17 @@ export class AgentConfigurationComponent implements OnInit {
   cancel(): void {
     if (this.saving() || this.loadingDetail()) return;
     const agent = this.selected();if (agent) this.apply(agent);else this.form.reset(emptySupportAgent());
-    this.navigationMessage.set('');this.error.set('');this.message.set('Modifications annulées. Aucune nouvelle donnée enregistrée.');
+    this.navigationMessage.set('');this.error.set('');this.message.set('configuration.modifications_annulees_aucune_nouvelle_donnee_enregistree');
   }
   save(): void {
     if (this.saving() || this.loadingDetail()) return;
-    this.form.markAllAsTouched();if (this.form.invalid) { this.error.set('Vérifiez les champs obligatoires et leurs limites.');return; }
+    this.form.markAllAsTouched();if (this.form.invalid) { this.error.set('configuration.verifiez_les_champs_obligatoires_et_leurs_limites');return; }
     const agent = this.selected();
     const config: SupportAgentConfig = this.form.getRawValue();
     this.saving.set(true);this.error.set('');this.message.set('');
     const request = agent ? this.api.updateAgent(agent.id, config, agent.version) : this.api.createAgent(config);
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: current => { this.apply(current);this.saving.set(false);this.message.set('Configuration enregistrée dans SQLite.');this.load(0); },
+      next: current => { this.apply(current);this.saving.set(false);this.message.set('configuration.configuration_enregistree_dans_sqlite');this.load(0); },
       error: error => { this.saving.set(false);this.error.set(this.errorText(error)); }
     });
   }
@@ -125,16 +128,16 @@ export class AgentConfigurationComponent implements OnInit {
     this.saving.set(true);this.message.set('');this.error.set('');
     this.api.setAgentStatus(agent.id, agent.status === 'active' ? 'inactive' : 'active', agent.version)
       .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: current => { this.apply(current);this.saving.set(false);this.message.set(current.status === 'active' ? 'Configuration activée.' : 'Configuration désactivée.');this.load(0); },
+        next: current => { this.apply(current);this.saving.set(false);this.message.set(current.status === 'active' ? 'configuration.configuration_activee' : 'configuration.configuration_desactivee');this.load(0); },
         error: error => { this.saving.set(false);this.error.set(this.errorText(error)); }
       });
   }
   invalid(name: keyof SupportAgentConfig): boolean { const field = this.form.controls[name];return field.invalid && field.touched; }
   private errorText(error: HttpErrorResponse): string {
-    if (error.status === 403) return 'Accès refusé : la configuration exige le mode local DASHBOARD_TELEMETRY_LOCAL_ONLY=true.';
-    if (error.status === 409) return 'Cet agent a été modifié ailleurs. Annulez vos modifications puis rechargez avant de réessayer.';
-    if (error.status === 400) return 'Configuration refusée : vérifiez les valeurs et les limites des champs.';
-    if (error.status === 404) return 'Cet agent est introuvable. Rechargez la liste.';
-    return 'Enregistrement ou chargement impossible. Vérifiez le serveur local et réessayez. Vos saisies sont conservées.';
+    if (error.status === 403) return 'configuration.acces_refuse_la_configuration_exige_le_mode';
+    if (error.status === 409) return 'configuration.cet_agent_a_ete_modifie_ailleurs_annulez';
+    if (error.status === 400) return 'configuration.configuration_refusee_verifiez_les_valeurs_et_les';
+    if (error.status === 404) return 'configuration.cet_agent_est_introuvable_rechargez_la_liste';
+    return 'configuration.enregistrement_ou_chargement_impossible_verifiez_le_serveur';
   }
 }

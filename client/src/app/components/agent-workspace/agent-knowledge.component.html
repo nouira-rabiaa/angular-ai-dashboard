@@ -1,55 +1,55 @@
 <section class="knowledge" [attr.aria-labelledby]="mode === 'knowledge' ? 'knowledge-title' : 'preview-title'">
-  <header><div><p class="eyebrow">{{ agent.name }} · {{ agent.status === 'active' ? 'Configuration active' : 'Configuration inactive' }}</p><h2 [id]="mode === 'knowledge' ? 'knowledge-title' : 'preview-title'">{{ mode === 'knowledge' ? 'Knowledge Base' : 'Tester l’agent' }}</h2></div><button type="button" (click)="load()" [disabled]="busy() || dirty() || state() === 'loading'">Recharger</button></header>
-  <p class="scope">Seuls les documents explicitement associés à cet agent sont recherchés, directement dans SQL. Aucun accès implicite aux autres documents.</p>
-  @if (state() === 'loading') { <p role="status" class="notice">Chargement du périmètre documentaire…</p> }
-  @if (error()) { <p role="alert" class="error">{{ error() }}</p> }
-  @if (message()) { <p role="status" class="notice">{{ message() }}</p> }
+  <header><div><p class="eyebrow">{{ agent.name }} · {{ agent.status === 'active' ? ('knowledge.configuration_active' | transloco) : ('knowledge.configuration_inactive' | transloco) }}</p><h2 [id]="mode === 'knowledge' ? 'knowledge-title' : 'preview-title'">{{ mode === 'knowledge' ? ('knowledge.knowledge_base' | transloco) : ('knowledge.tester_l_agent' | transloco) }}</h2></div><button type="button" (click)="load()" [disabled]="busy() || dirty() || state() === 'loading'">{{ 'knowledge.recharger' | transloco }}</button></header>
+  <p class="scope">{{ 'knowledge.seuls_les_documents_explicitement_associes_a_cet' | transloco }}</p>
+  @if (state() === 'loading') { <p role="status" class="notice">{{ 'knowledge.chargement_du_perimetre_documentaire' | transloco }}</p> }
+  @if (error()) { <p role="alert" class="error">{{ error() | transloco }}</p> }
+  @if (message()) { <p role="status" class="notice">{{ message() | transloco }}</p> }
   @if (state() === 'ready') {
     @if (mode === 'knowledge') {
       <div class="knowledge-grid">
-      <section aria-labelledby="associated-title" class="assigned"><h3 id="associated-title">Documents associés · {{ selection().length }}</h3>
-        @if (!selection().length) { <p>Aucun document sélectionné. Sans association enregistrée, l’agent s’abstient.</p> }
+      <section aria-labelledby="associated-title" class="assigned"><h3 id="associated-title">{{ 'knowledge.documents_associes' | transloco: { value1: (selection().length) } }}</h3>
+        @if (!selection().length) { <p>{{ 'knowledge.aucun_document_selectionne_sans_association_enregistree_l' | transloco }}</p> }
         <div class="chips">@for (id of selection(); track id) {
-          <span>{{ documentName(id) }}<button type="button" [attr.aria-label]="'Retirer le document ' + id" (click)="toggle(id, false)" [disabled]="busy()">×</button></span>
+          <span>{{ documentName(id) }}<button type="button" [attr.aria-label]="'workspace.removeDocument' | transloco: { id: id }" (click)="toggle(id, false)" [disabled]="busy()">{{ 'knowledge.label' | transloco }}</button></span>
         }</div>
       </section>
       <section class="catalog" aria-labelledby="catalog-title">
-      <div class="catalog-heading"><h3 id="catalog-title">Documents disponibles</h3><a href="/generator" target="_blank" rel="noopener noreferrer">Importer dans le Generator ↗</a></div>
-      @if (catalogLoading()) { <p role="status" class="notice">Chargement du catalogue…</p> }
-      @if (catalogError()) { <p role="alert" class="error">{{ catalogError() }}</p><button type="button" (click)="loadCatalog(offset())" [disabled]="catalogLoading() || busy()">Réessayer le catalogue</button> }
-      @if (!catalogLoading() && !catalogError() && !total()) { <p class="notice">Aucun document disponible. Importez un document dans le Generator existant.</p> }
-      <div class="document-list" tabindex="0" role="region" aria-label="Catalogue des documents">@for (document of documents(); track document.documentId) {
-        <label [class.chosen]="selection().includes(document.documentId)"><input type="checkbox" [checked]="selection().includes(document.documentId)" (change)="toggle(document.documentId, $any($event.target).checked)" [disabled]="busy() || catalogLoading()" /><span><strong>{{ document.filename }}</strong><small>{{ document.fileType }} · {{ document.chunksCount }} chunks · Document #{{ document.documentId }}</small></span></label>
+      <div class="catalog-heading"><h3 id="catalog-title">{{ 'knowledge.documents_disponibles' | transloco }}</h3><a href="/generator" target="_blank" rel="noopener noreferrer">{{ 'knowledge.importer_dans_le_generator' | transloco }}</a></div>
+      @if (catalogLoading()) { <p role="status" class="notice">{{ 'knowledge.chargement_du_catalogue' | transloco }}</p> }
+      @if (catalogError()) { <p role="alert" class="error">{{ catalogError() | transloco }}</p><button type="button" (click)="loadCatalog(offset())" [disabled]="catalogLoading() || busy()">{{ 'knowledge.reessayer_le_catalogue' | transloco }}</button> }
+      @if (!catalogLoading() && !catalogError() && !total()) { <p class="notice">{{ 'knowledge.aucun_document_disponible_importez_un_document_dans' | transloco }}</p> }
+      <div class="document-list" tabindex="0" role="region" [attr.aria-label]="'knowledge.catalogue_des_documents' | transloco">@for (document of documents(); track document.documentId) {
+        <label [class.chosen]="selection().includes(document.documentId)"><input type="checkbox" [checked]="selection().includes(document.documentId)" (change)="toggle(document.documentId, $any($event.target).checked)" [disabled]="busy() || catalogLoading()" /><span><strong>{{ document.filename }}</strong><small>{{ 'knowledge.chunks_document' | transloco: { value1: (document.fileType), value2: (document.chunksCount), value3: (document.documentId) } }}</small></span></label>
       }</div>
-      @if (total()) { <nav aria-label="Pages de documents" class="pagination"><span>{{ offset() + 1 }}–{{ offset() + documents().length }} / {{ total() }}</span><button type="button" (click)="page(-1)" [disabled]="busy() || catalogLoading() || offset() === 0">Précédents</button><button type="button" (click)="page(1)" [disabled]="busy() || catalogLoading() || offset() + 25 >= total()">Suivants</button></nav> }
+      @if (total()) { <nav [attr.aria-label]="'knowledge.pages_de_documents' | transloco" class="pagination"><span>{{ offset() + 1 }}–{{ offset() + documents().length }} / {{ total() }}</span><button type="button" (click)="page(-1)" [disabled]="busy() || catalogLoading() || offset() === 0">{{ 'knowledge.precedents' | transloco }}</button><button type="button" (click)="page(1)" [disabled]="busy() || catalogLoading() || offset() + 25 >= total()">{{ 'knowledge.suivants' | transloco }}</button></nav> }
       </section>
       </div>
-      @if (dirty()) { <p role="status" class="attention">Modifications documentaires non enregistrées. Enregistrez ou annulez avant de quitter cet espace.</p> }
-      <footer><span class="scope">Maximum 100 documents. Retirer une association ne supprime jamais le fichier ni ses chunks.</span><button type="button" (click)="cancel()" [disabled]="busy() || !dirty()">Annuler la sélection</button><button type="button" class="primary" (click)="save()" [disabled]="busy() || !dirty()">{{ busy() ? 'Enregistrement…' : 'Enregistrer les documents' }}</button></footer>
+      @if (dirty()) { <p role="status" class="attention">{{ 'knowledge.modifications_documentaires_non_enregistrees_enregistrez_ou_annulez' | transloco }}</p> }
+      <footer><span class="scope">{{ 'knowledge.maximum_100_documents_retirer_une_association_ne' | transloco }}</span><button type="button" (click)="cancel()" [disabled]="busy() || !dirty()">{{ 'knowledge.annuler_la_selection' | transloco }}</button><button type="button" class="primary" (click)="save()" [disabled]="busy() || !dirty()">{{ busy() ? ('knowledge.enregistrement' | transloco) : ('knowledge.enregistrer_les_documents' | transloco) }}</button></footer>
     } @else {
       <div class="preview-grid">
       <div class="question-panel">
-      <div class="preview-note"><strong>Prévisualisation documentaire 5B</strong><p>Une question indépendante, sans conversation persistante ni ticket. L’envoi déclenche un appel Groq uniquement si le contexte autorisé passe les contrôles lexicaux.</p></div>
-      <details class="assigned"><summary>Documents autorisés · {{ knowledge()?.documents?.length || 0 }}</summary><ul>@for (document of knowledge()?.documents; track document.documentId) { <li>{{ document.filename }} · {{ document.chunksCount }} chunks</li> } @empty { <li>Aucun document autorisé : une abstention sera affichée sans appel IA.</li> }</ul></details>
-      @if (agent.status !== 'active') { <p role="status" class="attention">Activez et enregistrez la configuration dans Configuration pour tester cet agent.</p> }
+      <div class="preview-note"><strong>{{ 'knowledge.previsualisation_documentaire_5b' | transloco }}</strong><p>{{ 'knowledge.une_question_independante_sans_conversation_persistante_ni' | transloco }}</p></div>
+      <details class="assigned"><summary>{{ 'knowledge.documents_autorises' | transloco: { value1: (knowledge()?.documents?.length || 0) } }}</summary><ul>@for (document of knowledge()?.documents; track document.documentId) { <li>{{ 'knowledge.chunks' | transloco: { value1: (document.filename), value2: (document.chunksCount) } }}</li> } @empty { <li>{{ 'knowledge.aucun_document_autorise_une_abstention_sera_affichee' | transloco }}</li> }</ul></details>
+      @if (agent.status !== 'active') { <p role="status" class="attention">{{ 'knowledge.activez_et_enregistrez_la_configuration_dans_configuration' | transloco }}</p> }
       <form (ngSubmit)="ask()" #askForm="ngForm"><fieldset [disabled]="busy() || agent.status !== 'active'">
-        <label for="support-document-scope">Portée<select id="support-document-scope" name="documentId" [(ngModel)]="documentId"><option [ngValue]="null">Tous les documents autorisés</option>@for (document of knowledge()?.documents; track document.documentId) { <option [ngValue]="document.documentId">{{ document.filename }}</option> }</select></label>
-        <label for="support-question">Votre question<textarea id="support-question" name="question" [(ngModel)]="question" rows="3" maxlength="2000" required aria-describedby="support-question-help"></textarea></label>
-        <div class="question-actions"><span id="support-question-help" class="scope">{{ question.length }} / 2 000 caractères · Aucun historique enregistré</span><button type="submit" class="primary" [disabled]="busy() || !question.trim() || askForm.invalid">{{ busy() ? 'Génération…' : 'Envoyer la question' }}</button></div>
+        <label for="support-document-scope">{{ 'knowledge.portee' | transloco }}<select id="support-document-scope" name="documentId" [(ngModel)]="documentId"><option [ngValue]="null">{{ 'knowledge.tous_les_documents_autorises' | transloco }}</option>@for (document of knowledge()?.documents; track document.documentId) { <option [ngValue]="document.documentId">{{ document.filename }}</option> }</select></label>
+        <label for="support-question">{{ 'knowledge.votre_question' | transloco }}<textarea id="support-question" name="question" [(ngModel)]="question" rows="3" maxlength="2000" required aria-describedby="support-question-help"></textarea></label>
+        <div class="question-actions"><span id="support-question-help" class="scope">{{ 'knowledge.2_000_caracteres_aucun_historique_enregistre' | transloco: { value1: (question.length) } }}</span><button type="submit" class="primary" [disabled]="busy() || !question.trim() || askForm.invalid">{{ busy() ? ('knowledge.generation' | transloco) : ('knowledge.envoyer_la_question' | transloco) }}</button></div>
       </fieldset></form>
-      @if (busy()) { <p role="status" class="notice">Recherche dans le périmètre autorisé et génération éventuelle…</p> }
+      @if (busy()) { <p role="status" class="notice">{{ 'knowledge.recherche_dans_le_perimetre_autorise_et_generation' | transloco }}</p> }
       </div>
       <div class="result-panel">
       @if (response(); as answer) {
-        <section class="answer" aria-labelledby="support-answer-title" aria-live="polite"><h3 id="support-answer-title">{{ answer.status === 'answered' ? 'Réponse documentaire' : 'Abstention · message de secours' }}</h3>
+        <section class="answer" aria-labelledby="support-answer-title" aria-live="polite"><h3 id="support-answer-title">{{ answer.status === 'answered' ? ('knowledge.reponse_documentaire' | transloco) : ('knowledge.abstention_message_de_secours' | transloco) }}</h3>
           @if (answer.status === 'abstained') { <p class="attention">{{ reason(answer.reason) }}</p> }
           <p class="reply">{{ answer.reply }}</p>
           @if (answer.sources.length) {
-            <p class="scope">Les labels identifient les passages retrouvés ; ils ne prouvent pas l’exactitude de chaque affirmation.</p>
-            <div class="citations">@for (source of answer.sources; track source.label) { <details><summary>[{{ source.label }}] {{ source.filename }} @if (source.pageNumber !== null) { · page {{ source.pageNumber }} }</summary><blockquote>{{ source.excerpt }}</blockquote><small>Document #{{ source.documentId }} · Chunk #{{ source.chunkId }}</small></details> }</div>
+            <p class="scope">{{ 'knowledge.les_labels_identifient_les_passages_retrouves_ils' | transloco }}</p>
+            <div class="citations">@for (source of answer.sources; track source.label) { <details><summary>[{{ source.label }}] {{ source.filename }} @if (source.pageNumber !== null) { {{ 'knowledge.page' | transloco: { value1: (source.pageNumber) } }}}</summary><blockquote>{{ source.excerpt }}</blockquote><small>{{ 'knowledge.document_chunk' | transloco: { value1: (source.documentId), value2: (source.chunkId) } }}</small></details> }</div>
           }
         </section>
-      } @else { <div class="notice" role="status"><h3>Réponse et citations</h3><p>Posez une question pour consulter la réponse et ses sources ici. Aucun résultat n’est généré avant votre envoi.</p></div> }
+      } @else { <div class="notice" role="status"><h3>{{ 'knowledge.reponse_et_citations' | transloco }}</h3><p>{{ 'knowledge.posez_une_question_pour_consulter_la_reponse' | transloco }}</p></div> }
       </div>
       </div>
     }

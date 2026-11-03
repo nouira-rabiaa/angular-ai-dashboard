@@ -1,3 +1,5 @@
+const usdFr = (value: number, decimals: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'USD', minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
+import { provideUiI18nTesting } from '../../i18n/ui-i18n.testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Observable, of, throwError } from 'rxjs';
 import { FinopsComponent } from './finops.component';
@@ -22,27 +24,27 @@ describe('FinopsComponent', () => {
   beforeEach(async () => {
     api = { getSummary: jest.fn().mockReturnValue(of(summary())), saveBudget: jest.fn().mockReturnValue(of({ monthlyBudgetUsd: 100 })),
       simulate: jest.fn().mockReturnValue(of({ status: 'ready', costPerRequestUsd: 0.004, monthlyCostUsd: 12.4, monthDays: 31, budget: { percent: 124, level: 'exceeded' } })) };
-    await TestBed.configureTestingModule({ imports: [FinopsComponent], providers: [{ provide: FinopsService, useValue: api }] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [FinopsComponent], providers: [...provideUiI18nTesting(), { provide: FinopsService, useValue: api }] }).compileComponents();
     fixture = TestBed.createComponent(FinopsComponent);component = fixture.componentInstance;
   });
   const text = () => fixture.nativeElement.textContent as string;
 
   it('rounds summaries for display while retaining detailed precision and missing values', () => {
-    expect(component.cost(4.00000001, 2)).toBe('$4.00 USD');
-    expect(component.cost(0.004)).toBe('$0.00400000 USD');
+    expect(component.cost(4.00000001, 2)).toBe(usdFr(4.00, 2));
+    expect(component.cost(0.004)).toBe(usdFr(0.00400000, 8));
     expect(component.cost(null, 2)).toBe('Indisponible');
     expect(component.cost(undefined, 2)).toBe('Indisponible');
-    expect(component.cost(0, 2)).toBe('$0.00 USD');
+    expect(component.cost(0, 2)).toBe(usdFr(0.00, 2));
     api.getSummary.mockReturnValue(of(summary({ monthlyBudgetUsd: 4.00000001 })));
     fixture.detectChanges();
-    expect(text()).toContain('$4.00 USD');
+    expect(text()).toContain(usdFr(4.00, 2));
     expect(component.budget).toBe(4.00000001);
     expect(component.summary()?.monthlyBudgetUsd).toBe(4.00000001);
   });
 
   it('renders observed costs separately from 7/30-day and month-end estimates and sample coverage', () => {
     fixture.detectChanges();
-    expect(text()).toContain('$14.00 USD');expect(text()).toContain('$60.00 USD');expect(text()).toContain('$65.00 USD');
+    expect(text()).toContain(usdFr(14.00, 2));expect(text()).toContain(usdFr(60.00, 2));expect(text()).toContain(usdFr(65.00, 2));
     expect(text()).toContain('20 / 20');expect(text()).toContain('jamais des montants facturés');
     expect(fixture.nativeElement.querySelector('svg[role="img"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('table caption').textContent).toContain('USD');
@@ -138,7 +140,7 @@ describe('FinopsComponent', () => {
     fixture.detectChanges();await fixture.whenStable();
     fixture.nativeElement.querySelectorAll('form')[1].dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));fixture.detectChanges();
     expect(api.simulate).toHaveBeenCalledWith({ model: 'model', requestsPerDay: 100, inputTokens: 1000, outputTokens: 300, monthlyBudgetUsd: null });
-    expect(text()).toContain('$0.00400000 USD');expect(text()).toContain('$12.40 USD');expect(text()).toContain('31 jours');
+    expect(text()).toContain(usdFr(0.00400000, 8));expect(text()).toContain(usdFr(12.40, 2));expect(text()).toContain('31 jours');
   });
 
   it('renders simulation loading, missing-rate, error and budget persistence failures', async () => {
