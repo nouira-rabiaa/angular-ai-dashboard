@@ -1,33 +1,18 @@
-<section class="generator-shell" aria-label="Générateur IA">
-  
-  <!-- 🧠 1. EN-TÊTE PRINCIPAL DE L'ENGINE -->
-  <div class="ui-card p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-    <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold border border-blue-100">
-        ✨
-      </div>
-      <div>
-        <div class="flex items-center gap-2 flex-wrap">
-          <h2 class="text-base md:text-lg font-bold text-slate-900 tracking-wide">Générateur IA</h2>
-          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">RAG Enabled</span>
-        </div>
-        <p class="text-xs text-slate-500 mt-0.5">Documents, réponses sourcées et formulaires dynamiques</p>
-      </div>
-    </div>
-    <div class="text-xs font-medium text-slate-500">
-      Architected by <strong class="text-blue-600">RABIAA</strong>
-    </div>
-  </div>
-
-  <!-- 💬 ZONE DE CHAT & INTERACTION PRINCIPALE -->
+<section class="generator-shell" aria-labelledby="generator-title">
+  <header class="generator-header">
+    <div><p class="generator-eyebrow">Espace de travail IA</p><h1 id="generator-title">Générateur IA</h1><p>Documents, réponses sourcées et formulaires dynamiques.</p></div>
+    <span class="generator-badge">Recherche lexicale · FTS5</span>
+  </header>
   <div class="generator-body">
-    
-    <!-- Liste des messages -->
-    <div class="generator-messages ui-card">
+    <section class="generator-thread ui-card" aria-labelledby="generator-conversation-title">
+      <header class="generator-thread-heading"><h2 id="generator-conversation-title">Conversation</h2><span>Vos échanges dans cet onglet</span></header>
+      <div class="generator-messages" role="region" aria-label="Messages et citations" tabindex="0" [attr.aria-busy]="isLoading()">
       @if (messages().length === 0) {
-        <div class="flex flex-col items-center justify-center text-center py-6 text-slate-400">
-          <span class="text-2xl mb-1.5">💡</span>
-          <p class="text-xs md:text-sm">Commencez par envoyer un prompt ou joindre un document RAG ci-dessous.</p>
+        <div class="generator-empty">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" /></svg>
+          <h3>Un espace pour vos questions et vos formulaires</h3>
+          <p>Interrogez vos documents ou décrivez le formulaire à générer. Les réponses, formulaires et citations apparaîtront dans cette conversation.</p>
+          <span>Aucun appel IA avant l’envoi de votre demande.</span>
         </div>
       }
 
@@ -47,16 +32,16 @@
                 <p style="white-space: pre-wrap; margin: 0;">{{ msg.text }}</p>
               }
               @if (msg.chatResponse) {
-                <section class="border-t border-slate-200 pt-3 space-y-2" aria-label="Document sources">
+                <section class="border-t border-slate-200 pt-3 space-y-2" aria-label="Sources documentaires">
                   <div class="flex items-center justify-between gap-2">
                     <h3 class="text-xs font-bold text-slate-700 m-0">Sources</h3>
                     @if (msg.sources?.length) {
-                      <span class="text-[11px] text-slate-500">{{ msg.sources?.length }} retrieved</span>
+                      <span class="text-[11px] text-slate-500">{{ msg.sources?.length }} passage(s) retrouvé(s)</span>
                     }
                   </div>
 
                   @if (msg.sources?.length) {
-                    <p class="text-[11px] text-slate-500 m-0">Citation labels identify retrieved passages; they do not verify factual entailment.</p>
+                    <p class="text-[11px] text-slate-500 m-0">Les labels identifient les passages retrouvés ; ils ne garantissent pas que chaque affirmation est étayée.</p>
                     <div class="space-y-2">
                       @for (source of msg.sources; track source.chunkId) {
                         <details open class="rounded-lg border border-slate-200 bg-white">
@@ -67,46 +52,46 @@
                               <span class="text-slate-500">Page {{ source.pageNumber }}</span>
                             }
                             @if (source.cited) {
-                              <span class="ml-auto text-emerald-700 font-semibold">Cited</span>
+                              <span class="ml-auto text-emerald-700 font-semibold">Cité</span>
                             } @else {
-                              <span class="ml-auto text-slate-500 font-semibold">Retrieved, not cited</span>
+                              <span class="ml-auto text-slate-500 font-semibold">Retrouvé, non cité</span>
                             }
                           </summary>
-                          <blockquote class="m-0 border-t border-slate-100 px-3 py-2 text-xs leading-relaxed text-slate-700 whitespace-pre-wrap">{{ source.excerpt }}@if (source.excerptTruncated) { <span class="text-slate-500">… (excerpt shortened)</span> }</blockquote>
+                          <blockquote class="m-0 border-t border-slate-100 px-3 py-2 text-xs leading-relaxed text-slate-700 whitespace-pre-wrap">{{ source.excerpt }}@if (source.excerptTruncated) { <span class="text-slate-500">… (extrait raccourci)</span> }</blockquote>
                         </details>
                       }
                     </div>
                   } @else {
-                    <p class="text-xs text-slate-500 m-0">No relevant document passages were retrieved. This answer has no document-backed sources.</p>
+                    <p class="text-xs text-slate-500 m-0">Aucun passage pertinent n’a été retrouvé. Cette réponse ne dispose pas de source documentaire.</p>
                   }
 
                   @if (msg.citationValidation?.invalidLabels?.length) {
                     <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md p-2 m-0" role="status">
-                      Unmatched citation labels: {{ msg.citationValidation?.invalidLabels?.join(', ') }}. These labels do not identify retrieved sources.
+                      Labels de citation non reconnus : {{ msg.citationValidation?.invalidLabels?.join(', ') }}. Ces labels ne correspondent à aucune source retrouvée.
                     </p>
                   }
                 </section>
 
                 @if (msg.executionTrace; as trace) {
                   <details class="border-t border-slate-200 pt-2" data-testid="execution-details">
-                    <summary class="cursor-pointer text-xs font-semibold text-slate-700 py-1">Execution details</summary>
+                    <summary class="cursor-pointer text-xs font-semibold text-slate-700 py-1">Détails d’exécution</summary>
                     <div class="mt-2 space-y-3 text-xs">
                       <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 m-0">
-                        <div><dt class="text-slate-500">Status</dt><dd class="m-0 font-semibold">{{ trace.status }}</dd></div>
-                        <div><dt class="text-slate-500">Total duration</dt><dd class="m-0 font-semibold">{{ formatDuration(trace.totalDurationMs) }}</dd></div>
-                        <div><dt class="text-slate-500">SQLite retrieval</dt><dd class="m-0 font-semibold">{{ getStepDuration(trace, 'sqlite-fts5-retrieval') }}</dd></div>
-                        <div><dt class="text-slate-500">Groq inference</dt><dd class="m-0 font-semibold">{{ getStepDuration(trace, 'groq-inference') }}</dd></div>
-                        <div><dt class="text-slate-500">Input tokens</dt><dd class="m-0 font-semibold">{{ msg.usage?.inputTokens ?? 'Not available' }}</dd></div>
-                        <div><dt class="text-slate-500">Output tokens</dt><dd class="m-0 font-semibold">{{ msg.usage?.outputTokens ?? 'Not available' }}</dd></div>
-                        <div><dt class="text-slate-500">Total tokens</dt><dd class="m-0 font-semibold">{{ msg.usage?.totalTokens ?? 'Not available' }}</dd></div>
-                        <div><dt class="text-slate-500">Estimated cost (not billed)</dt><dd class="m-0 font-semibold">{{ formatCost(msg.cost?.estimatedCostUsd) }}</dd></div>
-                        <div><dt class="text-slate-500">Model</dt><dd class="m-0 font-semibold break-all">{{ trace.modelIdentifier ?? 'Not available' }}</dd></div>
-                        <div><dt class="text-slate-500">Retrieved chunks</dt><dd class="m-0 font-semibold">{{ trace.retrieval.retrievedChunkCount }}</dd></div>
-                        <div><dt class="text-slate-500">Scope</dt><dd class="m-0 font-semibold">{{ trace.retrieval.scope === 'document' ? ('Active document #' + trace.retrieval.documentId) : 'All documents' }}</dd></div>
-                        <div><dt class="text-slate-500">Trace ID</dt><dd class="m-0 font-mono break-all">{{ trace.traceId }}</dd></div>
-                        <div><dt class="text-slate-500">Timestamp</dt><dd class="m-0 font-semibold">{{ trace.timestamp | date: 'medium' }}</dd></div>
+                        <div><dt class="text-slate-500">État</dt><dd class="m-0 font-semibold">{{ trace.status }}</dd></div>
+                        <div><dt class="text-slate-500">Durée totale</dt><dd class="m-0 font-semibold">{{ formatDuration(trace.totalDurationMs) }}</dd></div>
+                        <div><dt class="text-slate-500">Recherche SQLite</dt><dd class="m-0 font-semibold">{{ getStepDuration(trace, 'sqlite-fts5-retrieval') }}</dd></div>
+                        <div><dt class="text-slate-500">Inférence Groq</dt><dd class="m-0 font-semibold">{{ getStepDuration(trace, 'groq-inference') }}</dd></div>
+                        <div><dt class="text-slate-500">Tokens d’entrée</dt><dd class="m-0 font-semibold">{{ msg.usage?.inputTokens ?? 'Indisponible' }}</dd></div>
+                        <div><dt class="text-slate-500">Tokens de sortie</dt><dd class="m-0 font-semibold">{{ msg.usage?.outputTokens ?? 'Indisponible' }}</dd></div>
+                        <div><dt class="text-slate-500">Tokens totaux</dt><dd class="m-0 font-semibold">{{ msg.usage?.totalTokens ?? 'Indisponible' }}</dd></div>
+                        <div><dt class="text-slate-500">Coût estimé (non facturé)</dt><dd class="m-0 font-semibold">{{ formatCost(msg.cost?.estimatedCostUsd) }}</dd></div>
+                        <div><dt class="text-slate-500">Modèle</dt><dd class="m-0 font-semibold break-all">{{ trace.modelIdentifier ?? 'Indisponible' }}</dd></div>
+                        <div><dt class="text-slate-500">Passages retrouvés</dt><dd class="m-0 font-semibold">{{ trace.retrieval.retrievedChunkCount }}</dd></div>
+                        <div><dt class="text-slate-500">Portée</dt><dd class="m-0 font-semibold">{{ trace.retrieval.scope === 'document' ? ('Document actif #' + trace.retrieval.documentId) : 'Tous les documents' }}</dd></div>
+                        <div><dt class="text-slate-500">Identifiant de trace</dt><dd class="m-0 font-mono break-all">{{ trace.traceId }}</dd></div>
+                        <div><dt class="text-slate-500">Horodatage</dt><dd class="m-0 font-semibold">{{ trace.timestamp | date: 'medium' }}</dd></div>
                       </dl>
-                      <p class="m-0 text-[11px] text-slate-500">Cost is a configuration-based estimate, not a billed provider charge.</p>
+                      <p class="m-0 text-[11px] text-slate-500">Le coût est une estimation fondée sur les tarifs configurés, pas une facture fournisseur.</p>
                       <ol class="m-0 pl-5 space-y-1 border-l border-slate-200">
                         @for (step of trace.steps; track $index) {
                           <li class="pl-1">
@@ -121,8 +106,8 @@
               }
               @if (msg.formSchema) {
                 <div class="mt-3 p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
-                  <app-dynamic-form 
-                    [schema]="msg.formSchema" 
+                  <app-dynamic-form
+                    [schema]="msg.formSchema"
                     (formSubmit)="onFormSubmit($event)">
                   </app-dynamic-form>
                 </div>
@@ -133,14 +118,48 @@
       }
 
       @if (isLoading()) {
-        <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-700 animate-pulse text-sm flex items-center gap-3">
+        <div role="status" class="p-3.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-700 animate-pulse text-sm flex items-center gap-3">
           <span>🧠</span> Recherche documentaire et génération en cours…
         </div>
       }
-    </div>
 
-    <!-- Zone de saisie en bas -->
-    <div class="generator-composer ui-card space-y-3">
+      </div>
+      <div class="generator-composer">
+        <label for="generator-prompt">Votre demande</label>
+        <p id="generator-prompt-help">Posez une question ou demandez la création d’un formulaire. La touche Entrée conserve son action d’envoi.</p>
+        <div class="generator-input">
+        <textarea
+          [ngModel]="userPrompt()"
+          (ngModelChange)="userPrompt.set($event)"
+          (keyup.enter)="sendMessage()"
+          aria-describedby="generator-prompt-help"
+          id="generator-prompt"
+          aria-label="Instructions ou question documentaire"
+          placeholder="Saisissez vos instructions pour la génération dynamique ou interrogez le contexte RAG..."
+          rows="4"
+          class="generator-prompt"
+        ></textarea>
+
+        <button
+          (click)="sendMessage()"
+          [disabled]="isLoading() || !userPrompt().trim()"
+          class="generator-send"
+        >
+          <span>Exécuter</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </button>
+
+        </div>
+      </div>
+    </section>
+    <aside class="generator-documents ui-card" aria-labelledby="generator-documents-title">
+      <div><p class="generator-eyebrow">Contexte documentaire</p><h2 id="generator-documents-title">Documents et recherche</h2></div>
+      <p class="generator-context-help">Importez un PDF, TXT ou CSV pour disposer d’un document actif.</p>
+        <label class="generator-upload" title="Joindre un fichier PDF/TXT/CSV pour le RAG">
+          <span aria-hidden="true">↥</span> Importer un document
+          <input aria-label="Importer un document PDF, TXT ou CSV" type="file" (change)="onFileSelected($event)" accept=".pdf,.txt,.csv" class="sr-only" [disabled]="isUploadingDoc()" />
+        </label>
+      <p class="generator-file-help">PDF · TXT · CSV</p>
       @if (isUploadingDoc()) {
         <div class="p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs flex items-center gap-2">
           <span>⏳</span> Extraction et indexation lexicale FTS5 en cours…
@@ -154,8 +173,8 @@
         </div>
       }
 
-      <div class="flex flex-wrap items-center gap-2 text-xs" role="group" aria-label="Document retrieval scope">
-        <span class="font-semibold text-slate-600">Search scope:</span>
+      <div class="flex flex-wrap items-center gap-2 text-xs" role="group" aria-label="Portée de la recherche documentaire">
+        <span class="font-semibold text-slate-600">Portée de recherche</span>
         <button
           type="button"
           (click)="setRetrievalScope('active')"
@@ -168,7 +187,7 @@
           [class.bg-white]="retrievalScope() !== 'active'"
           [class.border-slate-200]="retrievalScope() !== 'active'"
           [class.text-slate-600]="retrievalScope() !== 'active'"
-        >Active document</button>
+        >Document actif</button>
         <button
           type="button"
           (click)="setRetrievalScope('all')"
@@ -180,37 +199,13 @@
           [class.bg-white]="retrievalScope() !== 'all'"
           [class.border-slate-200]="retrievalScope() !== 'all'"
           [class.text-slate-600]="retrievalScope() !== 'all'"
-        >All documents</button>
-        <span class="text-slate-500">{{ retrievalScope() === 'active' ? 'Only the uploaded document is searched.' : 'Search results may include any indexed document.' }}</span>
+        >Tous les documents</button>
+        <span class="text-slate-500">{{ retrievalScope() === 'active' ? 'Seul le document actif est interrogé.' : 'La recherche peut inclure tous les documents indexés.' }}</span>
       </div>
 
-      <div class="generator-input">
-        <label class="cursor-pointer p-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-lg flex items-center justify-center transition-all shadow-sm" title="Joindre un fichier PDF/TXT/CSV pour le RAG">
-          📄
-          <input aria-label="Importer un document PDF, TXT ou CSV" type="file" (change)="onFileSelected($event)" accept=".pdf,.txt,.csv" class="sr-only" [disabled]="isUploadingDoc()" />
-        </label>
 
-        <textarea 
-          [ngModel]="userPrompt()" 
-          (ngModelChange)="userPrompt.set($event)"
-          (keyup.enter)="sendMessage()"
-          aria-label="Instructions ou question documentaire"
-          placeholder="Saisissez vos instructions pour la génération dynamique ou interrogez le contexte RAG..."
-          rows="2"
-          class="min-w-0 flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-        ></textarea>
-        
-        <button 
-          (click)="sendMessage()" 
-          [disabled]="isLoading() || !userPrompt().trim()"
-          class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-3.5 rounded-xl text-sm font-semibold shadow-sm transition-all flex items-center gap-2"
-        >
-          <span>Exécuter</span>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-        </button>
-      </div>
-    </div>
-
+      @if (!attachedDocument()) { <p class="generator-no-document">Aucun document actif. Vous pouvez importer un fichier ou utiliser la portée « Tous les documents ».</p> }
+      <p class="generator-context-help generator-boundary">La génération de formulaires reste indépendante de la recherche documentaire. Les citations identifient des passages ; elles ne garantissent pas l’exactitude de chaque affirmation.</p>
+    </aside>
   </div>
-
 </section>

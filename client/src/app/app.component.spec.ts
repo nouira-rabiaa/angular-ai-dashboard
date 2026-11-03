@@ -105,6 +105,7 @@ describe('AppComponent', () => {
     fixture.detectChanges();
 
     expect(router.url).toBe('/generator');
-    expect(fixture.nativeElement.textContent).toContain('Commencez par envoyer un prompt');
+    expect(fixture.nativeElement.querySelector('#generator-title')?.textContent).toBe('Générateur IA');
+    expect(fixture.nativeElement.querySelector('#generator-prompt')).not.toBeNull();
   });
 });

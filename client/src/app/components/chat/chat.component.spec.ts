@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { ChatComponent } from './chat.component';
 
@@ -49,6 +49,52 @@ describe('ChatComponent', () => {
     expect(fixture.componentInstance.isUploadingDoc()).toBe(false);
     expect(TestBed.inject(ErrorService).currentError()).toContain('Échec du traitement');expect(alert).not.toHaveBeenCalled();alert.mockRestore();
   });
+  it('keeps the shared prompt inside the conversation and submits through the rendered send control', async () => {
+    const fixture = TestBed.createComponent(ChatComponent);fixture.detectChanges();await fixture.whenStable();
+    expect(sendChatPrompt).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('.generator-empty').textContent).toContain('Aucun appel IA');
+    const thread = fixture.nativeElement.querySelector('.generator-thread') as HTMLElement;
+    const input = thread.querySelector('textarea') as HTMLTextAreaElement;
+    expect(thread.querySelector('.generator-composer')?.contains(input)).toBe(true);
+    expect(fixture.nativeElement.querySelector('.generator-documents textarea')).toBeNull();
+    expect(input.rows).toBe(4);expect(input.getAttribute('aria-describedby')).toBe('generator-prompt-help');
+    const pending = new Subject<any>();sendChatPrompt.mockReturnValue(pending);
+    input.value = '  Une question documentaire  ';input.dispatchEvent(new Event('input'));fixture.detectChanges();await fixture.whenStable();
+    (thread.querySelector('.generator-send') as HTMLButtonElement).click();fixture.detectChanges();
+    expect(sendChatPrompt).toHaveBeenCalledWith('Une question documentaire', null);
+    expect((thread.querySelector('.generator-send') as HTMLButtonElement).disabled).toBe(true);
+    expect(fixture.componentInstance.messages()[0].text).toBe('Une question documentaire');
+    pending.next({ reply: 'Réponse réelle du service simulé.' });fixture.detectChanges();
+    expect(thread.textContent).toContain('Réponse réelle du service simulé.');
+    expect(thread.querySelector('.generator-empty')).toBeNull();
+  });
+
+  it('preserves Enter activation and routes a form request to the existing form generator only', async () => {
+    const generate = jest.fn().mockReturnValue(of({ title: 'Formulaire de test', fields: [{ name: 'subject', label: 'Objet', type: 'text', required: true }] }));
+    TestBed.inject(ApiService).generateFormSchema = generate;
+    const fixture = TestBed.createComponent(ChatComponent);fixture.detectChanges();await fixture.whenStable();
+    const input = fixture.nativeElement.querySelector('#generator-prompt') as HTMLTextAreaElement;
+    input.value = 'Créer un formulaire de contact';input.dispatchEvent(new Event('input'));fixture.detectChanges();await fixture.whenStable();
+    input.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }));fixture.detectChanges();
+    expect(generate).toHaveBeenCalledTimes(1);expect(generate).toHaveBeenCalledWith('Créer un formulaire de contact');
+    expect(sendChatPrompt).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('.generator-messages app-dynamic-form input')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Formulaire de test');
+  });
+
+  it('keeps the message region focusable and document controls functional after moving the composer', () => {
+    const fixture = TestBed.createComponent(ChatComponent);fixture.detectChanges();
+    const region = fixture.nativeElement.querySelector('[aria-label="Messages et citations"]') as HTMLElement;
+    region.focus();expect(document.activeElement).toBe(region);
+    const controls = Array.from(fixture.nativeElement.querySelectorAll('.generator-documents button')) as HTMLButtonElement[];
+    const active = controls.find(button => button.textContent?.trim() === 'Document actif')!;
+    const all = controls.find(button => button.textContent?.trim() === 'Tous les documents')!;
+    expect(active.disabled).toBe(true);expect(all.getAttribute('aria-pressed')).toBe('true');
+    fixture.componentInstance.activeDocumentId.set(12);fixture.detectChanges();active.click();fixture.detectChanges();
+    expect(fixture.componentInstance.retrievalScope()).toBe('active');expect(active.getAttribute('aria-pressed')).toBe('true');
+    all.click();expect(fixture.componentInstance.retrievalScope()).toBe('all');
+  });
+
   it('renders real citation metadata and distinguishes cited from retrieved-only sources', () => {
     sendChatPrompt.mockReturnValue(of({
       reply: 'The site opened in 1984 [S1].',
@@ -90,10 +136,10 @@ describe('ChatComponent', () => {
     expect(text).toContain('museum-history.pdf');
     expect(text).toContain('Page 4');
     expect(text).toContain('The site opened in 1984.');
-    expect(text).toContain('Cited');
-    expect(text).toContain('Retrieved, not cited');
+    expect(text).toContain('Cité');
+    expect(text).toContain('Retrouvé, non cité');
     expect(text).toContain('Attendance increased the following year.');
-    expect(text).toContain('do not verify factual entailment');
+    expect(text).toContain('ne garantissent pas que chaque affirmation est étayée');
   });
 
   it('renders a normalized citation answer with the backend cited status', () => {
@@ -122,8 +168,8 @@ describe('ChatComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('The expected value is 42 [S1].');
-    expect(fixture.nativeElement.textContent).toContain('Cited');
-    expect(fixture.nativeElement.textContent).not.toContain('Retrieved, not cited');
+    expect(fixture.nativeElement.textContent).toContain('Cité');
+    expect(fixture.nativeElement.textContent).not.toContain('Retrouvé, non cité');
   });
 
   it('shows no-source and unmatched-label states and omits unavailable page numbers', () => {
@@ -144,8 +190,8 @@ describe('ChatComponent', () => {
     component.sendMessage();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('no document-backed sources');
-    expect(fixture.nativeElement.textContent).toContain('Unmatched citation labels: S8');
+    expect(fixture.nativeElement.textContent).toContain('ne dispose pas de source documentaire');
+    expect(fixture.nativeElement.textContent).toContain('Labels de citation non reconnus : S8');
 
     sendChatPrompt.mockReturnValue(of({
       reply: 'A grounded answer [S1].',
@@ -178,7 +224,7 @@ describe('ChatComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Legacy server response.');
-    expect(fixture.nativeElement.textContent).toContain('no document-backed sources');
+    expect(fixture.nativeElement.textContent).toContain('ne dispose pas de source documentaire');
   });
 
   it('uses the documentId returned from upload as the active retrieval scope', () => {
@@ -252,21 +298,21 @@ describe('ChatComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Execution details');
+    expect(text).toContain('Détails d’exécution');
     expect(text).toContain('success');
     expect(text).toContain('1,615.79 ms');
-    expect(text).toContain('SQLite FTS5 retrieval');
+    expect(text).toContain('Recherche SQLite FTS5');
     expect(text).toContain('4.63 ms');
-    expect(text).toContain('Groq inference');
+    expect(text).toContain('Inférence Groq');
     expect(text).toContain('1,603.31 ms');
     expect(text).toContain('40');
     expect(text).toContain('12');
     expect(text).toContain('52');
     expect(text).toContain('$0.00002200 USD');
-    expect(text).toContain('not billed');
+    expect(text).toContain('non facturé');
     expect(text).toContain('openai/gpt-oss-120b');
     expect(text).toContain('1');
-    expect(text).toContain('Active document #31');
+    expect(text).toContain('Document actif #31');
     expect(text).toContain('trace-test-123');
     const trace = component.messages().find(message => message.executionTrace)?.executionTrace;
     expect(trace?.totalDurationMs).toBe(1615.7857499999955);
@@ -302,9 +348,9 @@ describe('ChatComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('no document-backed sources');
-    expect(text).toContain('Not available');
-    expect(text).toContain('All documents');
+    expect(text).toContain('ne dispose pas de source documentaire');
+    expect(text).toContain('Indisponible');
+    expect(text).toContain('Tous les documents');
     expect(text).not.toContain('$0.00000000 USD');
   });
 
@@ -338,8 +384,8 @@ describe('ChatComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Chat request failed.');
     expect(text).toContain('trace-failed');
-    expect(text).toContain('Groq inference');
+    expect(text).toContain('Inférence Groq');
     expect(text).toContain('error');
-    expect(text).toContain('Not available');
+    expect(text).toContain('Indisponible');
   });
 });
