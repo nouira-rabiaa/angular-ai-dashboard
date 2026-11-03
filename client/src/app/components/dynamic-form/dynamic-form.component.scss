@@ -1,20 +1,21 @@
-:host { display: block; min-width: 0; }
 .dynamic-form-card { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem; margin: .75rem 0; width: 100%; box-sizing: border-box; }
-.form-header { margin-bottom: 1rem; border-bottom: 1px solid var(--line); padding-bottom: .75rem; }
-h3 { font-size: var(--section-title); font-weight: 700; }
-.description { color: var(--muted); font-size: .8rem; margin-top: .3rem; }
-.form-body { display: grid; gap: .85rem; }
-.form-group { min-width: 0; display: grid; gap: .35rem; }
-label { font-size: var(--label); font-weight: 600; overflow-wrap: anywhere; }
-.required,.error-msg { color: var(--bad); }
-.form-control { width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid var(--line); border-radius: .65rem; padding: .65rem .75rem; background: var(--canvas); color: var(--ink); font-size: var(--body); }
-.form-control::placeholder { color: var(--muted); }
-textarea { resize: vertical; }
-.checkbox-container { display: flex; align-items: center; gap: .6rem; }
-.checkbox-container input { width: 1.1rem; height: 1.1rem; accent-color: var(--brand); }
-.inline-label { color: var(--muted); font-weight: 400; }
-.error-msg { font-size: .75rem; }
-.btn-submit { background: var(--brand); color: white; border-radius: .7rem; padding: .7rem; font-weight: 650; cursor: pointer; }
-.btn-submit:hover:not(:disabled) { background: var(--brand-hover); }
-.btn-submit:disabled { opacity: .55; cursor: not-allowed; }
-:is(input,textarea,select,button):focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+.dynamic-form-card {
+  .form-header { margin-bottom: 1rem; border-bottom: 1px solid var(--line); padding-bottom: .75rem; }
+  h3 { font-size: var(--section-title); font-weight: 700; }
+  .description { color: var(--muted); font-size: .8rem; margin-top: .3rem; }
+  .form-body { display: grid; gap: .85rem; }
+  .form-group { min-width: 0; display: grid; gap: .35rem; }
+  label { font-size: var(--label); font-weight: 600; overflow-wrap: anywhere; }
+  .required,.error-msg { color: var(--bad); }
+  .form-control { width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid var(--line); border-radius: .65rem; padding: .65rem .75rem; background: var(--canvas); color: var(--ink); font-size: var(--body); }
+  .form-control::placeholder { color: var(--muted); }
+  textarea { resize: vertical; }
+  .checkbox-container { display: flex; align-items: center; gap: .6rem; }
+  .checkbox-container input { width: 1.1rem; height: 1.1rem; accent-color: var(--brand); }
+  .inline-label { color: var(--muted); font-weight: 400; }
+  .error-msg { font-size: .75rem; }
+  .btn-submit { background: var(--brand); color: white; border-radius: .7rem; padding: .7rem; font-weight: 650; cursor: pointer; }
+  .btn-submit:hover:not(:disabled) { background: var(--brand-hover); }
+  .btn-submit:disabled { opacity: .55; cursor: not-allowed; }
+  :is(input,textarea,select,button):focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+}

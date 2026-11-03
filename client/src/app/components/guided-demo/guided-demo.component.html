@@ -1,11 +1,11 @@
 <section class="mx-auto w-full max-w-[1500px] space-y-3 text-slate-800" aria-labelledby="guided-demo-title">
   <header class="demo-hero flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <div class="max-w-3xl">
-      <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-700">Enterprise AI Dashboard · Visite guidée · 3 à 5 minutes</p>
+      <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-700">Enterprise AI Dashboard · Visite guidée · 3 à 5 minutes</p>
       <h1 id="guided-demo-title" class="mt-1 text-xl font-bold tracking-tight text-slate-950">Guided Demo</h1>
       <p class="mt-1 text-xs leading-5 text-slate-600">Découvrez les parcours réels du produit. Aucun fichier, prompt, formulaire ou appel IA n’est lancé par cette visite.</p>
     </div>
-    <a routerLink="/generator" class="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-indigo-500">
+    <a routerLink="/generator" class="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-500">
       Quitter la démo
     </a>
   </header>
@@ -16,11 +16,11 @@
       <p class="text-xs text-slate-600" aria-live="polite">{{ statusLabel(stepStatuses()[currentStep().id]) }}</p>
     </div>
     <div class="h-2 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label="Progression de la démonstration" [attr.aria-valuemin]="1" [attr.aria-valuemax]="steps.length" [attr.aria-valuenow]="progressValue()" [attr.aria-valuetext]="'Étape ' + progressValue() + ' sur ' + steps.length + ', ' + statusLabel(stepStatuses()[currentStep().id])">
-      <div class="h-full rounded-full bg-indigo-600 transition-[width] duration-300 motion-reduce:transition-none" [style.width.%]="progressPercent()"></div>
+      <div class="h-full rounded-full bg-blue-600 transition-[width] duration-300 motion-reduce:transition-none" [style.width.%]="progressPercent()"></div>
     </div>
     <nav aria-label="Étapes de la démonstration" class="demo-workflow grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
       @for (step of steps; track step.id; let index = $index) {
-        <button type="button" (click)="selectStep(index)" [attr.aria-current]="currentStepIndex() === index ? 'step' : null" [attr.aria-label]="'Étape ' + (index + 1) + ': ' + step.title + ', ' + statusLabel(stepStatuses()[step.id])" class="demo-step min-h-10 rounded-xl border px-3 py-2 text-left text-[10px] font-semibold leading-4 outline-none transition focus-visible:ring-2 focus-visible:ring-indigo-500" [class.border-indigo-300]="currentStepIndex() === index" [class.bg-indigo-50]="currentStepIndex() === index" [class.demo-step-active]="currentStepIndex() === index" [class.text-indigo-800]="currentStepIndex() === index" [class.border-slate-200]="currentStepIndex() !== index" [class.bg-white]="currentStepIndex() !== index" [class.text-slate-600]="currentStepIndex() !== index">
+        <button type="button" (click)="selectStep(index)" [attr.aria-current]="currentStepIndex() === index ? 'step' : null" [attr.aria-label]="'Étape ' + (index + 1) + ': ' + step.title + ', ' + statusLabel(stepStatuses()[step.id])" class="demo-step min-h-10 rounded-xl border px-3 py-2 text-left text-[10px] font-semibold leading-4 outline-none transition focus-visible:ring-2 focus-visible:ring-blue-500" [class.border-blue-300]="currentStepIndex() === index" [class.bg-blue-50]="currentStepIndex() === index" [class.demo-step-active]="currentStepIndex() === index" [class.text-blue-800]="currentStepIndex() === index" [class.border-slate-200]="currentStepIndex() !== index" [class.bg-white]="currentStepIndex() !== index" [class.text-slate-600]="currentStepIndex() !== index">
           <span class="demo-step-number" aria-hidden="true">{{ index + 1 }}</span><span class="block text-[9px] uppercase tracking-wide text-slate-600">{{ statusLabel(stepStatuses()[step.id]) }}</span>
           <span class="mt-0.5 block">{{ step.title }}</span>
         </button>
@@ -29,9 +29,9 @@
   </section>
 
   <section class="grid grid-cols-1 items-start gap-3 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,0.8fr)]" aria-label="Étape courante et consignes">
-    <article class="min-w-0 rounded-2xl border border-slate-200 border-t-2 border-t-indigo-600 bg-white p-4 shadow-sm">
-      <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-700">Étape 0{{ progressValue() }}</p>
-      <h2 #stepHeading tabindex="-1" class="mt-1 text-lg font-bold text-slate-950 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">{{ currentStep().title }}</h2>
+    <article class="min-w-0 rounded-2xl border border-slate-200 border-t-2 border-t-blue-600 bg-white p-4 shadow-sm">
+      <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-700">Étape 0{{ progressValue() }}</p>
+      <h2 #stepHeading tabindex="-1" class="mt-1 text-lg font-bold text-slate-950 outline-none focus-visible:ring-2 focus-visible:ring-blue-500">{{ currentStep().title }}</h2>
 
       <section class="demo-scene" aria-labelledby="demo-scene-title" [attr.data-step]="currentStep().id">
         <div class="demo-scene-heading"><div><p class="demo-scene-eyebrow">Parcours réel · vue explicative</p><h3 id="demo-scene-title">{{ currentStep().id === 'introduction' || currentStep().id === 'conclusion' ? 'Les capacités du produit' : 'Du composant au résultat' }}</h3></div><span class="demo-scene-badge">Aucun appel exécuté</span></div>
@@ -52,12 +52,12 @@
         <p class="demo-scene-note">Schéma de lecture, sans résultat simulé ni ordre chronologique implicite. Les actions restent déclenchées dans les fonctionnalités réelles.</p>
       </section>
       <div class="mt-3 grid gap-3 md:grid-cols-2">
-        <section aria-labelledby="business-explanation-title" class="demo-explanation rounded-xl bg-indigo-50/60 p-3">
+        <section aria-labelledby="business-explanation-title" class="demo-explanation rounded-xl bg-blue-50/60 p-3">
           <h3 id="business-explanation-title" class="text-xs font-bold uppercase tracking-wide text-slate-600"><span aria-hidden="true">✦</span> Valeur métier</h3>
           <p class="mt-1 text-sm leading-5 text-slate-800">{{ currentStep().businessExplanation }}</p>
         </section>
-        <details class="demo-technical rounded-xl border border-indigo-100 bg-white p-3">
-          <summary id="technical-explanation-title" class="cursor-pointer text-xs font-bold uppercase tracking-wide text-indigo-800">Ce qui se passe réellement</summary>
+        <details class="demo-technical rounded-xl border border-blue-100 bg-white p-3">
+          <summary id="technical-explanation-title" class="cursor-pointer text-xs font-bold uppercase tracking-wide text-blue-800">Ce qui se passe réellement</summary>
           <p class="mt-1 text-sm leading-5 text-slate-700">{{ currentStep().technicalExplanation }}</p>
         </details>
         <section aria-labelledby="user-instruction-title" class="demo-action rounded-xl border border-cyan-200 bg-cyan-50 p-3 md:col-span-2">
@@ -68,7 +68,7 @@
 
       @if (currentStep().destinationRoute) {
         <div class="mt-3 flex flex-wrap items-center gap-3">
-          <a [href]="currentStep().destinationRoute" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'Ouvrir la fonctionnalité dans un nouvel onglet: ' + currentStep().title" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-semibold text-white outline-none transition hover:bg-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+          <a [href]="currentStep().destinationRoute" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'Ouvrir la fonctionnalité dans un nouvel onglet: ' + currentStep().title" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white outline-none transition hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
             Ouvrir la fonctionnalité <span aria-hidden="true">↗</span>
           </a>
           <span class="text-[11px] text-slate-600">Nouvel onglet · cette étape reste ouverte ici</span>
@@ -107,14 +107,14 @@
   </section>
 
   <footer class="demo-navigation flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
-    <button type="button" (click)="previousStep()" [disabled]="isFirstStep()" class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-40">
+    <button type="button" (click)="previousStep()" [disabled]="isFirstStep()" class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40">
       Précédent
     </button>
     <div class="flex flex-wrap items-center gap-2">
-      <button type="button" (click)="restart()" class="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-slate-600 outline-none transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-500">
+      <button type="button" (click)="restart()" class="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-slate-600 outline-none transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500">
         Recommencer
       </button>
-      <button type="button" (click)="nextStep()" [disabled]="isLastStep()" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-semibold text-white outline-none transition hover:bg-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-40">
+      <button type="button" (click)="nextStep()" [disabled]="isLastStep()" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white outline-none transition hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40">
         Suivant
       </button>
     </div>

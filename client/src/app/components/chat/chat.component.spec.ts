@@ -1,8 +1,9 @@
+import { ErrorService } from '../../services/error.service';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { ChatComponent } from './chat.component';
 
@@ -40,6 +41,13 @@ describe('ChatComponent', () => {
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('indexation lexicale FTS5');expect(text).not.toMatch(/vectorisation|embedding/);
     expect(uploadDocument).not.toHaveBeenCalled();
+  });
+  it('reports a failed import through the existing notification service without a browser alert', () => {
+    const fixture = TestBed.createComponent(ChatComponent);uploadDocument.mockReturnValue(throwError(() => new Error('offline')));
+    const alert = jest.spyOn(window, 'alert').mockImplementation(() => {});
+    fixture.componentInstance.onFileSelected({ target: { files: [new File(['sample'], 'sample.txt')] } });
+    expect(fixture.componentInstance.isUploadingDoc()).toBe(false);
+    expect(TestBed.inject(ErrorService).currentError()).toContain('Échec du traitement');expect(alert).not.toHaveBeenCalled();alert.mockRestore();
   });
   it('renders real citation metadata and distinguishes cited from retrieved-only sources', () => {
     sendChatPrompt.mockReturnValue(of({

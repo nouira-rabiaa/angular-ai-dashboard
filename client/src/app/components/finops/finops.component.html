@@ -27,14 +27,14 @@
           <p class="finops-legend"><span class="inline-flex items-center gap-1.5"><i class="finops-dot"></i> Historique estimé</span><span class="inline-flex items-center gap-1.5"><i class="finops-line"></i> Projection quotidienne constante</span></p>
           @if (chart().length) {
             <svg class="finops-chart" viewBox="0 0 620 190" role="img" aria-label="Coûts quotidiens estimés et projections en USD; valeurs dans le tableau ci-dessous">
-              <line x1="30" x2="590" y1="35" y2="35" stroke="#e5e7f0" stroke-dasharray="3 4" />
-              <line x1="30" x2="590" y1="95" y2="95" stroke="#e5e7f0" stroke-dasharray="3 4" />
-              <line x1="30" x2="590" y1="155" y2="155" stroke="#cbd5e1" />
+              <line x1="30" x2="590" y1="35" y2="35" stroke="var(--line)" stroke-dasharray="3 4" />
+              <line x1="30" x2="590" y1="95" y2="95" stroke="var(--line)" stroke-dasharray="3 4" />
+              <line x1="30" x2="590" y1="155" y2="155" stroke="var(--line)" />
               <text x="2" y="175" class="fill-slate-700 text-[10px]">0 USD</text>
               <text x="30" y="188" class="fill-slate-700 text-[10px]">{{ chart()[0].date }}</text>
               <text x="590" y="188" text-anchor="end" class="fill-slate-700 text-[10px]">{{ chart()[chart().length - 1].date }}</text>
-              @for (segment of segments(false); track $index) { <polyline [attr.points]="segment" fill="none" stroke="#047857" stroke-width="2.5" /> }
-              @for (segment of segments(true); track $index) { <polyline [attr.points]="segment" fill="none" stroke="#6651c8" stroke-width="2.5" stroke-dasharray="5 4" /> }
+              @for (segment of segments(false); track $index) { <polyline [attr.points]="segment" fill="none" stroke="var(--good)" stroke-width="2.5" /> }
+              @for (segment of segments(true); track $index) { <polyline [attr.points]="segment" fill="none" stroke="var(--purple)" stroke-width="2.5" stroke-dasharray="5 4" /> }
               @for (point of chart(); track point.date) {
                 @if (point.y !== null) { <circle [attr.cx]="point.x" [attr.cy]="point.y" r="2.5" [attr.fill]="point.projected ? '#6651c8' : '#047857'"><title>{{ point.date }} : {{ cost(point.estimatedCostUsd) }} · {{ point.projected ? 'projeté' : 'observé estimé' }}</title></circle> }
               }

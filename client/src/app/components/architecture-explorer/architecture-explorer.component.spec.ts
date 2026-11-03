@@ -91,7 +91,7 @@ describe('ArchitectureExplorerComponent', () => {
         const button = buttons[0];
         expect(button.closest('section')?.getAttribute('aria-labelledby')).toBe(`layer-${node.layerId}`);
         const inFlow = flow.nodeIds.includes(node.id);
-        expect(button.classList.contains('border-indigo-300')).toBe(inFlow);
+        expect(button.classList.contains('border-blue-300')).toBe(inFlow);
         expect(button.classList.contains('border-slate-300')).toBe(!inFlow);
         expect(button.textContent?.includes('Hors du flux sélectionné')).toBe(!inFlow);
         expect(button.getAttribute('aria-pressed')).toBe(String(node.id === component.selectedNodeId()));
