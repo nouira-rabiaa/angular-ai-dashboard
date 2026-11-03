@@ -19,7 +19,7 @@ export const routes: Routes = [
     path: 'agent-workspace',
     loadComponent: () => import('./components/agent-workspace/agent-workspace.component')
       .then(module => module.AgentWorkspaceComponent),
-    title: 'Agent Workspace'
+    title: 'Support Agent Studio'
   },
   {
     path: 'dashboard',

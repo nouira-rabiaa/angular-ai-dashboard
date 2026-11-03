@@ -35,7 +35,7 @@ export class GuidedDemoComponent implements OnDestroy {
   readonly progressValue = computed(() => this.currentStepIndex() + 1);
   readonly progressPercent = computed(() => (this.progressValue() / this.steps.length) * 100);
 
-  readonly overviewFlows = ARCHITECTURE_FLOWS;
+  readonly overviewFlows = ARCHITECTURE_FLOWS.filter(flow => flow.id !== 'agent-workspace');
   readonly visualEdgeIds: Record<GuidedDemoStepId, readonly string[]> = {
     introduction: [], 'document-upload': ['ingestion-write'],
     'rag-question': ['rag-retrieve', 'rag-inference', 'rag-response'],

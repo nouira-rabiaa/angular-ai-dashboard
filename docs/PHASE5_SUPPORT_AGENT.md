@@ -17,7 +17,7 @@ Le working tree était propre avant création de `feat/phase-5-support-agent`.
 
 | Élément | Avant 5A | Réutilisation / évolution |
 | --- | --- | --- |
-| Agent Workspace | Fonctionnel : objectif, exemples, attente, réponse, erreurs/retry et trace | Conservé dans « Outils d'exploitation », dépliable sous le Studio |
+| Agent Workspace | Fonctionnel : objectif, exemples, attente, réponse, erreurs/retry et trace | UI retirée après 5B ; moteur conservé côté serveur sans connexion automatique au Studio |
 | Configuration d'agent | Modèle/prompt de l'exécuteur définis côté serveur ; aucun catalogue éditable | Nouveau formulaire persistant, sans modifier ce prompt d'exploitation |
 | Service Angular | `AgentService.run()` → `/api/agent/run` | Même service enrichi de méthodes de configuration typées |
 | Backend Agent | Boucle Groq bornée, deux outils autorisés en lecture seule | `server/agent.js` inchangé ; son modèle autorisé est réutilisé |
@@ -147,7 +147,7 @@ Les tests DOM ne remplacent pas une inspection visuelle du responsive et du clav
 6. Modifier et enregistrer ; activer/désactiver la configuration. Ces actions ne créent pas de conversation.
 7. Redémarrer le backend puis recharger : la configuration reste présente dans la base locale.
 8. Tester un champ invalide et une indisponibilité serveur : erreur explicite, sans faux succès ni disparition du brouillon.
-9. Déplier « Outils d'exploitation » pour retrouver l'ancien runner. Ne lancer une exécution Groq que sur action volontaire ; elle reste indépendante des configurations.
+9. Vérifier que l'ancienne section « Outils d'exploitation » n'est plus présente. Le moteur interne est conservé côté serveur, hors du parcours de démonstration du Studio.
 10. Contrôler desktop, tablette et mobile, focus clavier et avertissement de brouillon. La disponibilité de Safari WebDriver dépend de « Allow remote automation ».
 
 ## Plan initial de 5B — réalisé ci-dessous
@@ -287,3 +287,30 @@ Ajouter des conversations/messages avec un propriétaire/agent explicite, une r�
 - Syntaxe des modules Node et `git diff --check` vérifiées.
 - Aucun appel Groq payant pendant les tests. Les cas fournisseur utilisent des doubles ; les associations utilisent SQLite réellement ouvert dans des fichiers de test isolés.
 - Vérification visuelle réelle non effectuée : Safari WebDriver refuse toujours les sessions sans « Allow remote automation ». Les captures utilisateur ont guidé la conservation du design ; aucune capture finale ou garantie de rendu responsive réel n'est revendiquée.
+
+
+## Nettoyage post-5B — une seule expérience Agent
+
+Audit sur `feat/phase-5-support-agent` à partir de `55a367744e3ee6cb1c84aae8bd8a9db999e85425` : working tree propre, 5A et 5B présentes, branche synchronisée. Aucune 5C implémentée ou publiée n'a été identifiée parmi les branches et fichiers disponibles ; les conversations restent futures.
+
+| Élément | Décision | Conséquence |
+| --- | --- | --- |
+| Ancienne UI objectif/exemples/exécution/réponse/trace/retry | Supprimée | Plus de section Outils d'exploitation ni boutons d'exécution dans le produit |
+| Ancien HTML/SCSS et modèle Angular `agent-run.model.ts` | Supprimés | Dépendances exclusives de l'UI retirée ; retrait de l'ancien avertissement de stylesheet |
+| `AgentWorkspaceComponent` | Adapté | Route lazy conservée comme simple hôte de `AgentConfigurationComponent` |
+| `AgentService.run()` | Supprimé | Service désormais limité aux configurations, documents et tests de support |
+| Configuration / Knowledge Base / Tester l'agent | Conservés | Aucun changement de persistance, de formulaire ou de protection de brouillon |
+| `server/agent.js` et ses deux outils | Conservés | Boucle bornée, arguments validés, résultats metadata-only et erreurs structurées réutilisables |
+| `/api/agent/run` | Conservé et restreint | Opt-in local explicite et loopback obligatoires ; aucun appel frontend ni branchement au Studio |
+| Architecture Explorer | Adapté | Flux interne backend documenté, sans ancien nœud UI ni liens vers l'interface supprimée |
+| Guided Demo | Adapté | Ne propose plus ce moteur interne comme capacité produit directement accessible |
+
+### Fonctions utiles et limites pour 5E
+
+Le moteur expose `createAgentRunner`, `createAgentRouteHandler`, `AgentRunError` et la validation de l'objectif. Il conserve les schémas d'outils, le parseur strict d'arguments, les requêtes préparées et les limites : objectif 2 000 caractères, historique 25 lignes, quatre itérations/quatre outils, 20 secondes maximum. Les données métier complètes et noms de fichiers ne sont pas retournés par les outils.
+`registerInternalAgentRoute` exige explicitement un garde et monte la route avec celui du Dashboard. Contrairement au comportement antérieur, un appel technique sans `DASHBOARD_TELEMETRY_LOCAL_ONLY=true` reçoit désormais 403, avant Groq. La restriction d'origine et le serveur loopback demeurent ; cela ne constitue pas une authentification de production.
+
+Aucun nouveau moteur, outil, accès documentaire ou transfert humain n'est ajouté. Le Studio ne consomme pas ce runner et continue d'utiliser `/api/agents/:id/ask` pour 5B.
+Pour la future validation humaine de 5E : définir des états de proposition/approbation/expiration persistés côté serveur, une identité d'approbateur, un lien à la version exacte des arguments et un audit avant toute exécution à effets de bord. Une instruction utilisateur ou un simple bouton frontend ne peut pas tenir lieu d'autorisation. Le point d'exécution d'outils existant pourra être adapté, sans réimplémenter une boucle agent concurrente. Ces capacités ne sont **pas implémentées** par ce nettoyage.
+
+Les tests backend du runner restent conservés. Les tests exclusivement dédiés à son UI supprimée sont remplacés par des tests de la coquille Studio et de ses trois espaces ; le test du service HTTP legacy est retiré. Les suites détaillées 5A/5B restent inchangées. Les anciens chiffres de build ci-dessus décrivent les livraisons historiques ; l'avertissement SCSS historique disparaît après retrait de son import.

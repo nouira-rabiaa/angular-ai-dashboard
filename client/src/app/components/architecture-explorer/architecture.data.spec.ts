@@ -38,13 +38,14 @@ describe('Architecture Explorer curated model', () => {
     }
   });
 
-  it('keeps PDF RAG and Agent Workspace as separate execution paths', () => {
+  it('keeps PDF RAG and the internal tool engine separate without the removed UI', () => {
     const rag = ARCHITECTURE_FLOWS.find(flow => flow.id === 'pdf-rag')!;
     const agent = ARCHITECTURE_FLOWS.find(flow => flow.id === 'agent-workspace')!;
     expect(rag.nodeIds).toContain('sqlite-documents');
     expect(rag.nodeIds).toContain('groq-rag-model');
     expect(rag.nodeIds).not.toContain('agent-workspace-ui');
-    expect(agent.nodeIds).toContain('agent-workspace-ui');
+    expect(agent.nodeIds).not.toContain('agent-workspace-ui');
+    expect(agent.nodeIds).toContain('express-agent-api');
     expect(agent.nodeIds).toContain('agent-readonly-tools');
     expect(agent.nodeIds).not.toContain('sqlite-documents');
   });

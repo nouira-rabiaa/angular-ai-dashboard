@@ -4,7 +4,7 @@ import multer from 'multer';
 import Groq from 'groq-sdk';
 import { encoding_for_model } from 'tiktoken';
 import Database from 'better-sqlite3';
-import { createAgentRouteHandler, createAgentRunner } from './agent.js';
+import { registerInternalAgentRoute, createAgentRunner } from './agent.js';
 import { createChatHandler } from './chat-handler.js';
 import { createDashboardHandlers, registerDashboardRoutes } from './dashboard-routes.js';
 import { createFinopsHandlers, registerFinopsRoutes } from './finops.js';
@@ -66,7 +66,6 @@ runMigrations(db);
 console.log('✅ Base de données SQLite initialisée avec succès.');
 
 const runAgent = createAgentRunner({ groq, db });
-const handleAgentRun = createAgentRouteHandler(runAgent);
 
 registerLegacyHistoryRoutes(app);
 
@@ -195,7 +194,7 @@ app.post('/api/submit-form', async (req, res) => {
   }
 });
 
-app.post('/api/agent/run', handleAgentRun);
+registerInternalAgentRoute(app, runAgent, dashboardHandlers.middleware);
 
 app.listen(PORT, HOST, () => {
   console.log(`Serveur BFF démarré sur http://${HOST}:${PORT}`);

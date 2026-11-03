@@ -21,10 +21,10 @@ describe('ArchitectureExplorerComponent', () => {
 
     expect(component.activeFlow().nodeIds).toContain('sqlite-documents');
     expect(component.activeFlow().edgeIds).toContain('rag-retrieve');
-    expect(component.isNodeInFlow('agent-workspace-ui')).toBe(false);
+    expect(component.isNodeInFlow('express-agent-api')).toBe(false);
     expect(fixture.nativeElement.textContent).toContain('FTS5');
     expect(fixture.nativeElement.textContent).toContain('Hors du flux sélectionné');
-    expect(fixture.nativeElement.querySelector('[aria-label="Sélectionner Agent Workspace"]')?.className).not.toContain('opacity-50');
+    expect(fixture.nativeElement.querySelector('[aria-label="Sélectionner API Agent"]')?.className).not.toContain('opacity-50');
     expect(fixture.nativeElement.textContent).toContain('cela ne prouve pas l’exactitude factuelle');
   });
 
@@ -35,7 +35,7 @@ describe('ArchitectureExplorerComponent', () => {
   });
 
   it('selects a node through its rendered button and updates the details panel', () => {
-    const nodeButton = fixture.nativeElement.querySelector('button[aria-label="Sélectionner Agent Workspace"]') as HTMLButtonElement;
+    const nodeButton = fixture.nativeElement.querySelector('button[aria-label="Sélectionner API Agent"]') as HTMLButtonElement;
     expect(nodeButton).not.toBeNull();
     expect(nodeButton.getAttribute('aria-describedby')).toBe('selected-node-details');
     nodeButton.focus();
@@ -45,14 +45,14 @@ describe('ArchitectureExplorerComponent', () => {
     nodeButton.click();
     fixture.detectChanges();
 
-    expect(component.selectedNodeId()).toBe('agent-workspace-ui');
+    expect(component.selectedNodeId()).toBe('express-agent-api');
     expect(nodeButton.getAttribute('aria-pressed')).toBe('true');
-    expect(fixture.nativeElement.querySelector('#node-details-title')?.textContent).toContain('Agent Workspace');
-    expect(fixture.nativeElement.textContent).toContain('parcours agent');
+    expect(fixture.nativeElement.querySelector('#node-details-title')?.textContent).toContain('API Agent');
+    expect(fixture.nativeElement.textContent).toContain('voie indépendante du chat RAG');
   });
 
   it('changes flow through semantic selector buttons and keeps the selected node valid', () => {
-    const agentButton = fixture.nativeElement.querySelector('button[aria-label="Choisir le flux Agent Workspace"]') as HTMLButtonElement;
+    const agentButton = fixture.nativeElement.querySelector('button[aria-label="Choisir le flux Moteur interne · outils"]') as HTMLButtonElement;
     expect(agentButton.getAttribute('aria-pressed')).toBe('false');
     agentButton.click();
     fixture.detectChanges();
@@ -190,7 +190,7 @@ describe('ArchitectureExplorerComponent', () => {
 
   it('replaces a selection outside the next flow with that flow’s first node', () => {
     const root = fixture.nativeElement as HTMLElement;
-    root.querySelector<HTMLButtonElement>('button[aria-label="Sélectionner Agent Workspace"]')!.click();
+    root.querySelector<HTMLButtonElement>('button[aria-label="Sélectionner API Agent"]')!.click();
     fixture.detectChanges();
     const nextFlow = component.flows.find(flow => flow.id === 'pdf-rag')!;
     const flowButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('button[aria-label^="Choisir le flux "]'));

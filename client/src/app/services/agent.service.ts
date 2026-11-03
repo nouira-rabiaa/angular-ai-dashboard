@@ -2,12 +2,10 @@ import { SupportAgent, SupportAgentConfig, SupportAgentPage, SupportAgentStatus,
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AgentRunRequest, AgentRunResponse } from '../models/agent-run.model';
 
 @Injectable({ providedIn: 'root' })
 export class AgentService {
   private readonly http = inject(HttpClient);
-  private readonly endpoint = 'http://localhost:3000/api/agent/run';
 
   private readonly configurations = 'http://localhost:3000/api/agents';
 
@@ -38,8 +36,4 @@ export class AgentService {
       { question, ...(documentId !== undefined ? { documentId } : {}) });
   }
 
-  run(goal: string): Observable<AgentRunResponse> {
-    const request: AgentRunRequest = { goal };
-    return this.http.post<AgentRunResponse>(this.endpoint, request);
-  }
 }

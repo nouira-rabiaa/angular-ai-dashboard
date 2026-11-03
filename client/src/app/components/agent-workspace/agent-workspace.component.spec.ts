@@ -1,86 +1,34 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Observable, Subject, of, throwError } from 'rxjs';
-import { AgentRunResponse } from '../../models/agent-run.model';
-import { AgentService } from '../../services/agent.service';
+import { TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 import { AgentWorkspaceComponent } from './agent-workspace.component';
+import { AgentService } from '../../services/agent.service';
+import { DashboardDataService } from '../../services/dashboard-data.service';
+import { SupportAgent, emptySupportAgent } from '../../models/support-agent.model';
 
-describe('AgentWorkspaceComponent', () => {
-  let fixture: ComponentFixture<AgentWorkspaceComponent>;
-  let component: AgentWorkspaceComponent;
-  let run: jest.Mock<Observable<AgentRunResponse>, [string]>;
-
-  const response: AgentRunResponse = {
-    runId: 'run-123',
-    status: 'completed',
-    answer: 'There are 3 form submissions.',
-    trace: [{
-      step: 1,
-      tool: 'count_form_submissions',
-      status: 'completed',
-      result: { count: 3 }
-    }]
-  };
-
-  beforeEach(() => {
-    run = jest.fn<Observable<AgentRunResponse>, [string]>();
-    TestBed.configureTestingModule({
-      imports: [AgentWorkspaceComponent],
-      providers: [{ provide: AgentService, useValue: { run, listAgents: jest.fn().mockReturnValue(of({ items: [], total: 0, limit: 50, offset: 0 })) } }]
-    });
-    fixture = TestBed.createComponent(AgentWorkspaceComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+describe('AgentWorkspaceComponent — Studio shell', () => {
+  const agent: SupportAgent = { ...emptySupportAgent(), id: 'agent', name: 'Assistance', status: 'active', version: 1, createdAt: '', updatedAt: '' };
+  beforeEach(() => TestBed.configureTestingModule({ imports: [AgentWorkspaceComponent], providers: [
+    { provide: AgentService, useValue: { listAgents: () => of({ items: [agent], total: 1, limit: 50, offset: 0 }),
+      getAgent: () => of(agent), getAgentDocuments: () => of({ documentIds: [], documents: [], scopeVersion: 'scope' }) } },
+    { provide: DashboardDataService, useValue: { getDocuments: () => of({ items: [], total: 0, limit: 25, offset: 0 }) } }
+  ] }));
+  it('renders only Support Agent Studio, without legacy execution controls', () => {
+    const fixture = TestBed.createComponent(AgentWorkspaceComponent);fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('app-agent-configuration')).toHaveLength(1);
+    expect(fixture.nativeElement.textContent).toContain('Support Agent Studio');
+    expect(fixture.nativeElement.textContent).not.toContain('Outils d’exploitation');
+    expect(fixture.nativeElement.querySelector('.run-button')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#agent-goal')).toBeNull();
+    expect('run' in TestBed.inject(AgentService)).toBe(false);
   });
-
-  it('shows the empty state and keeps submission disabled for a blank goal', () => {
-    const button = fixture.nativeElement.querySelector('.run-button') as HTMLButtonElement;
-
-    expect(fixture.nativeElement.textContent).toContain('Ready when you are');
-    expect(button.disabled).toBe(true);
-    component.runAgent();
-    expect(run).not.toHaveBeenCalled();
-  });
-
-  it('disables goal controls while a run is pending', () => {
-    const pending = new Subject<AgentRunResponse>();
-    run.mockReturnValue(pending);
-    component.goal.set('Count submissions');
-    fixture.detectChanges();
-
-    component.runAgent();
-    fixture.detectChanges();
-
-    expect(component.state()).toBe('running');
-    expect((fixture.nativeElement.querySelector('#agent-goal') as HTMLTextAreaElement).disabled).toBe(true);
-    expect((fixture.nativeElement.querySelector('.run-button') as HTMLButtonElement).disabled).toBe(true);
-    expect(fixture.nativeElement.textContent).toContain('Agent is working');
-    pending.complete();
-  });
-
-  it('renders the final answer and safe execution result', () => {
-    run.mockReturnValue(of(response));
-    component.goal.set('Count submissions');
-
-    component.runAgent();
-    fixture.detectChanges();
-
-    expect(run).toHaveBeenCalledWith('Count submissions');
-    expect(fixture.nativeElement.textContent).toContain('Count form submissions');
-    expect(fixture.nativeElement.textContent).toContain('completed');
-    expect(fixture.nativeElement.textContent).toContain('3 form submissions');
-    expect(fixture.nativeElement.textContent).toContain('There are 3 form submissions.');
-  });
-
-  it('shows a recoverable error and allows retry', () => {
-    run.mockReturnValue(throwError(() => new Error('backend unavailable')));
-    component.goal.set('Count submissions');
-
-    component.runAgent();
-    fixture.detectChanges();
-
-    expect(component.state()).toBe('failed');
-    expect(fixture.nativeElement.textContent).toContain('The agent could not finish');
-    expect(fixture.nativeElement.textContent).toContain('Check the backend connection');
-    expect(fixture.nativeElement.querySelector('.retry-button')).not.toBeNull();
+  it('preserves the three spaces and keeps the configuration form mounted', () => {
+    const fixture = TestBed.createComponent(AgentWorkspaceComponent);fixture.detectChanges();
+    fixture.nativeElement.querySelector('.studio-agent').click();fixture.detectChanges();
+    const form = fixture.nativeElement.querySelector('#studio-config-panel');
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('nav[aria-label="Espaces du Support Agent Studio"] button')) as HTMLButtonElement[];
+    expect(buttons.map(button => button.textContent?.trim())).toEqual(['Configuration', 'Knowledge Base', 'Tester l’agent']);
+    buttons[1].click();fixture.detectChanges();expect(fixture.nativeElement.textContent).toContain('Aucun document sélectionné');
+    buttons[2].click();fixture.detectChanges();expect(fixture.nativeElement.textContent).toContain('Prévisualisation documentaire');
+    buttons[0].click();fixture.detectChanges();expect(fixture.nativeElement.querySelector('#studio-config-panel')).toBe(form);expect(form.hidden).toBe(false);
   });
 });

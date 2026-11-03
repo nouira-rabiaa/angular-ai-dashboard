@@ -72,9 +72,9 @@ import {
                 <svg lucideWorkflow class="h-[18px] w-[18px] shrink-0 text-slate-500 transition group-hover:text-indigo-300"></svg>
                 @if (expanded || mobileOpen) { <span class="truncate">Architecture Explorer</span> }
               </a>
-              <a routerLink="/agent-workspace" aria-label="Agent Workspace" data-mobile-focus routerLinkActive="!bg-indigo-500/15 !text-indigo-200 !shadow-[inset_0_0_0_1px_rgba(129,140,248,0.22)]" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-400 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+              <a routerLink="/agent-workspace" aria-label="Support Agent Studio" data-mobile-focus routerLinkActive="!bg-indigo-500/15 !text-indigo-200 !shadow-[inset_0_0_0_1px_rgba(129,140,248,0.22)]" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-400 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
                 <svg lucideBot class="h-[18px] w-[18px] shrink-0 text-slate-500 transition group-hover:text-cyan-300"></svg>
-                @if (expanded || mobileOpen) { <span class="truncate">Agent Workspace</span> }
+                @if (expanded || mobileOpen) { <span class="truncate">Support Agent Studio</span> }
               </a>
             </div>
           </div>

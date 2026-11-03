@@ -15,7 +15,7 @@ Voir [ARCHITECTURE](docs/ARCHITECTURE.md), [TECHNIQUES](docs/TECHNIQUES.md) et [
 
 ## Support Agent Studio — Phases 5A / 5B
 
-Dans **Agent Workspace**, créez, modifiez et activez/désactivez des configurations sauvegardées dans SQLite. Activez `DASHBOARD_TELEMETRY_LOCAL_ONLY=true` pour les API locales de configuration. L'ancien exécuteur à outils de lecture reste disponible dans « Outils d'exploitation ».
+Dans **Support Agent Studio** (`/agent-workspace`), créez, modifiez et activez/désactivez des configurations sauvegardées dans SQLite. Activez `DASHBOARD_TELEMETRY_LOCAL_ONLY=true` pour les API locales de configuration. L'ancienne interface « Outils d'exploitation » a été supprimée. Le moteur backend est conservé comme capacité technique locale, sans raccordement automatique au Studio.
 
 Trois espaces conservent le même design : **Configuration**, **Knowledge Base** et **Tester l’agent**. Associez explicitement des documents existants, puis envoyez une question à une configuration active. Le serveur filtre FTS5 dans SQL par agent et s'abstient si le contexte lexical ou les références sont insuffisants. Aucun historique de conversation n'est créé. La sauvegarde ne lance aucun appel IA et l'activation ne déploie pas un agent. Voir [périmètre, sécurité, tests et démonstration Phase 5A](docs/PHASE5_SUPPORT_AGENT.md).
 
@@ -41,7 +41,7 @@ Les estimations ne sont **jamais** une facture. La couverture est limitée aux t
 
 ### 3. Dynamic Form Generation & SQLite Persistence
 
-La génération retourne un schéma JSON interprété par Angular. La soumission est une action distincte, persistée avec des paramètres SQL liés. Les formulaires ne récupèrent pas automatiquement le contexte RAG. L’Agent Workspace existant reste distinct du chat et n’est pas un agent de support client Phase 5.
+La génération retourne un schéma JSON interprété par Angular. La soumission est une action distincte, persistée avec des paramètres SQL liés. Les formulaires ne récupèrent pas automatiquement le contexte RAG. Le moteur interne historique reste distinct du chat et du Studio de support ; il n’a plus d’interface utilisateur et nécessite le mode local explicitement activé.
 
 ## 🛡️ Best Practices & Engineering Standards
 
