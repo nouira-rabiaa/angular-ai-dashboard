@@ -1,0 +1,48 @@
+{
+  "brand": {
+    "name": "Enterprise AI Dashboard",
+    "subtitle": "AI Operations & FinOps Platform"
+  },
+  "shell": {
+    "localDemo": "Local demo",
+    "openNavigation": "Open navigation menu",
+    "closeNotification": "Dismiss notification",
+    "close": "Dismiss",
+    "language": "Interface language",
+    "french": "French",
+    "english": "English",
+    "languageLoading": "Loading language…",
+    "languageError": "Language unavailable. The interface remains in French."
+  },
+  "nav": {
+    "workspace": "Workspace",
+    "main": "Main navigation",
+    "closeNavigation": "Close navigation",
+    "closeMenu": "Close menu",
+    "collapse": "Collapse menu",
+    "collapseLabel": "Collapse sidebar",
+    "expandLabel": "Expand sidebar",
+    "dashboard": "Dashboard",
+    "generator": "AI Generator",
+    "guidedDemo": "Guided Demo",
+    "architecture": "Architecture Explorer",
+    "studio": "Support Agent Studio"
+  },
+  "common": {
+    "unavailable": "Unavailable",
+    "pageTitle": "{{page}} · Enterprise AI Dashboard"
+  },
+  "errors": {
+    "generic": "Something went wrong. Try again or check the local server.",
+    "network": "Unable to connect to the server. Check the local server and try again.",
+    "badRequest": "Invalid request. Check the values you entered.",
+    "unauthorized": "Access is not authorized.",
+    "forbidden": "Access denied. Check permissions and whether local mode is enabled.",
+    "notFound": "Resource not found. Reload the data.",
+    "conflict": "The data has changed or an operation is in progress. Reload before trying again.",
+    "rateLimited": "Too many requests. Wait before trying again.",
+    "server": "The server could not process the request. Please try again later.",
+    "http": "The request failed (HTTP {{status}}). Please try again.",
+    "upload": "The server could not process the document. Please try importing it again."
+  }
+}

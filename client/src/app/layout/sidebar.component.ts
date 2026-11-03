@@ -1,3 +1,5 @@
+import { TranslocoPipe } from '@jsverse/transloco';
+import { UiLanguageService } from '../i18n/ui-language.service';
 import { Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, OnDestroy, Output, SimpleChanges, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import {
@@ -13,6 +15,7 @@ import {
   selector: 'app-sidebar',
   standalone: true,
   imports: [
+    TranslocoPipe,
     RouterLink,
     RouterLinkActive,
     LucideBot,
@@ -24,7 +27,7 @@ import {
   ],
   template: `
     @if (mobileOpen) {
-      <button type="button" class="fixed inset-0 z-40 bg-slate-950/60 lg:hidden" aria-label="Fermer la navigation" (click)="closeMobile()"></button>
+      <button type="button" class="fixed inset-0 z-40 bg-slate-950/60 lg:hidden" [attr.aria-label]="'nav.closeNavigation' | transloco" (click)="closeMobile()"></button>
     }
     <aside
       [class.w-64]="expanded || mobileOpen"
@@ -34,7 +37,7 @@ import {
       class="fixed inset-y-0 left-0 z-50 flex h-dvh flex-col border-r border-white/10 bg-[var(--nav)] text-slate-300 shadow-2xl transition-[width,transform] duration-300 motion-reduce:transition-none lg:visible lg:sticky lg:top-0 lg:z-30 lg:h-screen lg:translate-x-0"
       [attr.role]="mobileOpen ? 'dialog' : null"
       [attr.aria-modal]="mobileOpen ? 'true' : null"
-      [attr.aria-label]="mobileOpen ? 'Navigation principale' : null"
+      [attr.aria-label]="mobileOpen ? ('nav.main' | transloco) : null"
       (keydown)="onMobileDialogKeydown($event)">
       <div class="flex h-full min-h-0 flex-col">
         <div class="flex h-[5.25rem] shrink-0 items-center gap-3 border-b border-white/10 px-5">
@@ -43,46 +46,46 @@ import {
           </div>
           @if (expanded || mobileOpen) {
             <div class="min-w-0 flex-1">
-              <p class="text-sm font-bold leading-tight text-white">Enterprise AI Dashboard</p>
-              <p class="mt-0.5 text-[10px] font-medium leading-snug text-slate-300">AI Operations & FinOps Platform</p>
+              <p class="text-sm font-bold leading-tight text-white">{{ 'brand.name' | transloco }}</p>
+              <p class="mt-0.5 text-[10px] font-medium leading-snug text-slate-300">{{ 'brand.subtitle' | transloco }}</p>
             </div>
           }
-          <button type="button" data-mobile-focus class="ml-auto rounded-lg p-2 text-blue-100 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 lg:hidden" aria-label="Fermer le menu" (click)="closeMobile()">
+          <button type="button" data-mobile-focus class="ml-auto rounded-lg p-2 text-blue-100 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 lg:hidden" [attr.aria-label]="'nav.closeMenu' | transloco" (click)="closeMobile()">
             <svg lucidePanelLeftClose class="h-4 w-4"></svg>
           </button>
         </div>
 
-        <nav class="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 py-4" aria-label="Navigation principale">
+        <nav class="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 py-4" [attr.aria-label]="'nav.main' | transloco">
           <div>
-            @if (expanded || mobileOpen) { <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-200">Workspace</p> }
+            @if (expanded || mobileOpen) { <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-200">{{ 'nav.workspace' | transloco }}</p> }
             <div class="space-y-1.5">
-              <a routerLink="/dashboard" aria-label="Dashboard BDD" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+              <a routerLink="/dashboard" [attr.aria-label]="'nav.dashboard' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
                 <svg lucideLayoutDashboard class="h-[18px] w-[18px] shrink-0 text-blue-200 transition group-hover:text-white"></svg>
-                @if (expanded || mobileOpen) { <span class="truncate">Dashboard BDD</span> }
+                @if (expanded || mobileOpen) { <span class="min-w-0 whitespace-normal leading-snug">{{ 'nav.dashboard' | transloco }}</span> }
               </a>
-              <a routerLink="/generator" aria-label="Générateur IA" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+              <a routerLink="/generator" [attr.aria-label]="'nav.generator' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
                 <svg lucideSparkles class="h-[18px] w-[18px] shrink-0 text-blue-200 transition group-hover:text-white"></svg>
-                @if (expanded || mobileOpen) { <span class="truncate">Générateur IA</span> }
+                @if (expanded || mobileOpen) { <span class="min-w-0 whitespace-normal leading-snug">{{ 'nav.generator' | transloco }}</span> }
               </a>
-              <a routerLink="/guided-demo" aria-label="Guided Demo" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+              <a routerLink="/guided-demo" [attr.aria-label]="'nav.guidedDemo' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
                 <svg lucideWorkflow class="h-[18px] w-[18px] shrink-0 text-blue-200 transition group-hover:text-white"></svg>
-                @if (expanded || mobileOpen) { <span class="truncate">Guided Demo</span> }
+                @if (expanded || mobileOpen) { <span class="min-w-0 whitespace-normal leading-snug">{{ 'nav.guidedDemo' | transloco }}</span> }
               </a>
-              <a routerLink="/architecture" aria-label="Architecture Explorer" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+              <a routerLink="/architecture" [attr.aria-label]="'nav.architecture' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
                 <svg lucideWorkflow class="h-[18px] w-[18px] shrink-0 text-blue-200 transition group-hover:text-white"></svg>
-                @if (expanded || mobileOpen) { <span class="truncate">Architecture Explorer</span> }
+                @if (expanded || mobileOpen) { <span class="min-w-0 whitespace-normal leading-snug">{{ 'nav.architecture' | transloco }}</span> }
               </a>
-              <a routerLink="/agent-workspace" aria-label="Support Agent Studio" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+              <a routerLink="/agent-workspace" [attr.aria-label]="'nav.studio' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
                 <svg lucideBot class="h-[18px] w-[18px] shrink-0 text-blue-200 transition group-hover:text-white"></svg>
-                @if (expanded || mobileOpen) { <span class="truncate">Support Agent Studio</span> }
+                @if (expanded || mobileOpen) { <span class="min-w-0 whitespace-normal leading-snug">{{ 'nav.studio' | transloco }}</span> }
               </a>
             </div>
           </div>
         </nav>
 
         <div class="hidden shrink-0 border-t border-white/10 p-3 lg:block">
-          <button type="button" data-desktop-focus (click)="toggleExpanded()" [attr.aria-expanded]="expanded" [attr.aria-label]="expanded ? 'Réduire le menu latéral' : 'Développer le menu latéral'" class="flex min-h-11 w-full items-center justify-center gap-3 rounded-xl px-3 text-xs font-semibold text-blue-100 outline-none transition hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300">
-            @if (expanded) { <svg lucidePanelLeftClose class="h-4 w-4"></svg><span>Réduire le menu</span> }
+          <button type="button" data-desktop-focus (click)="toggleExpanded()" [attr.aria-expanded]="expanded" [attr.aria-label]="(expanded ? 'nav.collapseLabel' : 'nav.expandLabel') | transloco" class="flex min-h-11 w-full items-center justify-center gap-3 rounded-xl px-3 text-xs font-semibold text-blue-100 outline-none transition hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300">
+            @if (expanded) { <svg lucidePanelLeftClose class="h-4 w-4"></svg><span>{{ 'nav.collapse' | transloco }}</span> }
             @else { <svg lucidePanelLeftOpen class="h-4 w-4"></svg> }
           </button>
         </div>
@@ -91,6 +94,7 @@ import {
   `
 })
 export class SidebarComponent implements OnChanges, OnDestroy {
+  readonly languages = inject(UiLanguageService);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
   private focusReturnTarget: HTMLElement | null = null;
   private focusFrame: number | null = null;

@@ -43,6 +43,6 @@ describe('ErrorInterceptor', () => {
     req.flush('Error 500', { status: 500, statusText: 'Internal Server Error' });
 
     // Vérifie que le service a bien capté le message d'erreur
-    expect(showErrorSpy).toHaveBeenCalledWith('Erreur interne du serveur Node.js (500).');
+    expect(showErrorSpy).toHaveBeenCalledWith('Erreur interne du serveur Node.js (500).', { key: 'errors.server' });
   });
 });

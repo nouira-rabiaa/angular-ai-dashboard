@@ -1,4 +1,6 @@
-import { ApplicationConfig, LOCALE_ID, provideZoneChangeDetection } from '@angular/core';
+import { UiLanguageService } from './i18n/ui-language.service';
+import { provideUiI18n } from './i18n/ui-i18n.providers';
+import { ApplicationConfig, LOCALE_ID, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import { provideRouter } from '@angular/router';
@@ -10,6 +12,8 @@ registerLocaleData(localeFr, 'fr-FR');
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    ...provideUiI18n(),
+    provideAppInitializer(() => inject(UiLanguageService).ready),
     provideZoneChangeDetection({ eventCoalescing: true }),
     { provide: LOCALE_ID, useValue: 'fr-FR' },
     provideRouter(routes),

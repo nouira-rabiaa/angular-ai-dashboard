@@ -1,3 +1,5 @@
+import { provideUiI18n } from '../i18n/ui-i18n.providers';
+import { UI_LANGUAGE_STORAGE_KEY } from '../i18n/ui-language.service';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
@@ -12,9 +14,10 @@ describe('SidebarComponent', () => {
   let router: Router;
 
   beforeEach(async () => {
+    localStorage.removeItem(UI_LANGUAGE_STORAGE_KEY);
     await TestBed.configureTestingModule({
       imports: [SidebarComponent],
-      providers: [provideRouter([
+      providers: [...provideUiI18n(), provideRouter([
         { path: 'dashboard', component: TestPageComponent },
         { path: 'generator', component: TestPageComponent },
         { path: 'guided-demo', component: TestPageComponent },
@@ -55,11 +58,11 @@ describe('SidebarComponent', () => {
 
     const links = Array.from(fixture.nativeElement.querySelectorAll('nav a')) as HTMLAnchorElement[];
     expect(links.map(link => link.getAttribute('aria-label'))).toEqual([
-      'Dashboard BDD',
+      'Tableau de bord',
       'Générateur IA',
-      'Guided Demo',
-      'Architecture Explorer',
-      'Support Agent Studio'
+      'Démo guidée',
+      'Explorateur d’architecture',
+      'Studio d’agents de support'
     ]);
     expect(links.every(link => link.textContent?.trim() === '')).toBe(true);
   });
