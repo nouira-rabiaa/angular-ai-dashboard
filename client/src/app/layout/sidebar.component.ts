@@ -31,14 +31,14 @@ import {
       [class.w-[5.5rem]]="!expanded && !mobileOpen"
       [class.-translate-x-full]="!mobileOpen"
       [class.invisible]="!mobileOpen"
-      class="fixed inset-y-0 left-0 z-50 flex h-dvh flex-col border-r border-white/10 bg-[var(--ui-bg)] text-slate-300 shadow-2xl transition-[width,transform] duration-300 motion-reduce:transition-none lg:visible lg:sticky lg:top-0 lg:z-30 lg:h-screen lg:translate-x-0"
+      class="fixed inset-y-0 left-0 z-50 flex h-dvh flex-col border-r border-white/10 bg-[#0B1222] text-slate-300 shadow-2xl transition-[width,transform] duration-300 motion-reduce:transition-none lg:visible lg:sticky lg:top-0 lg:z-30 lg:h-screen lg:translate-x-0"
       [attr.role]="mobileOpen ? 'dialog' : null"
       [attr.aria-modal]="mobileOpen ? 'true' : null"
       [attr.aria-label]="mobileOpen ? 'Navigation principale' : null"
       (keydown)="onMobileDialogKeydown($event)">
       <div class="flex h-full min-h-0 flex-col">
         <div class="flex h-[5.25rem] shrink-0 items-center gap-3 border-b border-white/10 px-5">
-          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--ui-selected)] text-[var(--ui-accent)] shadow-lg shadow-indigo-950/40">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-950/40">
             <svg lucideBot class="h-5 w-5"></svg>
           </div>
           @if (expanded || mobileOpen) {
@@ -47,33 +47,33 @@ import {
               <p class="mt-0.5 text-[10px] font-medium leading-snug text-slate-300">AI Operations & FinOps Platform</p>
             </div>
           }
-          <button type="button" data-mobile-focus class="ml-auto rounded-lg p-2 text-[var(--ui-muted)] transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 lg:hidden" aria-label="Fermer le menu" (click)="closeMobile()">
+          <button type="button" data-mobile-focus class="ml-auto rounded-lg p-2 text-slate-400 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 lg:hidden" aria-label="Fermer le menu" (click)="closeMobile()">
             <svg lucidePanelLeftClose class="h-4 w-4"></svg>
           </button>
         </div>
 
         <nav class="min-h-0 flex-1 space-y-7 overflow-y-auto px-3 py-6" aria-label="Navigation principale">
           <div>
-            @if (expanded || mobileOpen) { <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--ui-muted)]">Workspace</p> }
+            @if (expanded || mobileOpen) { <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Workspace</p> }
             <div class="space-y-1.5">
-              <a routerLink="/dashboard" aria-label="Dashboard BDD" data-mobile-focus routerLinkActive="!bg-[var(--ui-selected)] !text-[var(--ui-accent)] !shadow-[inset_3px_0_var(--ui-accent)]" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-[var(--ui-muted)] outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
-                <svg lucideLayoutDashboard class="h-[18px] w-[18px] shrink-0 text-[var(--ui-muted)] transition group-hover:text-indigo-300"></svg>
+              <a routerLink="/dashboard" aria-label="Dashboard BDD" data-mobile-focus routerLinkActive="!bg-indigo-500/15 !text-indigo-200 !shadow-[inset_0_0_0_1px_rgba(129,140,248,0.22)]" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-400 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+                <svg lucideLayoutDashboard class="h-[18px] w-[18px] shrink-0 text-slate-500 transition group-hover:text-indigo-300"></svg>
                 @if (expanded || mobileOpen) { <span class="truncate">Dashboard BDD</span> }
               </a>
-              <a routerLink="/generator" aria-label="Générateur IA" data-mobile-focus routerLinkActive="!bg-[var(--ui-selected)] !text-[var(--ui-accent)] !shadow-[inset_3px_0_var(--ui-accent)]" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-[var(--ui-muted)] outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
-                <svg lucideSparkles class="h-[18px] w-[18px] shrink-0 text-[var(--ui-muted)] transition group-hover:text-violet-300"></svg>
+              <a routerLink="/generator" aria-label="Générateur IA" data-mobile-focus routerLinkActive="!bg-indigo-500/15 !text-indigo-200 !shadow-[inset_0_0_0_1px_rgba(129,140,248,0.22)]" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-400 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+                <svg lucideSparkles class="h-[18px] w-[18px] shrink-0 text-slate-500 transition group-hover:text-violet-300"></svg>
                 @if (expanded || mobileOpen) { <span class="truncate">Générateur IA</span> }
               </a>
-              <a routerLink="/guided-demo" aria-label="Guided Demo" data-mobile-focus routerLinkActive="!bg-[var(--ui-selected)] !text-[var(--ui-accent)] !shadow-[inset_3px_0_var(--ui-accent)]" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-[var(--ui-muted)] outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
-                <svg lucideWorkflow class="h-[18px] w-[18px] shrink-0 text-[var(--ui-muted)] transition group-hover:text-emerald-300"></svg>
+              <a routerLink="/guided-demo" aria-label="Guided Demo" data-mobile-focus routerLinkActive="!bg-indigo-500/15 !text-indigo-200 !shadow-[inset_0_0_0_1px_rgba(129,140,248,0.22)]" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-400 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+                <svg lucideWorkflow class="h-[18px] w-[18px] shrink-0 text-slate-500 transition group-hover:text-emerald-300"></svg>
                 @if (expanded || mobileOpen) { <span class="truncate">Guided Demo</span> }
               </a>
-              <a routerLink="/architecture" aria-label="Architecture Explorer" data-mobile-focus routerLinkActive="!bg-[var(--ui-selected)] !text-[var(--ui-accent)] !shadow-[inset_3px_0_var(--ui-accent)]" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-[var(--ui-muted)] outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
-                <svg lucideWorkflow class="h-[18px] w-[18px] shrink-0 text-[var(--ui-muted)] transition group-hover:text-indigo-300"></svg>
+              <a routerLink="/architecture" aria-label="Architecture Explorer" data-mobile-focus routerLinkActive="!bg-indigo-500/15 !text-indigo-200 !shadow-[inset_0_0_0_1px_rgba(129,140,248,0.22)]" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-400 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+                <svg lucideWorkflow class="h-[18px] w-[18px] shrink-0 text-slate-500 transition group-hover:text-indigo-300"></svg>
                 @if (expanded || mobileOpen) { <span class="truncate">Architecture Explorer</span> }
               </a>
-              <a routerLink="/agent-workspace" aria-label="Support Agent Studio" data-mobile-focus routerLinkActive="!bg-[var(--ui-selected)] !text-[var(--ui-accent)] !shadow-[inset_3px_0_var(--ui-accent)]" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-[var(--ui-muted)] outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
-                <svg lucideBot class="h-[18px] w-[18px] shrink-0 text-[var(--ui-muted)] transition group-hover:text-cyan-300"></svg>
+              <a routerLink="/agent-workspace" aria-label="Support Agent Studio" data-mobile-focus routerLinkActive="!bg-indigo-500/15 !text-indigo-200 !shadow-[inset_0_0_0_1px_rgba(129,140,248,0.22)]" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-400 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
+                <svg lucideBot class="h-[18px] w-[18px] shrink-0 text-slate-500 transition group-hover:text-cyan-300"></svg>
                 @if (expanded || mobileOpen) { <span class="truncate">Support Agent Studio</span> }
               </a>
             </div>
@@ -81,7 +81,7 @@ import {
         </nav>
 
         <div class="hidden shrink-0 border-t border-white/10 p-3 lg:block">
-          <button type="button" data-desktop-focus (click)="toggleExpanded()" [attr.aria-expanded]="expanded" [attr.aria-label]="expanded ? 'Réduire le menu latéral' : 'Développer le menu latéral'" class="flex min-h-11 w-full items-center justify-center gap-3 rounded-xl px-3 text-xs font-semibold text-[var(--ui-muted)] outline-none transition hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300">
+          <button type="button" data-desktop-focus (click)="toggleExpanded()" [attr.aria-expanded]="expanded" [attr.aria-label]="expanded ? 'Réduire le menu latéral' : 'Développer le menu latéral'" class="flex min-h-11 w-full items-center justify-center gap-3 rounded-xl px-3 text-xs font-semibold text-slate-400 outline-none transition hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300">
             @if (expanded) { <svg lucidePanelLeftClose class="h-4 w-4"></svg><span>Réduire le menu</span> }
             @else { <svg lucidePanelLeftOpen class="h-4 w-4"></svg> }
           </button>
