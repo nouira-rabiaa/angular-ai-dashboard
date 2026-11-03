@@ -33,6 +33,19 @@ describe('AgentKnowledgeComponent', () => {
     api.getAgentDocuments.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 403 })));component.load();fixture.detectChanges();
     expect(text()).toContain('Accès refusé');expect(api.askAgent).not.toHaveBeenCalled();
   });
+  it('keeps the compact catalogue keyboard reachable with native document controls', () => {
+    fixture.detectChanges();
+    const region = fixture.nativeElement.querySelector('[aria-label="Catalogue des documents"]') as HTMLElement;
+    region.focus();expect(globalThis.document.activeElement).toBe(region);
+    expect(region.querySelectorAll('input[type="checkbox"]')).toHaveLength(2);
+    expect(fixture.nativeElement.querySelector('#associated-title').textContent).toContain('Documents associés');
+  });
+  it('explains the empty response area without making an inference when opening the tester', () => {
+    fixture.componentRef.setInput('mode', 'test');fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.result-panel').textContent).toContain('Aucun résultat n’est généré avant votre envoi');
+    expect(fixture.nativeElement.querySelector('.question-panel textarea')).not.toBeNull();
+    expect(api.askAgent).not.toHaveBeenCalled();
+  });
   it('saves associations only after server success and restores saved selection on cancel', () => {
     fixture.detectChanges();const changes = jest.fn();component.dirtyChange.subscribe(changes);
     const checkboxes = fixture.nativeElement.querySelectorAll('.document-list input') as NodeListOf<HTMLInputElement>;

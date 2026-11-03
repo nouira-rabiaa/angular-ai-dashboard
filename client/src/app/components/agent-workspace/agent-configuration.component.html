@@ -36,6 +36,7 @@
       @if (form.dirty) { <p role="status" class="studio-unsaved">● Modifications non enregistrées</p> }
       @if (error()) { <p role="alert" class="studio-error">{{ error() }}</p> }
       @if (message()) { <p role="status" class="studio-notice">{{ message() }}</p> }
+      <div class="configuration-fields">
       <fieldset [disabled]="saving() || loadingDetail()">
         <legend>Identité de l’agent</legend>
         <div class="studio-fields">
@@ -68,6 +69,7 @@
         <p class="studio-help">Option mémorisée uniquement. Aucun conseiller n’est contacté et aucune demande d’escalade n’est créée en 5B.</p>
         <label for="support-status">Statut de la configuration<select id="support-status" formControlName="status"><option value="inactive">Inactive</option><option value="active">Active</option></select><span>Une configuration active peut être testée sur ses documents autorisés ; les conversations restent une démonstration locale, sans déploiement public.</span></label>
       </fieldset>
+      </div>
       <footer class="studio-actions"><span class="studio-help">{{ selected() ? 'Modifiez puis enregistrez pour mettre à jour SQLite.' : 'Rien n’est enregistré avant votre validation.' }}</span><button type="button" class="studio-secondary" (click)="cancel()" [disabled]="saving() || loadingDetail()">Annuler</button><button type="submit" class="studio-primary" [disabled]="saving() || loadingDetail()">{{ saving() ? 'Enregistrement…' : 'Enregistrer' }}</button></footer>
     </form>
     <div id="studio-extra-panel" [hidden]="activeSpace() === 'configuration'">
