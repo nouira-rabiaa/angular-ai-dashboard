@@ -1,3 +1,4 @@
+import { ConversationTicketDraft } from '../../models/support-ticket.model';
 import { UiDatePipe } from '../../i18n/ui-format.pipe';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UiLanguageService } from '../../i18n/ui-language.service';
@@ -15,6 +16,9 @@ import { ConversationMessage, SupportAgent, SupportConversation } from '../../mo
 export class AgentConversationsComponent implements OnChanges {
   readonly ui = inject(UiLanguageService);
   @Input({ required: true }) agent!: SupportAgent;
+  @Input() initialConversation: SupportConversation | null = null;
+  @Output() readonly createTicket = new EventEmitter<ConversationTicketDraft>();
+  private requestedSeen: SupportConversation | null = null;
   @Output() readonly busyChange = new EventEmitter<boolean>();
   private readonly api = inject(AgentService);
   private readonly destroyRef = inject(DestroyRef);
@@ -36,16 +40,29 @@ export class AgentConversationsComponent implements OnChanges {
   constructor() { this.destroyRef.onDestroy(() => { this.generation++;clearTimeout(this.poll);this.busyChange.emit(false); }); }
   ngOnChanges(): void {
     if (this.previousAgent !== this.agent.id) {
-      this.loading.set(false);this.previousAgent = this.agent.id;this.generation++;clearTimeout(this.poll);this.retry = undefined;
+      this.requestedSeen = null;this.loading.set(false);this.previousAgent = this.agent.id;this.generation++;clearTimeout(this.poll);this.retry = undefined;
       this.selected.set(null);this.messages.set([]);this.conversations.set([]);this.confirming.set(null);this.question.reset();this.setSending(false);this.loadList();
-    }
+    } else this.openRequested();
+  }
+  ticketDraft() {
+    const conversation = this.selected();if (!conversation || this.sending() || this.loading()) return;
+    const message = this.messages().slice().reverse().find(item => item.role === 'user');
+    this.createTicket.emit({ conversation, description: message?.content.slice(0,4000) ?? '', sourceMessageId: message?.id ?? null });
+  }
+  private openRequested() {
+    const conversation = this.initialConversation;
+    if (!conversation || conversation === this.requestedSeen || conversation.agent_id !== this.agent.id) return;
+    this.requestedSeen = conversation;
+    if (conversation.id === this.selected()?.id) return;
+    if (this.question.dirty) { this.error.set('tickets.conversationDraft');return; }
+    this.open(conversation);
   }
   private setSending(value: boolean): void { this.sending.set(value);this.busyChange.emit(value); }
   loadList(more = false): void {
     if (this.loading()) return;
     const epoch = this.generation;this.loading.set(true);this.error.set('');
     this.api.listConversations(this.agent.id, more ? this.conversations().length : 0).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: page => { if (epoch !== this.generation) return;this.loading.set(false);this.total.set(page.total);this.conversations.set(more ? [...this.conversations(), ...page.items] : page.items); },
+      next: page => { if (epoch !== this.generation) return;this.loading.set(false);this.total.set(page.total);this.conversations.set(more ? [...this.conversations(), ...page.items] : page.items);this.openRequested(); },
       error: () => { if (epoch !== this.generation) return;this.loading.set(false);this.error.set('conversations.conversations_indisponibles_verifiez_le_serveur_et_le'); }
     });
   }

@@ -22,12 +22,12 @@ describe('AgentWorkspaceComponent — Studio shell', () => {
     expect(fixture.nativeElement.querySelector('#agent-goal')).toBeNull();
     expect('run' in TestBed.inject(AgentService)).toBe(false);
   });
-  it('preserves the four spaces and keeps the configuration form mounted', () => {
+  it('preserves the four existing spaces, adds Tickets and keeps the configuration form mounted', () => {
     const fixture = TestBed.createComponent(AgentWorkspaceComponent);fixture.detectChanges();
     fixture.nativeElement.querySelector('.studio-agent').click();fixture.detectChanges();
     const form = fixture.nativeElement.querySelector('#studio-config-panel');
     const buttons = Array.from(fixture.nativeElement.querySelectorAll('nav[aria-label="Espaces du Support Agent Studio"] button')) as HTMLButtonElement[];
-    expect(buttons.map(button => button.textContent?.trim())).toEqual(['Configuration', 'Base documentaire', 'Tester l’agent', 'Conversations']);
+    expect(buttons.map(button => button.textContent?.trim())).toEqual(['Configuration', 'Base documentaire', 'Tester l’agent', 'Conversations', 'Tickets']);
     buttons[1].click();fixture.detectChanges();expect(fixture.nativeElement.textContent).toContain('Aucun document sélectionné');
     buttons[2].click();fixture.detectChanges();expect(fixture.nativeElement.textContent).toContain('Prévisualisation documentaire');
     buttons[3].click();fixture.detectChanges();expect(fixture.nativeElement.textContent).toContain('Aucun échange');

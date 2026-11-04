@@ -1,4 +1,4 @@
-# Phases 5A / 5B / 5C — Support Agent Studio
+# Phases 5A / 5B / 5C / 5D-1 — Support Agent Studio
 
 Enterprise AI Dashboard — AI Operations & FinOps Platform.
 
@@ -7,7 +7,7 @@ Enterprise AI Dashboard — AI Operations & FinOps Platform.
 Créer, consulter, modifier et activer/désactiver des **configurations** de support client persistantes.
 Le Studio vit dans la route existante `/agent-workspace` : aucune seconde page Agent concurrente.
 L'activation reste un état de configuration, pas un déploiement public. La Phase **5B** ajoute un test documentaire réel et stateless pour les configurations actives.
-La sauvegarde 5A ne lance aucun appel Groq. L'envoi explicite dans « Tester l’agent » ou « Conversations » peut lancer une inférence réelle. La Phase 5C ajoute les conversations locales persistantes décrites ci-dessous ; classification, escalade effective et n8n restent futurs.
+La sauvegarde 5A ne lance aucun appel Groq. L'envoi explicite dans « Tester l’agent » ou « Conversations » peut lancer une inférence réelle. La Phase 5C ajoute les conversations locales persistantes décrites ci-dessous ; les tickets et la classification déterministe sont ajoutés en 5D-1 ; escalade effective et n8n restent futurs.
 
 ## Audit de la base existante
 
@@ -36,10 +36,11 @@ Le runner historique n'est pas un agent de support documentaire : il ne reçoit 
 - **5A (livré)** : configurations, validation, catalogue, édition, statut, persistance SQLite.
 - **5B (livré)** : base documentaire autorisée par agent, recherche FTS5/BM25 et citations ; réponse d'insuffisance stricte.
 - **5C (livré)** : conversations/messages persistants, reprise et contexte borné.
-- **5D (futur)** : classification, intégration n8n et demandes d'escalade humaine et historique de traitement ; aucune notification externe implicite.
+- **5D-1 (implémentation validée localement)** : tickets persistants, classification déterministe et historique transactionnel.
+- **5D-2 / 5D-3 (futurs)** : escalade humaine et n8n ; aucune notification externe implicite.
 - **5E (futur)** : tool calling et validation humaine, en réutilisant le moteur interne. L’agrégation observabilité/FinOps par agent reste à planifier.
 
-Seules 5A, 5B et 5C sont livrées ; 5D/5E ne sont pas implémentées.
+5A, 5B et 5C sont livrées ; 5D-1 est validée localement pour livraison sur la branche de travail, sans publication ni fusion dans main. 5D-2, 5D-3 et 5E restent non implémentées.
 
 ## SQLite et migration
 
@@ -395,3 +396,7 @@ La Phase 5D pourra s'appuyer sur les UUID, les états et les conversations persi
 - Build production réussi, **426 215 octets initiaux**, cinq routes lazy conservées. Chunk agent : **62 062 octets** ; stylesheet Conversations : **2 753 octets**. Budgets inchangés (initial warning 500 kB ; composant warning 4 kB / error 8 kB), aucun avertissement Angular.
 - `git diff --check`, vérification des imports et scan des fichiers concernés : aucun secret reconnaissable, fichier SQLite, sidecar ou artefact généré ajouté. Ce scan ne constitue pas une garantie exhaustive d'absence de secret dans l'historique du dépôt.
 - Safari WebDriver réellement tenté : session refusée parce que « Allow remote automation » est désactivé. **Aucune validation visuelle desktop/tablette/mobile ni capture réalisée**. Aucun appel Groq réel dans les tests ; la qualité linguistique d'une conversation réelle reste à évaluer manuellement.
+
+## Phase 5D-1 — Tickets persistants
+
+Cinquième espace bilingue du Studio : création confirmée manuelle ou depuis une conversation, classification par règles corrigible, gestion de statut/priorité/catégorie et historique. Les opérations Tickets n’appellent pas Groq et ne modifient ni le RAG ni les messages. Migration additive 006, garde local, associations contrôlées, idempotence et versions optimistes. [Contrats, rétention et démonstration NovaShop](PHASE5D_TICKETS.md). Les indications « futur » dans les audits historiques précédents concernent leur date de rédaction.

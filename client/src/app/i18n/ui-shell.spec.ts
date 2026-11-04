@@ -82,7 +82,7 @@ describe('Bilingual application shell', () => {
     expect(fixture.nativeElement.querySelector('#support-name')).toBe(input);expect(input.value).toBe('Brouillon non enregistré');
     expect(fixture.nativeElement.querySelector('h1').textContent).toBe('Support Agent Studio');
     expect(fixture.nativeElement.querySelector('label[for="support-instructions"]').textContent).toContain('System instructions');
-    expect(Array.from(fixture.nativeElement.querySelectorAll('nav[aria-label="Support Agent Studio workspaces"] button')).map((button: any) => button.textContent.trim())).toEqual(['Configuration', 'Knowledge Base', 'Test agent', 'Conversations']);
+    expect(Array.from(fixture.nativeElement.querySelectorAll('nav[aria-label="Support Agent Studio workspaces"] button')).map((button: any) => button.textContent.trim())).toEqual(['Configuration', 'Knowledge Base', 'Test agent', 'Conversations', 'Tickets']);
     expect(studio.form.dirty).toBe(true);expect(studio.form.controls.language.value).toBe('fr');expect(studio.selected()?.language).toBe('fr');
     expect(studio.form.controls.systemInstructions.value).toBe(instructions);studio.selectSpace('knowledge');expect(studio.activeSpace()).toBe('configuration');
     TestBed.inject(HttpTestingController).expectNone(() => true);

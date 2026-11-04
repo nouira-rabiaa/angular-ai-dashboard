@@ -1,3 +1,4 @@
+import { PRESERVE_HTTP_ERROR } from './preserve-http-error';
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
 import { inject } from '@angular/core';
@@ -27,7 +28,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       const key = error.error instanceof ErrorEvent ? 'errors.network' : keys[error.status] ?? (error.status >= 500 ? 'errors.server' : 'errors.http');
       errorService.showError(errorMessage, { key, ...(key === 'errors.http' ? { params: { status: error.status } } : {}) });
 
-      return throwError(() => new Error(errorMessage));
+      return throwError(() => req.context.get(PRESERVE_HTTP_ERROR) ? error : new Error(errorMessage));
     })
   );
 };

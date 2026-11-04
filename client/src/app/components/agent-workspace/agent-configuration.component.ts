@@ -1,3 +1,6 @@
+import { AgentTicketsComponent } from './agent-tickets.component';
+import { ConversationTicketDraft } from '../../models/support-ticket.model';
+import { SupportConversation } from '../../models/support-agent.model';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UiLanguageService } from '../../i18n/ui-language.service';
 import { AgentConversationsComponent } from './agent-conversations.component';
@@ -12,7 +15,7 @@ import { SupportAgent, SupportAgentConfig, emptySupportAgent } from '../../model
 
 @Component({
   selector: 'app-agent-configuration', standalone: true,
-  imports: [TranslocoPipe, CommonModule, ReactiveFormsModule, AgentKnowledgeComponent, AgentConversationsComponent],
+  imports: [TranslocoPipe, CommonModule, ReactiveFormsModule, AgentKnowledgeComponent, AgentConversationsComponent, AgentTicketsComponent],
   templateUrl: './agent-configuration.component.html',
   styleUrl: './agent-configuration.component.scss'
 })
@@ -43,14 +46,21 @@ export class AgentConfigurationComponent implements OnInit {
   readonly message = signal('');
   readonly error = signal('');
   readonly pageSize = 50;
-  readonly activeSpace = signal<'configuration' | 'knowledge' | 'test' | 'conversations'>('configuration');
-  readonly spaces = [{ id: 'configuration', label: 'workspace.configuration' }, { id: 'knowledge', label: 'configuration.knowledge_base' }, { id: 'test', label: 'configuration.tester_l_agent' }, { id: 'conversations', label: 'workspace.conversations' }] as const;
+  readonly activeSpace = signal<'configuration' | 'knowledge' | 'test' | 'conversations' | 'tickets'>('configuration');
+  readonly spaces = [{ id: 'configuration', label: 'workspace.configuration' }, { id: 'knowledge', label: 'configuration.knowledge_base' }, { id: 'test', label: 'configuration.tester_l_agent' }, { id: 'conversations', label: 'workspace.conversations' }, { id: 'tickets', label: 'tickets.title' }] as const;
+  readonly ticketDirty = signal(false);
+  readonly ticketsVisited = signal(false);
+  readonly conversationsVisited = signal(false);
+  readonly ticketDraft = signal<ConversationTicketDraft | null>(null);
+  readonly requestedConversation = signal<SupportConversation | null>(null);
   readonly knowledgeDirty = signal(false);
   readonly workspaceBusy = signal(false);
   readonly navigationMessage = signal('');
-  selectSpace(space: 'configuration' | 'knowledge' | 'test' | 'conversations'): void {
+  selectSpace(space: 'configuration' | 'knowledge' | 'test' | 'conversations' | 'tickets'): void {
     if (space === this.activeSpace() || !this.mayLeaveDraft()) return;
     this.navigationMessage.set('');this.activeSpace.set(space);
+    if (space === 'tickets') this.ticketsVisited.set(true);
+    if (space === 'conversations') this.conversationsVisited.set(true);
   }
   knowledgeDraft(value: boolean): void { this.knowledgeDirty.set(value);if (!value) this.navigationMessage.set(''); }
 
@@ -63,9 +73,21 @@ export class AgentConfigurationComponent implements OnInit {
     this.load();
   }
   @HostListener('window:beforeunload', ['$event'])
-  beforeUnload(event: BeforeUnloadEvent): void { if (this.form.dirty || this.knowledgeDirty()) event.preventDefault(); }
+  beforeUnload(event: BeforeUnloadEvent): void { if (this.form.dirty || this.knowledgeDirty() || this.ticketDirty()) event.preventDefault(); }
 
+  createConversationTicket(draft: ConversationTicketDraft) {
+    if (draft.conversation.agent_id !== this.selected()?.id || !this.mayLeaveDraft()) return;
+    this.ticketDraft.set(draft);this.selectSpace('tickets');
+  }
+  showConversation(conversation: SupportConversation) {
+    if (conversation.agent_id !== this.selected()?.id || !this.mayLeaveDraft()) return;
+    this.requestedConversation.set(conversation);this.selectSpace('conversations');
+  }
+  private clearTicketContext() {
+    this.ticketsVisited.set(false);this.conversationsVisited.set(false);this.ticketDraft.set(null);this.requestedConversation.set(null);this.ticketDirty.set(false);
+  }
   private mayLeaveDraft(): boolean {
+    if (this.ticketDirty()) { this.navigationMessage.set('tickets.unsaved');return false; }
     if (this.knowledgeDirty()) { this.navigationMessage.set('configuration.modifications_documentaires_non_enregistrees_enregistrez_ou_annulez');return false; }
     if (this.workspaceBusy()) { this.navigationMessage.set('configuration.attendez_la_fin_de_l_operation_en');return false; }
     if (this.form.dirty) { this.message.set('configuration.modifications_non_enregistrees_enregistrez_ou_annulez_avant');this.navigationMessage.set('configuration.enregistrez_ou_annulez_la_configuration_avant_de'); return false; }
@@ -91,7 +113,7 @@ export class AgentConfigurationComponent implements OnInit {
   }
   newAgent(): void {
     if (!this.mayLeaveDraft()) return;
-    this.selected.set(null);this.activeSpace.set('configuration');this.navigationMessage.set('');this.form.reset(emptySupportAgent());this.message.set('configuration.nouvelle_configuration_non_enregistree');this.error.set('');
+    this.clearTicketContext();this.selected.set(null);this.activeSpace.set('configuration');this.navigationMessage.set('');this.form.reset(emptySupportAgent());this.message.set('configuration.nouvelle_configuration_non_enregistree');this.error.set('');
   }
   openAgent(agent: SupportAgent): void {
     if (!this.mayLeaveDraft()) return;
@@ -102,6 +124,7 @@ export class AgentConfigurationComponent implements OnInit {
     });
   }
   private apply(agent: SupportAgent): void {
+    if (this.selected()?.id !== agent.id) this.clearTicketContext();
     this.selected.set(agent);
     const { id, version, createdAt, updatedAt, ...config } = agent;
     this.form.reset(config);
