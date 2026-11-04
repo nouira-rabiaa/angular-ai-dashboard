@@ -41,5 +41,9 @@ function checkTemplate(source, file) {
   parsed.nodes.forEach(walk);
 }
 scan(new URL('../src/app/', import.meta.url));
-for (const key of used) assert.ok(Object.hasOwn(fr, key), `Referenced key is missing: ${key}`);
+for (const key of used) {
+  // Concatenated enum labels reference a catalog namespace, not a leaf.
+  const exists = key.endsWith('.') ? Object.keys(fr).some(leaf => leaf.startsWith(key)) : Object.hasOwn(fr, key);
+  assert.ok(exists, `Referenced key is missing: ${key}`);
+}
 console.log(`i18n: ${Object.keys(fr).length} matching non-empty keys per language; interpolation and ${used.size} referenced keys verified.`);

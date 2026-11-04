@@ -73,15 +73,17 @@
       <footer class="studio-actions"><span class="studio-help">{{ selected() ? ('configuration.modifiez_puis_enregistrez_pour_mettre_a_jour' | transloco) : ('configuration.rien_n_est_enregistre_avant_votre_validation' | transloco) }}</span><button type="button" class="studio-secondary" (click)="cancel()" [disabled]="saving() || loadingDetail()">{{ 'configuration.annuler' | transloco }}</button><button type="submit" class="studio-primary" [disabled]="saving() || loadingDetail()">{{ saving() ? ('configuration.enregistrement' | transloco) : ('configuration.enregistrer' | transloco) }}</button></footer>
     </form>
     <div id="studio-extra-panel" [hidden]="activeSpace() === 'configuration'">
-      @if (activeSpace() !== 'configuration') {
         @if (selected(); as agent) {
-          @if (activeSpace() === 'conversations') {
-            <app-agent-conversations [agent]="agent" (busyChange)="workspaceBusy.set($event)" />
-          } @else {
-          <app-agent-knowledge [agent]="agent" [mode]="activeSpace() === 'knowledge' ? 'knowledge' : 'test'" (dirtyChange)="knowledgeDraft($event)" (busyChange)="workspaceBusy.set($event)" />
+          @if (activeSpace() === 'conversations' || conversationsVisited()) {
+            <div [hidden]="activeSpace() !== 'conversations'"><app-agent-conversations [agent]="agent" [initialConversation]="requestedConversation()" (createTicket)="createConversationTicket($event)" (busyChange)="workspaceBusy.set($event)" /></div>
+          }
+          @if (activeSpace() === 'tickets' || ticketsVisited()) {
+            <div [hidden]="activeSpace() !== 'tickets'"><app-agent-tickets [agent]="agent" [conversationDraft]="ticketDraft()" (dirtyChange)="ticketDirty.set($event)" (busyChange)="workspaceBusy.set($event)" (openConversation)="showConversation($event)" /></div>
+          }
+          @if (activeSpace() === 'knowledge' || activeSpace() === 'test') {
+            <app-agent-knowledge [agent]="agent" [mode]="activeSpace() === 'knowledge' ? 'knowledge' : 'test'" (dirtyChange)="knowledgeDraft($event)" (busyChange)="workspaceBusy.set($event)" />
           }
         } @else { <div class="studio-panel"><h2>{{ 'configuration.enregistrez_ou_selectionnez_un_agent' | transloco }}</h2><p class="studio-scope">{{ 'configuration.la_base_documentaire_et_les_tests_utilisent' | transloco }}</p><button type="button" class="studio-secondary" (click)="selectSpace('configuration')">{{ 'configuration.ouvrir_configuration' | transloco }}</button></div> }
-      }
     </div>
     </div>
   </div>

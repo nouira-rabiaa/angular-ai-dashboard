@@ -71,6 +71,8 @@ export function createCorsPolicy(allowedOrigins) {
     // Only configuration resources gain write verbs; legacy routes retain their policy.
     let methods = /^\/api\/agents(?:\/[0-9a-f-]+(?:\/(?:status|documents))?)?$/.test(req.path)
       ? new Set([...ALLOWED_METHODS, 'PUT', 'PATCH']) : ALLOWED_METHODS;
+    // Only a specific ticket resource gains PATCH, not arbitrary agent subroutes.
+    if (/^\/api\/agents\/[0-9a-f-]+\/tickets\/[0-9a-f-]+$/.test(req.path)) methods = new Set([...ALLOWED_METHODS, 'PATCH']);
     // Deletion is granted only to a specific conversation resource, never legacy APIs.
     if (/^\/api\/agents\/[0-9a-f-]+\/conversations\/[0-9a-f-]+$/.test(req.path)) methods = new Set([...ALLOWED_METHODS, 'DELETE']);
     const requestedMethod = req.get('Access-Control-Request-Method');

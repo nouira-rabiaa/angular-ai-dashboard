@@ -36,8 +36,8 @@ export class AgentService {
       { question, ...(documentId !== undefined ? { documentId } : {}) });
   }
 
-  listConversations(id: string, offset = 0): Observable<ConversationPage> {
-    return this.http.get<ConversationPage>(`${this.configurations}/${encodeURIComponent(id)}/conversations`, { params: { limit: 30, offset } });
+  listConversations(id: string, offset = 0, limit = 30): Observable<ConversationPage> {
+    return this.http.get<ConversationPage>(`${this.configurations}/${encodeURIComponent(id)}/conversations`, { params: { limit, offset } });
   }
   createConversation(id: string): Observable<SupportConversation> {
     return this.http.post<SupportConversation>(`${this.configurations}/${encodeURIComponent(id)}/conversations`, {});

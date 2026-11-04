@@ -1,0 +1,61 @@
+<section class="tickets" aria-labelledby="tickets-title">
+  <header><div><p class="eyebrow">{{ agent.name }}</p><h2 id="tickets-title">{{ 'tickets.title' | transloco }}</h2></div><button type="button" (click)="newTicket()" [disabled]="busy() || dirty()">{{ 'tickets.new' | transloco }}</button></header>
+  <p class="hint">{{ 'tickets.localNotice' | transloco }}</p>
+  @if (counts(); as stats) { <dl class="metrics" [attr.aria-label]="'tickets.agentCounts' | transloco">@for (status of statuses; track status) { <div><dt>{{ label('status', status) }}</dt><dd>{{ ui.number(stats[status]) }}</dd></div> }</dl> }
+  @if (error()) { <p role="alert" class="error">{{ error() | transloco }}</p> }
+  @if (message()) { <p role="status" class="notice">{{ message() | transloco }}</p> }
+  <form class="filters" (ngSubmit)="applyFilters()">
+    <label>{{ 'tickets.search' | transloco }}<input name="search" [(ngModel)]="filters.search" maxlength="100" type="search" /></label>
+    <label>{{ 'tickets.statusLabel' | transloco }}<select name="filterStatus" [(ngModel)]="filters.status"><option value="">{{ 'tickets.all' | transloco }}</option>@for (status of statuses; track status) { <option [value]="status">{{ label('status', status) }}</option> }</select></label>
+    <label>{{ 'tickets.priorityLabel' | transloco }}<select name="filterPriority" [(ngModel)]="filters.priority"><option value="">{{ 'tickets.all' | transloco }}</option>@for (priority of priorities; track priority) { <option [value]="priority">{{ label('priority', priority) }}</option> }</select></label>
+    <label>{{ 'tickets.categoryLabel' | transloco }}<select name="filterCategory" [(ngModel)]="filters.category"><option value="">{{ 'tickets.all' | transloco }}</option>@for (category of categories; track category) { <option [value]="category">{{ label('category', category) }}</option> }</select></label>
+    <button type="submit" [disabled]="state() === 'loading'">{{ 'tickets.apply' | transloco }}</button>
+  </form>
+  @if (filters.conversationId) { <p class="hint">{{ 'tickets.filteredConversation' | transloco }} {{ filters.conversationId }} <button type="button" (click)="filters.conversationId = ''; applyFilters()">{{ 'tickets.clearConversationFilter' | transloco }}</button></p> }
+  <div class="layout">
+    <section aria-labelledby="ticket-list-title"><h3 id="ticket-list-title">{{ 'tickets.list' | transloco }} · {{ ui.number(total()) }}</h3>
+      @if (state() === 'loading') { <p role="status">{{ 'tickets.loading' | transloco }}</p> }
+      @if (state() === 'error') { <p role="alert" class="error">{{ 'tickets.listFailed' | transloco }}</p><button type="button" (click)="load()">{{ 'tickets.reload' | transloco }}</button> }
+      @if (state() === 'ready' && !items().length) { <p class="empty">{{ 'tickets.empty' | transloco }}</p> }
+      <nav [attr.aria-label]="'tickets.list' | transloco">@for (ticket of items(); track ticket.id) {
+        <button type="button" class="ticket-row" [attr.aria-pressed]="selected()?.id === ticket.id" (click)="open(ticket)" [disabled]="busy() || dirty()"><strong>{{ ticket.title }}</strong><span class="tags"><span [attr.data-status]="ticket.status">{{ label('status', ticket.status) }}</span><span [attr.data-priority]="ticket.priority">{{ label('priority', ticket.priority) }}</span></span><small>{{ label('category', ticket.category) }} · {{ ticket.updatedAt | uiDate:'short' }}</small></button>
+      }</nav>
+      <footer><span class="hint">{{ ui.number(items().length ? offset() + 1 : 0) }}–{{ ui.number(offset() + items().length) }} / {{ ui.number(total()) }}</span><button type="button" (click)="page(-1)" [disabled]="offset() === 0 || state() === 'loading'">{{ 'tickets.previous' | transloco }}</button><button type="button" (click)="page(1)" [disabled]="offset() + 25 >= total() || state() === 'loading'">{{ 'tickets.next' | transloco }}</button></footer>
+    </section>
+    <section class="editor" aria-live="polite" [attr.aria-busy]="busy()">
+      @if (mode() === 'create') {
+        <h3>{{ 'tickets.new' | transloco }}</h3>
+        <form [formGroup]="form" (ngSubmit)="review()">
+          <fieldset [disabled]="busy() || confirming()">
+            <label for="ticket-title">{{ 'tickets.titleLabel' | transloco }}<input id="ticket-title" formControlName="title" maxlength="160" required [attr.aria-invalid]="form.controls.title.touched && form.controls.title.invalid" /></label>
+            <label for="ticket-description">{{ 'tickets.description' | transloco }}<textarea id="ticket-description" formControlName="description" rows="4" maxlength="4000" required [attr.aria-invalid]="form.controls.description.touched && form.controls.description.invalid"></textarea></label>
+            @if (form.touched && form.invalid) { <p class="error" role="alert">{{ 'tickets.validation' | transloco }}</p> }
+            <label for="ticket-conversation">{{ 'tickets.conversation' | transloco }}<select id="ticket-conversation" formControlName="conversationId" (change)="changeConversation()"><option value="">{{ 'tickets.noConversation' | transloco }}</option>@for (conversation of conversations(); track conversation.id) { <option [value]="conversation.id">{{ conversation.title }}</option> }</select></label>
+            @if (sourceMessageId()) { <p class="hint">{{ 'tickets.sourceMessageLabel' | transloco }} {{ sourceMessageId() }}</p> }
+            <label class="check"><input type="checkbox" formControlName="rules" />{{ 'tickets.useRules' | transloco }}</label><p class="hint">{{ 'tickets.rulesNotice' | transloco }}</p>
+            @if (!form.controls.rules.value) { <div class="fields"><label>{{ 'tickets.categoryLabel' | transloco }}<select formControlName="category">@for (category of categories; track category) { <option [value]="category">{{ label('category', category) }}</option> }</select></label><label>{{ 'tickets.priorityLabel' | transloco }}<select formControlName="priority">@for (priority of priorities; track priority) { <option [value]="priority">{{ label('priority', priority) }}</option> }</select></label></div> }
+          </fieldset>
+          @if (conversationLoading()) { <p role="status">{{ 'tickets.loadingConversations' | transloco }}</p> }
+          @if (conversationError()) { <p role="alert" class="error">{{ 'tickets.conversationListFailed' | transloco }}</p><button type="button" (click)="loadConversations()">{{ 'tickets.reload' | transloco }}</button> }
+          @if (!confirming()) { <footer><button type="button" (click)="cancel()">{{ 'tickets.cancel' | transloco }}</button><button type="submit" [disabled]="busy() || conversationLoading() || conversationError()">{{ 'tickets.review' | transloco }}</button></footer> }
+        </form>
+        @if (confirming()) { <section class="confirmation" role="group" [attr.aria-label]="'tickets.confirm' | transloco"><h4>{{ 'tickets.confirm' | transloco }}</h4><p>{{ form.controls.title.value }}</p><p class="content">{{ form.controls.description.value }}</p><p class="hint">{{ 'tickets.confirmNotice' | transloco }}</p><footer><button type="button" (click)="cancel()" [disabled]="busy()">{{ 'tickets.back' | transloco }}</button><button type="button" class="primary" (click)="create()" [disabled]="busy()">{{ (busy() ? 'tickets.saving' : 'tickets.confirm') | transloco }}</button></footer></section> }
+      } @else if (selected()) {
+        @let ticket = selected()!;
+        <header><h3>{{ ticket.title }}</h3><button type="button" (click)="open(ticket)" [disabled]="busy() || dirty()">{{ 'tickets.reload' | transloco }}</button></header>
+        <p class="hint">{{ 'tickets.agent' | transloco }} {{ agent.name }} · {{ ticket.id }}</p><p class="content">{{ ticket.description }}</p>
+        <dl class="metadata"><div><dt>{{ 'tickets.createdAt' | transloco }}</dt><dd>{{ ticket.createdAt | uiDate:'short' }}</dd></div><div><dt>{{ 'tickets.updatedAt' | transloco }}</dt><dd>{{ ticket.updatedAt | uiDate:'short' }}</dd></div>@if (ticket.closedAt) { <div><dt>{{ 'tickets.closedAt' | transloco }}</dt><dd>{{ ticket.closedAt | uiDate:'short' }}</dd></div> }</dl>
+        <p class="hint">{{ 'tickets.classification' | transloco }} {{ label('source', ticket.classificationSource) }} · {{ reason(ticket.classificationReason) }}</p>
+        @if (ticket.conversationId) { <div class="tags"><button type="button" (click)="goToConversation()" [disabled]="busy() || dirty()">{{ 'tickets.openConversation' | transloco }}</button><button type="button" (click)="filters.conversationId = ticket.conversationId; applyFilters()">{{ 'tickets.relatedTickets' | transloco }}</button></div> } @else { <p class="hint">{{ 'tickets.noLinkedConversation' | transloco }}</p> }
+        <form [formGroup]="edit" (ngSubmit)="save()"><fieldset [disabled]="busy()" class="fields"><label>{{ 'tickets.statusLabel' | transloco }}<select formControlName="status">@for (status of statuses; track status) { <option [value]="status">{{ label('status', status) }}</option> }</select></label><label>{{ 'tickets.priorityLabel' | transloco }}<select formControlName="priority">@for (priority of priorities; track priority) { <option [value]="priority">{{ label('priority', priority) }}</option> }</select></label><label>{{ 'tickets.categoryLabel' | transloco }}<select formControlName="category">@for (category of categories; track category) { <option [value]="category">{{ label('category', category) }}</option> }</select></label></fieldset><footer><button type="button" (click)="cancel()" [disabled]="busy() || !edit.dirty">{{ 'tickets.cancelChanges' | transloco }}</button><button type="submit" class="primary" [disabled]="busy() || !edit.dirty">{{ 'tickets.saveChanges' | transloco }}</button></footer></form>
+        <section aria-labelledby="ticket-events-title"><h4 id="ticket-events-title">{{ 'tickets.history' | transloco }}</h4>
+          @if (eventLoading()) { <p role="status">{{ 'tickets.loading' | transloco }}</p> }
+          @if (eventError()) { <p role="alert" class="error">{{ 'tickets.eventsFailed' | transloco }}</p><button type="button" (click)="loadEvents()">{{ 'tickets.reload' | transloco }}</button> }
+          <ol class="history">@for (event of events(); track event.id) { <li><strong>{{ ('tickets.event.' + event.type) | transloco }}</strong><small>{{ event.createdAt | uiDate:'short' }} · {{ ('tickets.origin.' + event.origin) | transloco }}</small><p>{{ eventValue(event, event.oldValue) }} → {{ eventValue(event, event.newValue) }}</p></li> }</ol>
+          @if (!eventLoading() && !eventError() && !events().length) { <p class="hint">{{ 'tickets.noEvents' | transloco }}</p> }
+          @if (events().length < eventTotal()) { <button type="button" (click)="loadEvents(true)" [disabled]="eventLoading()">{{ 'tickets.moreEvents' | transloco }}</button> }
+        </section>
+      } @else { <div class="empty"><h3>{{ 'tickets.selectTicket' | transloco }}</h3><p>{{ 'tickets.selectHelp' | transloco }}</p></div> }
+    </section>
+  </div>
+</section>

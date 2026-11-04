@@ -2,7 +2,7 @@
 
 > Conçu et développé par **Rabiaa NOUIRA**
 
-Dashboard Angular 19 et BFF Node.js/Express : RAG lexical avec citations, génération de formulaires et suivi/prévision des coûts IA. Démonstration locale sans authentification utilisateur. Les Phases 5A/5B/5C ajoutent les configurations persistantes, les documents autorisés par agent, une prévisualisation RAG stricte et les conversations persistantes à mémoire bornée. Les escalades effectives restent à développer.
+Dashboard Angular 19 et BFF Node.js/Express : RAG lexical avec citations, génération de formulaires et suivi/prévision des coûts IA. Démonstration locale sans authentification utilisateur. Les Phases 5A/5B/5C ajoutent les configurations persistantes, les documents autorisés par agent, une prévisualisation RAG stricte et les conversations persistantes à mémoire bornée. La Phase 5D-1 ajoute des tickets persistants avec classification déterministe et audit ; les escalades effectives restent à développer.
 
 ## 🏗️ Architecture & Technical Stack
 
@@ -13,11 +13,13 @@ Dashboard Angular 19 et BFF Node.js/Express : RAG lexical avec citations, géné
 
 Voir [ARCHITECTURE](docs/ARCHITECTURE.md), [TECHNIQUES](docs/TECHNIQUES.md) et [FinOps Phase 4](docs/FINOPS.md).
 
-## Support Agent Studio — Phases 5A / 5B / 5C
+## Support Agent Studio — Phases 5A / 5B / 5C / 5D-1
 
 Dans **Support Agent Studio** (`/agent-workspace`), créez, modifiez et activez/désactivez des configurations sauvegardées dans SQLite. Activez `DASHBOARD_TELEMETRY_LOCAL_ONLY=true` pour les API locales de configuration. L'ancienne interface « Outils d'exploitation » a été supprimée. Le moteur backend est conservé comme capacité technique locale, sans raccordement automatique au Studio.
 
-Quatre espaces conservent le même design : **Configuration**, **Knowledge Base**, **Tester l’agent** et **Conversations**. Associez explicitement des documents existants, puis envoyez une question à une configuration active. Le serveur filtre FTS5 dans SQL par agent et s'abstient si le contexte lexical ou les références sont insuffisants. Tester l’agent reste indépendant sans historique. Conversations conserve réellement les échanges dans SQLite avec mémoire utilisateur bornée, citations contrôlées et suppression confirmée. Le stockage local est en clair : ne saisissez pas de secrets. Limites : 50 conversations/agent, 200 messages/conversation, sans expiration automatique. La sauvegarde ne lance aucun appel IA et l'activation ne déploie pas un agent. Voir [périmètre, sécurité, tests et démonstration Phases 5A/5B/5C](docs/PHASE5_SUPPORT_AGENT.md).
+Cinq espaces conservent le même design : **Configuration**, **Knowledge Base**, **Tester l’agent**, **Conversations** et **Tickets**. Associez explicitement des documents existants, puis envoyez une question à une configuration active. Le serveur filtre FTS5 dans SQL par agent et s'abstient si le contexte lexical ou les références sont insuffisants. Tester l’agent reste indépendant sans historique. Conversations conserve réellement les échanges dans SQLite avec mémoire utilisateur bornée, citations contrôlées et suppression confirmée. Le stockage local est en clair : ne saisissez pas de secrets. Limites : 50 conversations/agent, 200 messages/conversation, sans expiration automatique. La sauvegarde ne lance aucun appel IA et l'activation ne déploie pas un agent. Voir [périmètre, sécurité, tests et démonstration Phases 5A/5B/5C](docs/PHASE5_SUPPORT_AGENT.md).
+
+Les tickets se créent manuellement ou depuis une conversation, après confirmation. Catégories/priorités/statuts contrôlés, filtres, historique transactionnel, idempotence et protection des brouillons FR/EN ; aucun appel Groq pour les opérations Tickets. La suppression d’une conversation conserve les textes confirmés du ticket et retire ses liens. [Migration 006, API, limites et scénario fictif NovaShop NS-2026-1042](docs/PHASE5D_TICKETS.md).
 
 ## ✨ Key Features & Deep Dive
 

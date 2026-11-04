@@ -19,7 +19,7 @@
         <div class="confirmation" role="group" [attr.aria-label]="'conversations.confirmer_la_suppression' | transloco"><p>{{ 'conversations.supprimer_definitivement_et_tous_ses_messages_de' | transloco: { value1: (conversation.title) } }}</p><button type="button" class="delete" (click)="remove()" [disabled]="sending()">{{ 'conversations.confirmer_la_suppression' | transloco }}</button><button type="button" (click)="confirming.set(null)" [disabled]="sending()">{{ 'conversations.annuler' | transloco }}</button></div>
       }
       @if (selected(); as conversation) {
-        <h3>{{ conversation.title }}</h3>
+        <div class="message-heading"><h3>{{ conversation.title }}</h3><button type="button" (click)="ticketDraft()" [disabled]="sending() || loading()">{{ 'tickets.newFromConversation' | transloco }}</button></div>
         @if (nextBefore()) { <button type="button" (click)="read(true)" [disabled]="loading() || sending()">{{ 'conversations.messages_precedents' | transloco }}</button> }
         <div class="messages" role="region" [attr.aria-label]="'conversations.historique_des_messages' | transloco" tabindex="0" [attr.aria-busy]="loading()">
           @for (message of messages(); track message.id) {
