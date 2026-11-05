@@ -1,3 +1,5 @@
+import { By } from '@angular/platform-browser';
+import { AgentEscalationsComponent } from './agent-escalations.component';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { of, Subject, throwError } from 'rxjs';
@@ -16,12 +18,12 @@ const event:TicketEvent={id:1,type:'status_changed',oldValue:'open',newValue:'in
 const counts={open:1,in_progress:0,waiting:0,resolved:0,closed:0};
 describe('AgentTicketsComponent',()=>{
   let fixture:ComponentFixture<AgentTicketsComponent>,c:AgentTicketsComponent;
-  let api:Record<'list'|'get'|'create'|'update'|'events',jest.Mock>,agents:{listConversations:jest.Mock;getConversation:jest.Mock;askAgent:jest.Mock};
+  let api:Record<'list'|'get'|'create'|'update'|'events'|'escalations',jest.Mock>,agents:{listConversations:jest.Mock;getConversation:jest.Mock;askAgent:jest.Mock};
   const text=()=>fixture.nativeElement.textContent as string;
   const button=(label:string)=>(Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[]).find(b=>b.textContent?.trim()===label)!;
   beforeEach(async()=>{
     Object.defineProperty(crypto,'randomUUID',{configurable:true,value:jest.fn().mockReturnValue('00000000-0000-4000-8000-000000000001')});
-    api={list:jest.fn().mockReturnValue(of({items:[record()],total:1,offset:0,limit:25,counts})),get:jest.fn().mockReturnValue(of(record())),create:jest.fn().mockReturnValue(of(record())),update:jest.fn().mockReturnValue(of(record({status:'in_progress',version:2}))),events:jest.fn().mockReturnValue(of({items:[event],total:1,offset:0,limit:25}))};
+    api={escalations:jest.fn().mockReturnValue(of({active:null,items:[],total:0,limit:25,offset:0})),list:jest.fn().mockReturnValue(of({items:[record()],total:1,offset:0,limit:25,counts})),get:jest.fn().mockReturnValue(of(record())),create:jest.fn().mockReturnValue(of(record())),update:jest.fn().mockReturnValue(of(record({status:'in_progress',version:2}))),events:jest.fn().mockReturnValue(of({items:[event],total:1,offset:0,limit:25}))};
     agents={listConversations:jest.fn().mockReturnValue(of({items:[conversation],total:1})),getConversation:jest.fn().mockReturnValue(of({conversation,items:[]})),askAgent:jest.fn()};
     await TestBed.configureTestingModule({imports:[AgentTicketsComponent],providers:[...provideUiI18nTesting(),{provide:SupportTicketService,useValue:api},{provide:AgentService,useValue:agents}]}).compileComponents();
     fixture=TestBed.createComponent(AgentTicketsComponent);c=fixture.componentInstance;fixture.componentRef.setInput('agent',agent);fixture.detectChanges();
@@ -78,6 +80,11 @@ describe('AgentTicketsComponent',()=>{
   });
   it('renders ticket descriptions as plain text rather than executable markup',()=>{
     api.get.mockReturnValue(of(record({description:'<img src=x onerror=alert(1)>'})));c.open(record());fixture.detectChanges();expect(fixture.nativeElement.querySelector('img')).toBeNull();expect(text()).toContain('<img src=x onerror=alert(1)>');
+  });
+
+  it('protects escalation drafts from ticket selection and new ticket navigation',()=>{
+    c.open(record());fixture.detectChanges();const panel=fixture.debugElement.query(By.directive(AgentEscalationsComponent)).componentInstance as AgentEscalationsComponent;
+    panel.start();fixture.detectChanges();expect(c.handoffDirty()).toBe(true);expect(c.dirty()).toBe(true);c.newTicket();expect(c.selected()?.id).toBe('t');c.open(record({id:'other'}));expect(c.selected()?.id).toBe('t');panel.cancelDraft();expect(c.handoffDirty()).toBe(false);
   });
 
 });

@@ -1,0 +1,35 @@
+<section aria-labelledby="handoff-title" [attr.aria-busy]="busy()">
+ <header><div><h4 id="handoff-title">{{ 'handoff.title' | transloco }}</h4><p>{{ 'handoff.notice' | transloco }}</p></div><button type="button" (click)="start()" [disabled]="loading() || busy() || dirty() || !!active()">{{ 'handoff.request' | transloco }}</button></header>
+ @if(error()){<p role="alert" class="error">{{ error() | transloco }}</p>}
+ @if(success()){<p role="status">{{ 'handoff.saved' | transloco }}</p>}
+ @if(loading()){<p role="status">{{ 'handoff.loading' | transloco }}</p>}
+ <button type="button" (click)="load()" [disabled]="loading() || busy() || dirty()">{{ 'handoff.reload' | transloco }}</button>
+ @if(active();as current){<div class="active"><p><strong>{{ 'handoff.active' | transloco }}</strong> · {{ ('handoff.status.'+current.status) | transloco }} · {{ ('handoff.reason.'+current.reason) | transloco }}</p><button type="button" [attr.aria-expanded]="selected()?.id===current.id" [attr.aria-controls]="selected()?.id===current.id ? 'handoff-detail' : null" (click)="openActive()" [disabled]="busy() || dirty() || !!confirmation()">{{ 'handoff.openActive' | transloco }}</button></div>}
+ @if(!loading() && !active()){<p>{{ 'handoff.noActive' | transloco }}</p>}
+ @if(creating()){
+  <form [formGroup]="request" (ngSubmit)="review('request')"><fieldset [disabled]="busy() || !!confirmation()">
+   <label>{{ 'handoff.reasonLabel' | transloco }}<select formControlName="reason">@for(reason of reasons;track reason){<option [value]="reason">{{ ('handoff.reason.'+reason) | transloco }}</option>}</select></label>
+   <label>{{ 'handoff.details' | transloco }}<textarea formControlName="details" rows="3" maxlength="2000"></textarea></label>
+  </fieldset><button type="submit" [disabled]="busy() || !!confirmation()">{{ 'handoff.review' | transloco }}</button><button type="button" (click)="cancelDraft()" [disabled]="busy()">{{ 'handoff.discard' | transloco }}</button></form>
+ }
+ @if(!creating()){
+  <nav [attr.aria-label]="'handoff.history' | transloco">@for(row of items();track row.id){<button class="row" type="button" (click)="inspect(row)" [attr.aria-pressed]="selected()?.id===row.id" [disabled]="busy() || dirty() || !!confirmation()"><strong>{{ ('handoff.status.'+row.status) | transloco }}</strong> · {{ ('handoff.reason.'+row.reason) | transloco }}<small>{{ row.createdAt | uiDate:'short' }}</small></button>}</nav>
+  @if(items().length<total()){<button type="button" (click)="load(true)" [disabled]="loading() || busy()">{{ 'handoff.more' | transloco }}</button>}
+  @if(selected();as row){
+   <article id="handoff-detail" aria-labelledby="handoff-detail-title"><h5 id="handoff-detail-title">{{ 'handoff.detail' | transloco }}</h5><p>{{ ('handoff.status.'+row.status) | transloco }} · {{ ('handoff.reason.'+row.reason) | transloco }}</p><p class="content">{{ row.details }}</p>
+    <dl><div><dt>{{ 'handoff.operator' | transloco }}</dt><dd>{{ row.operator || ('handoff.unassigned' | transloco) }}</dd></div><div><dt>{{ 'handoff.createdAt' | transloco }}</dt><dd>{{ row.createdAt | uiDate:'short' }}</dd></div>@if(row.assignedAt){<div><dt>{{ 'handoff.assignedAt' | transloco }}</dt><dd>{{ row.assignedAt | uiDate:'short' }}</dd></div>}@if(row.resolvedAt){<div><dt>{{ 'handoff.resolvedAt' | transloco }}</dt><dd>{{ row.resolvedAt | uiDate:'short' }}</dd></div>}@if(row.cancelledAt){<div><dt>{{ 'handoff.cancelledAt' | transloco }}</dt><dd>{{ row.cancelledAt | uiDate:'short' }}</dd></div>}</dl><p class="content">{{ row.note }}</p>
+    @if(row.status==='requested'||row.status==='assigned'){
+     <form [formGroup]="treatment"><fieldset [disabled]="busy() || !!confirmation()">
+      @if(row.status==='requested'){<label>{{ 'handoff.operator' | transloco }}<input formControlName="operator" maxlength="100" /></label><button type="button" (click)="review('assign')">{{ 'handoff.action.assign' | transloco }}</button>}
+      <label>{{ 'handoff.note' | transloco }}<textarea formControlName="note" rows="3" maxlength="4000"></textarea></label><p>{{ 'handoff.noteHelp' | transloco }}</p>
+      <div class="actions"><button type="button" (click)="review('note')">{{ 'handoff.action.note' | transloco }}</button>@if(row.status==='assigned'){<button type="button" (click)="review('resolve')">{{ 'handoff.action.resolve' | transloco }}</button>}<button type="button" (click)="review('cancel')">{{ 'handoff.action.cancel' | transloco }}</button></div>
+     </fieldset><button type="button" (click)="cancelDraft()" [disabled]="busy()">{{ 'handoff.discard' | transloco }}</button></form>
+    }
+    <h5 id="handoff-events-title">{{ 'handoff.transferHistory' | transloco }}</h5>@if(eventLoading()){<p role="status">{{ 'handoff.loading' | transloco }}</p>}@if(eventError()){<p role="alert">{{ 'handoff.loadFailed' | transloco }}</p><button type="button" (click)="loadEvents()">{{ 'handoff.reload' | transloco }}</button>}
+    <ol aria-labelledby="handoff-events-title">@for(event of events();track event.id){<li><strong>{{ ('handoff.event.'+event.type) | transloco }}</strong> · {{ event.createdAt | uiDate:'short' }}<p>@if(event.oldStatus){ {{ ('handoff.status.'+event.oldStatus) | transloco }} → }{{ ('handoff.status.'+event.newStatus) | transloco }}</p><p class="content">{{ event.operator }} {{ event.note }}</p></li>}</ol>
+    @if(events().length<eventTotal()){<button type="button" (click)="loadEvents(true)" [disabled]="eventLoading()">{{ 'handoff.more' | transloco }}</button>}
+   </article>
+  }
+ }
+ @if(confirmation();as action){<section class="confirmation" role="group" [attr.aria-label]="'handoff.confirm' | transloco"><h5>{{ 'handoff.confirm' | transloco }}</h5><p>{{ (action==='request'?'handoff.request':('handoff.action.'+action)) | transloco }}</p>@if(action==='request'){<p>{{ ('handoff.reason.'+request.controls.reason.value) | transloco }}</p><p class="content">{{ request.controls.details.value }}</p>}@else{<p class="content">{{ action==='assign'?treatment.controls.operator.value:treatment.controls.note.value }}</p>}<p>{{ 'handoff.confirmNotice' | transloco }}</p><button type="button" (click)="submit()" [disabled]="busy()">{{ (busy()?'handoff.saving':'handoff.confirm') | transloco }}</button><button type="button" (click)="cancelDraft()" [disabled]="busy()">{{ 'handoff.back' | transloco }}</button></section>}
+</section>

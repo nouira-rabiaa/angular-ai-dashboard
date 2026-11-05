@@ -1,4 +1,6 @@
-# FinOps Phase 4 — suivi, prévision et simulation
+<a id="finops-phase-4--suivi-prévision-et-simulation"></a>
+
+# FinOps — suivi, prévision et simulation
 
 ## Audit et périmètre
 
@@ -67,7 +69,7 @@ Champs inattendus et paramètres invalides : 400; accès non autorisé par les g
 
 Seules les traces `/api/chat` persistées sont utilisées. La génération de formulaires, l’Agent Workspace distinct, les appels extérieurs, les tentatives Groq ayant échoué et les traces perdues lors d’un incident de persistance peuvent représenter des coûts non couverts. Une couverture de 100 % signifie « toutes les traces de cet échantillon sont tarifées », pas « toute la facture fournisseur est connue ». Absence d’événement enregistré ne prouve pas que le système fonctionnait ou que les coûts externes étaient nuls. Les tarifs ou usages manquants peuvent empêcher une prévision; il faut compléter la configuration et accumuler de nouvelles traces, sans inventer l’historique.
 
-La démonstration n’est pas authentifiée et doit rester locale; ne pas l’exposer par proxy public. Les calculs ne constituent pas un conseil financier ni une facture. La Phase 5 n’est pas commencée.
+La démonstration n’est pas authentifiée et doit rester locale; ne pas l’exposer par proxy public. Les calculs ne constituent pas un conseil financier ni une facture. Les fonctionnalités du Studio sont décrites séparément dans la documentation produit.
 
 ## Vérifications
 

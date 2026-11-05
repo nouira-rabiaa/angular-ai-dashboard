@@ -1,3 +1,5 @@
+import { registerWorkflowManagementRoutes } from './workflow-management.js';
+import { registerSupportEscalationRoutes } from './support-escalations.js';
 import { registerSupportTicketRoutes } from './support-tickets.js';
 import { registerSupportConversationRoutes } from './support-conversations.js';
 import 'dotenv/config';
@@ -76,6 +78,8 @@ registerDashboardRoutes(app, dashboardHandlers);
 registerFinopsRoutes(app, createFinopsHandlers(db), dashboardHandlers.middleware);
 registerSupportAgentRoutes(app, db, dashboardHandlers.middleware);
 registerSupportTicketRoutes(app, db, dashboardHandlers.middleware);
+registerWorkflowManagementRoutes(app, db, dashboardHandlers.middleware);
+registerSupportEscalationRoutes(app, db, dashboardHandlers.middleware);
 const supportKnowledge = registerSupportKnowledgeRoutes(app, { db, groq }, dashboardHandlers.middleware);
 registerSupportConversationRoutes(app, { db, answer: supportKnowledge.answer }, dashboardHandlers.middleware);
 

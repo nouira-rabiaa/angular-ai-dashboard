@@ -27,3 +27,19 @@ describe('SupportTicketService', () => {
   });
 
 });
+
+describe('SupportTicketService — human handoff',()=>{
+ beforeEach(()=>TestBed.configureTestingModule({providers:[provideHttpClient(withInterceptors([errorInterceptor])),provideHttpClientTesting()]}));
+ afterEach(()=>TestBed.inject(HttpTestingController).verify());
+ it('uses scoped read/write endpoints, paging and request IDs without a generation call',()=>{
+  const api=TestBed.inject(SupportTicketService),http=TestBed.inject(HttpTestingController),base='http://localhost:3000/api/agents/a/tickets/t/escalations';
+  api.escalations('a','t',25).subscribe();const list=http.expectOne(base+'?limit=25&offset=25');expect(list.request.method).toBe('GET');list.flush({items:[],active:null,total:0});
+  const body={requestId:'key',reason:'refund_validation',details:'Original language'};api.requestEscalation('a','t',body).subscribe();const post=http.expectOne(base);expect(post.request.method).toBe('POST');expect(post.request.body).toEqual(body);post.flush({id:'e'});
+  api.updateEscalation('a','t','e',{requestId:'action-key',version:1,action:'assign',operator:'Fictif'}).subscribe();const patch=http.expectOne(base+'/e');expect(patch.request.method).toBe('PATCH');expect(patch.request.body.version).toBe(1);expect(patch.request.body.requestId).toBe('action-key');patch.flush({});
+  api.escalationEvents('a','t','e',25).subscribe();http.expectOne(base+'/e/events?limit=25&offset=25').flush({items:[]});http.expectNone(r=>/ask|messages|chat|generate/.test(r.url));
+ });
+ it('preserves structured handoff conflicts through the global interceptor',()=>{
+  const api=TestBed.inject(SupportTicketService),http=TestBed.inject(HttpTestingController);let failure:HttpErrorResponse|undefined;
+  api.requestEscalation('a','t',{requestId:'key',reason:'human_requested',details:''}).subscribe({error:e=>failure=e});http.expectOne('http://localhost:3000/api/agents/a/tickets/t/escalations').flush({code:'active_escalation'},{status:409,statusText:'Conflict'});expect(failure?.status).toBe(409);expect(failure?.error.code).toBe('active_escalation');
+ });
+});
