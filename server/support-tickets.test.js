@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { mkdtempSync, rmSync, readFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, readFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import express from 'express';
@@ -20,12 +20,17 @@ const draft = (overrides = {}) => ({ requestId: randomUUID(), title: 'Facture in
 async function fixture(t, legacy = false) {
   const dir = mkdtempSync(path.join(tmpdir(), 'support-tickets-')), file = path.join(dir, 'isolated.db'), db = new Database(file);
   db.exec('CREATE TABLE documents_history(id INTEGER PRIMARY KEY,filename TEXT,file_type TEXT,created_at TEXT); CREATE TABLE form_submissions(id INTEGER PRIMARY KEY,created_at TEXT);');
-  initializeDocumentStore(db);runMigrations(db);runMigrations(db);
+  initializeDocumentStore(db);
   if (legacy) {
+    db.pragma('foreign_keys=ON');db.exec('CREATE TABLE schema_migrations(version TEXT PRIMARY KEY,applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)');
+    for (const file of readdirSync(new URL('./migrations/',import.meta.url)).filter(f=>/^00[1-6]_/.test(f)).sort()) {db.exec(readFileSync(new URL('./migrations/'+file,import.meta.url),'utf8'));db.prepare('INSERT INTO schema_migrations(version) VALUES(?)').run(file);}
+  } else {runMigrations(db);runMigrations(db);}
+
+  if (legacy === true) {
     const sql = readFileSync(new URL('./migrations/006_support_tickets.sql', import.meta.url), 'utf8')
       .replace("'technical','billing','account','product','defective_product','returns','delivery','general','other'", "'technical','billing','account','product','other'")
       .replace("'created','classified',", "'created',");
-    db.exec('DROP TRIGGER IF EXISTS support_ticket_conversation_delete; DROP TABLE support_ticket_events; DROP TABLE support_tickets;');db.exec(sql);
+    db.exec('DROP TABLE IF EXISTS support_escalation_events; DROP TABLE IF EXISTS support_escalations; DROP TRIGGER IF EXISTS support_ticket_conversation_delete; DROP TABLE support_ticket_events; DROP TABLE support_tickets;');db.prepare("DELETE FROM schema_migrations WHERE version='007_support_escalations.sql'").run();db.exec(sql);
   }
   const app = express();app.use(createCorsPolicy(parseCorsAllowedOrigins()));app.use(express.json());let enabled = true, aiCalls = 0;
   const guard = (req, res, next) => createDashboardHandlers(db, { localOnlyEnabled: enabled }).middleware(req, res, next);
@@ -156,7 +161,7 @@ test('upgrade from exactly five migrations preserves agents, conversations and m
   db.prepare("INSERT INTO support_agents(id,name,description,role,system_instructions,tone,language,model,temperature,max_output_tokens,fallback_message,escalation_enabled,status,created_at,updated_at) VALUES(?,'NovaShop fictif','','Support','Documents','professional','fr','openai/gpt-oss-120b',.6,1024,'Fallback',0,'active','2026-01-01','2026-01-01')").run(agent);
   db.prepare("INSERT INTO support_conversations(id,agent_id,title,created_at,updated_at) VALUES(?,?,'NS-2026-1042','2026-01-01','2026-01-01')").run(conversation,agent);
   db.prepare("INSERT INTO support_messages(id,conversation_id,request_id,role,content,status,created_at) VALUES(?,?,?,'user','Casque défectueux','completed','2026-01-01')").run(message,conversation,randomUUID());
-  const before=db.prepare('SELECT * FROM support_messages').all();runMigrations(db);runMigrations(db);assert.deepEqual(db.prepare('SELECT * FROM support_messages').all(),before);assert.equal(db.prepare('SELECT count(*) n FROM support_agents').get().n,1);assert.equal(db.prepare('SELECT count(*) n FROM schema_migrations').get().n,6);assert.equal(db.prepare('SELECT count(*) n FROM support_tickets').get().n,0);assert.deepEqual(db.pragma('foreign_key_check'),[]);
+  const before=db.prepare('SELECT * FROM support_messages').all();runMigrations(db);runMigrations(db);assert.deepEqual(db.prepare('SELECT * FROM support_messages').all(),before);assert.equal(db.prepare('SELECT count(*) n FROM support_agents').get().n,1);assert.equal(db.prepare('SELECT count(*) n FROM schema_migrations').get().n,8);assert.equal(db.prepare('SELECT count(*) n FROM support_tickets').get().n,0);assert.deepEqual(db.pragma('foreign_key_check'),[]);
 });
 
 
@@ -196,7 +201,7 @@ test('early recorded 006 rejects current creation; explicit repair preserves his
 
 
 test('explicit ticket repair rolls back completely on an unsupported schema', async t => {
-  const f = await fixture(t);await f.ticket();
+  const f = await fixture(t, 'six');await f.ticket();
   f.db.exec("ALTER TABLE support_tickets ADD COLUMN maintenance_probe TEXT DEFAULT 'preserve'");
   const schema = f.db.prepare("SELECT name,sql FROM sqlite_master WHERE sql IS NOT NULL ORDER BY name").all();
   const tickets = f.db.prepare('SELECT * FROM support_tickets').all();
@@ -226,4 +231,12 @@ test('priority-only override audits provenance once without changing category; s
   assert.equal(events.filter(e => e.type === 'classification_changed').length, 1);
   assert.equal(events.filter(e => e.type === 'category_changed').length, 0);
   assert.equal(events.at(-1).type, 'priority_changed');
+});
+
+
+test('006 maintenance repair refuses new escalation dependencies without changing any rows or schema', async t => {
+ const f=await fixture(t);await f.ticket();
+ const snapshot=()=>f.db.prepare("SELECT name,sql FROM sqlite_master WHERE sql IS NOT NULL ORDER BY name").all();const before=snapshot(),tickets=f.db.prepare('SELECT * FROM support_tickets').all();
+ assert.throws(()=>repairSupportTicketSchema(f.db),/Unexpected ticket dependency/);
+ assert.deepEqual(snapshot(),before);assert.deepEqual(f.db.prepare('SELECT * FROM support_tickets').all(),tickets);
 });

@@ -51,7 +51,7 @@ test('new agents have no grants; multiple associations persist after closing and
   assert.equal(assigned.body.documents.length, 2);assert.deepEqual((await f.scope(f.b.id)).documentIds, []);
   f.db.close();const reopened = new Database(f.file);runMigrations(reopened);
   assert.equal(reopened.prepare('SELECT count(*) n FROM support_agent_documents WHERE agent_id = ?').get(f.a.id).n, 2);
-  assert.equal(reopened.prepare('SELECT count(*) n FROM schema_migrations').get().n, 6);reopened.close();
+  assert.equal(reopened.prepare('SELECT count(*) n FROM schema_migrations').get().n, 8);reopened.close();
 });
 
 test('removing grants preserves documents/chunks and rejects stale or invalid selections atomically', async t => {

@@ -1,3 +1,4 @@
+import { AgentEscalationsComponent } from './agent-escalations.component';
 import { timeout } from 'rxjs';
 import { Component, DestroyRef, EventEmitter, Input, OnChanges, Output, inject, signal } from '@angular/core';
 import { FormsModule, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -11,7 +12,7 @@ import { AgentService } from '../../services/agent.service';
 import { SupportAgent, SupportConversation } from '../../models/support-agent.model';
 import { ConversationTicketDraft, SupportTicket, TicketEvent, TicketFilters, TICKET_CATEGORIES, TICKET_PRIORITIES, TICKET_STATUSES, TicketCategory, TicketPriority, TicketStatus } from '../../models/support-ticket.model';
 
-@Component({ selector: 'app-agent-tickets', standalone: true, imports: [TranslocoPipe, UiDatePipe, FormsModule, ReactiveFormsModule],
+@Component({ selector: 'app-agent-tickets', standalone: true, imports: [AgentEscalationsComponent, TranslocoPipe, UiDatePipe, FormsModule, ReactiveFormsModule],
   templateUrl: './agent-tickets.component.html', styleUrl: './agent-tickets.component.scss' })
 export class AgentTicketsComponent implements OnChanges {
   @Input({ required: true }) agent!: SupportAgent;
@@ -55,11 +56,14 @@ export class AgentTicketsComponent implements OnChanges {
       this.lastDraft = this.conversationDraft;this.newTicket(this.conversationDraft);
     }
   }
-  dirty() { return this.mode() === 'create' ? this.form.dirty : this.mode() === 'detail' && this.edit.dirty; }
+  readonly handoffDirty = signal(false);
+  setHandoffBusy(value: boolean) { this.setBusy(value); }
+  handoffDraft(value: boolean) { this.handoffDirty.set(value);this.notifyDirty(); }
+  dirty() { return this.handoffDirty() || ( this.mode() === 'create' ? this.form.dirty : this.mode() === 'detail' && this.edit.dirty); }
   private notifyDirty() { this.dirtyChange.emit(this.dirty()); }
   private setBusy(value: boolean) { this.busy.set(value);this.busyChange.emit(value); }
   private reset() {
-    this.form.reset({ title: '', description: '', conversationId: '', rules: true, category: 'other', priority: 'medium' });
+    this.handoffDirty.set(false);this.form.reset({ title: '', description: '', conversationId: '', rules: true, category: 'other', priority: 'medium' });
     this.edit.reset({ status: 'open', priority: 'medium', category: 'other' });this.mode.set('none');this.selected.set(null);this.confirming.set(false);
     this.sourceMessageId.set(null);this.error.set('');this.message.set('');this.events.set([]);this.eventTotal.set(0);this.eventError.set(false);this.eventLoading.set(false);
     this.conversations.set([]);this.conversationLoading.set(false);this.conversationError.set(false);this.retry = undefined;this.setBusy(false);this.notifyDirty();
@@ -120,7 +124,7 @@ export class AgentTicketsComponent implements OnChanges {
     const selected = this.selected();if (this.mode() === 'detail' && selected) this.applyTicket(selected);else this.reset();this.error.set('');
   }
   save() {
-    const ticket = this.selected();if (!ticket || this.busy() || !this.edit.dirty) return;
+    const ticket = this.selected();if (!ticket || this.handoffDirty() || this.busy() || !this.edit.dirty) return;
     const epoch = this.epoch;this.setBusy(true);this.error.set('');this.message.set('');
     this.api.update(this.agent.id, ticket.id, { version: ticket.version, ...this.edit.getRawValue() }).pipe(timeout(15000), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: updated => { if (epoch !== this.epoch) return;this.setBusy(false);this.applyTicket(updated);this.message.set('tickets.saved');this.load();this.loadEvents(); },

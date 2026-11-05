@@ -36,6 +36,8 @@ Read-only Dashboard endpoints:
 
 Date ranges are limited to 366 days and page sizes to 100. Unknown cost stays null; aggregate costs include only priced requests and report priced/unpriced counts separately. These measures reduce data exposure but do not replace authentication or multi-tenancy. The Dashboard must remain a local-only demo until a later phase supplies server-side identity and authorization.
 
-## Phase 4 FinOps
+<a id="phase-4-finops"></a>
+
+## FinOps
 
 The guarded `/api/dashboard/finops` endpoints reuse this history and configured pricing for calendar-day projections, simulations and separate observed/projected budget alerts. Migration `002_finops_budget.sql` adds a shared monthly budget without rewriting inference history. See [FINOPS.md](FINOPS.md) for formulas, sample requirements, API validation and coverage limits.

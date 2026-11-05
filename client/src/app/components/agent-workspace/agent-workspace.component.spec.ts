@@ -27,7 +27,7 @@ describe('AgentWorkspaceComponent — Studio shell', () => {
     fixture.nativeElement.querySelector('.studio-agent').click();fixture.detectChanges();
     const form = fixture.nativeElement.querySelector('#studio-config-panel');
     const buttons = Array.from(fixture.nativeElement.querySelectorAll('nav[aria-label="Espaces du Support Agent Studio"] button')) as HTMLButtonElement[];
-    expect(buttons.map(button => button.textContent?.trim())).toEqual(['Configuration', 'Base documentaire', 'Tester l’agent', 'Conversations', 'Tickets']);
+    expect(buttons.map(button => button.textContent?.trim())).toEqual(['Configuration', 'Base documentaire', 'Tester l’agent', 'Conversations', 'Tickets', 'Automatisation des workflows']);
     buttons[1].click();fixture.detectChanges();expect(fixture.nativeElement.textContent).toContain('Aucun document sélectionné');
     buttons[2].click();fixture.detectChanges();expect(fixture.nativeElement.textContent).toContain('Prévisualisation documentaire');
     buttons[3].click();fixture.detectChanges();expect(fixture.nativeElement.textContent).toContain('Aucun échange');

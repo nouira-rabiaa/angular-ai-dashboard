@@ -80,6 +80,9 @@
           @if (activeSpace() === 'tickets' || ticketsVisited()) {
             <div [hidden]="activeSpace() !== 'tickets'"><app-agent-tickets [agent]="agent" [conversationDraft]="ticketDraft()" (dirtyChange)="ticketDirty.set($event)" (busyChange)="workspaceBusy.set($event)" (openConversation)="showConversation($event)" /></div>
           }
+          @if (activeSpace() === 'workflows' || workflowsVisited()) {
+            <div [hidden]="activeSpace() !== 'workflows'"><app-agent-workflows [agentId]="agent.id" (dirtyChange)="workflowDirty.set($event)" (busyChange)="workspaceBusy.set($event)" /></div>
+          }
           @if (activeSpace() === 'knowledge' || activeSpace() === 'test') {
             <app-agent-knowledge [agent]="agent" [mode]="activeSpace() === 'knowledge' ? 'knowledge' : 'test'" (dirtyChange)="knowledgeDraft($event)" (busyChange)="workspaceBusy.set($event)" />
           }

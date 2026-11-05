@@ -1,4 +1,54 @@
-# Phases 5A / 5B / 5C / 5D-1 — Support Agent Studio
+<a id="phases-5a--5b--5c--5d-1--support-agent-studio"></a>
+
+# Support Agent Studio
+
+<a id="cloture-locale-human-handoff-workflow"></a>
+## Clôture locale — Human Handoff et Workflow Automation
+
+**État documentaire au 5 novembre 2026.** Les résultats ci-dessous correspondent
+au dernier audit technique de clôture et à la recette Safari déclarée par le
+propriétaire dans la conversation. Aucune nouvelle recette ou modification de la
+base n’est effectuée pour cette mise à jour documentaire.
+
+- **Implémenté** : transferts humains demandés/affectés/résolus avec notes et audit ;
+  sélection automatique du transfert actif et maintien du détail après action ;
+  moteur local Workflow Automation, API et espace de gestion, reçus durables,
+  report à saturation, préparation et simulation manuelles, reprises contrôlées.
+- **Automatisé et réussi** : 215 tests Angular / 29 suites, 161 tests backend sur
+  bases isolées, build Angular de production réussi sans avertissement Angular,
+  1 030 clés FR/EN et leurs références vérifiées, `git diff --check` réussi.
+  Initial : 441 107 octets bruts ; CSS de composant maximal minifié : 3 971 octets
+  (mesure Sass + esbuild distincte du contrôle de budget Angular). Cinq routes lazy
+  et budgets conservés. Une trace body-parser reste attendue dans le test de JSON
+  invalide ; elle ne correspond pas à un test en échec.
+- **Safari validé manuellement par le propriétaire** : demande de transfert,
+  affectation, note, résolution, historique et persistance ; sélection/historique
+  corrigés ; indépendance ticket/transfert. Workflow : liaison créée désactivée,
+  activation explicite, capture de handoff.requested, reçu paused, refus 409 attendu
+  sans simulateur actif, activation du simulateur partagé, reprise vers deferred,
+  préparation queued, simulation running puis succeeded et persistance. Aucun
+  webhook, remboursement ou e-mail externe dans ce scénario.
+- **SQLite local préparé** : huit migrations enregistrées, dont 007 et 008 déjà
+  appliquées ; sauvegarde externe via l’API SQLite vérifiée, integrity_check=ok,
+  aucune violation de clé étrangère et conservation des données vérifiées lors
+  de la préparation. Ne pas réappliquer ces migrations ni remettre la base à zéro.
+- **État final déclaré de la recette Workflow** : liaison désactivée, révision 3 ;
+  simulateur partagé désactivé ; un reçu materialized (« Run créé »), un run
+  succeeded (« Succès simulé »), une tentative. Le ticket est resté Ouvert et le
+  transfert Demandé dans ce scénario Workflow. Ce sont des observations de recette,
+  pas des données à insérer ou un état à imposer à d’autres bases.
+- **Non vérifié exhaustivement** : responsive à toutes les largeurs 375/768/1280/1440,
+  accessibilité complète dans Safari et exploitation multi-utilisateur/production.
+  Une recette fonctionnelle manuelle ne remplace pas ces validations.
+- **Non implémenté** : transport n8n, webhooks sortants, callbacks externes, gestion
+  des secrets n8n, e-mails/remboursements réels, authentification multi-utilisateur,
+  Agent Tools & Approvals et Execution Tracing global. Le produit reste local.
+
+Le build utilise la configuration nommée production ; **cela ne constitue ni une
+validation de production ni une autorisation de déploiement**. Les anciens nombres
+et restrictions dans les comptes rendus de livraisons ci-dessous sont historiques.
+La livraison regroupe 52 fichiers candidats au commit au moment de cette clôture,
+sans staging, commit, push ou fusion dans main dans la finalisation documentaire.
 
 Enterprise AI Dashboard — AI Operations & FinOps Platform.
 
@@ -6,8 +56,8 @@ Enterprise AI Dashboard — AI Operations & FinOps Platform.
 
 Créer, consulter, modifier et activer/désactiver des **configurations** de support client persistantes.
 Le Studio vit dans la route existante `/agent-workspace` : aucune seconde page Agent concurrente.
-L'activation reste un état de configuration, pas un déploiement public. La Phase **5B** ajoute un test documentaire réel et stateless pour les configurations actives.
-La sauvegarde 5A ne lance aucun appel Groq. L'envoi explicite dans « Tester l’agent » ou « Conversations » peut lancer une inférence réelle. La Phase 5C ajoute les conversations locales persistantes décrites ci-dessous ; les tickets et la classification déterministe sont ajoutés en 5D-1 ; escalade effective et n8n restent futurs.
+L'activation reste un état de configuration, pas un déploiement public. La base documentaire des agents permet un test réel et stateless pour les configurations actives.
+La sauvegarde de configuration ne lance aucun appel Groq. L'envoi explicite dans « Tester l’agent » ou « Conversations » peut lancer une inférence réelle. La gestion des conversations assure la persistance locale ; la gestion des tickets ajoute la classification déterministe et l’audit. Le transfert à un opérateur est implémenté et validé fonctionnellement en local par le propriétaire dans Safari, sans transfert externe ; l’automatisation n8n reste à développer.
 
 ## Audit de la base existante
 
@@ -37,10 +87,11 @@ Le runner historique n'est pas un agent de support documentaire : il ne reçoit 
 - **5B (livré)** : base documentaire autorisée par agent, recherche FTS5/BM25 et citations ; réponse d'insuffisance stricte.
 - **5C (livré)** : conversations/messages persistants, reprise et contexte borné.
 - **5D-1 (implémentation validée localement)** : tickets persistants, classification déterministe et historique transactionnel.
-- **5D-2 / 5D-3 (futurs)** : escalade humaine et n8n ; aucune notification externe implicite.
+- **5D-2 (recette fonctionnelle locale validée)** : escalades humaines déclaratives, affectation, notes, résolution/annulation et audit, sans transfert externe.
+- **5D-3 (futur)** : intégration n8n ; aucune notification externe implicite.
 - **5E (futur)** : tool calling et validation humaine, en réutilisant le moteur interne. L’agrégation observabilité/FinOps par agent reste à planifier.
 
-5A, 5B et 5C sont livrées ; 5D-1 est validée localement pour livraison sur la branche de travail, sans publication ni fusion dans main. 5D-2, 5D-3 et 5E restent non implémentées.
+5A, 5B et 5C sont livrées ; 5D-1 est validée localement pour livraison sur la branche de travail, sans publication ni fusion dans main. Human Handoff et le moteur local/API/UI Workflow Automation sont implémentés et validés en recette locale. Le transport n8n de 5D-3 et les outils/approbations de 5E restent non implémentés.
 
 ## SQLite et migration
 
@@ -171,7 +222,9 @@ Avant production : définir authentification/autorisation, politique de rétenti
 - Vérifications de syntaxe Node et `git diff --check` réussies.
 - Contrôle visuel non réalisé : Safari WebDriver refuse la session tant que « Allow remote automation » est désactivé. Aucune capture desktop/mobile ou validation de rendu réel n'est revendiquée.
 
-## Phase 5B — base documentaire autorisée et test RAG
+<a id="phase-5b--base-documentaire-autorisée-et-test-rag"></a>
+
+## Base documentaire des agents — base documentaire autorisée et test RAG
 
 ### Base Git et réutilisation
 
@@ -316,7 +369,9 @@ Pour la future validation humaine de 5E : définir des états de proposition/app
 
 Les tests backend du runner restent conservés. Les tests exclusivement dédiés à son UI supprimée sont remplacés par des tests de la coquille Studio et de ses trois espaces ; le test du service HTTP legacy est retiré. Les suites détaillées 5A/5B restent inchangées. Les anciens chiffres de build ci-dessus décrivent les livraisons historiques ; l'avertissement SCSS historique disparaît après retrait de son import.
 
-## Phase 5C — Conversations persistantes et mémoire courte
+<a id="phase-5c--conversations-persistantes-et-mémoire-courte"></a>
+
+## Gestion des conversations — Conversations persistantes et mémoire courte
 
 ### Audit et réutilisation
 
@@ -397,6 +452,14 @@ La Phase 5D pourra s'appuyer sur les UUID, les états et les conversations persi
 - `git diff --check`, vérification des imports et scan des fichiers concernés : aucun secret reconnaissable, fichier SQLite, sidecar ou artefact généré ajouté. Ce scan ne constitue pas une garantie exhaustive d'absence de secret dans l'historique du dépôt.
 - Safari WebDriver réellement tenté : session refusée parce que « Allow remote automation » est désactivé. **Aucune validation visuelle desktop/tablette/mobile ni capture réalisée**. Aucun appel Groq réel dans les tests ; la qualité linguistique d'une conversation réelle reste à évaluer manuellement.
 
-## Phase 5D-1 — Tickets persistants
+<a id="phase-5d-1--tickets-persistants"></a>
+
+## Gestion des tickets — Tickets persistants
 
 Cinquième espace bilingue du Studio : création confirmée manuelle ou depuis une conversation, classification par règles corrigible, gestion de statut/priorité/catégorie et historique. Les opérations Tickets n’appellent pas Groq et ne modifient ni le RAG ni les messages. Migration additive 006, garde local, associations contrôlées, idempotence et versions optimistes. [Contrats, rétention et démonstration NovaShop](PHASE5D_TICKETS.md). Les indications « futur » dans les audits historiques précédents concernent leur date de rédaction.
+
+<a id="phase-5d-2--escalade-humaine"></a>
+
+## Transfert à un opérateur — Escalade humaine
+
+Panneau intégré au détail Tickets : demande et décisions explicites, état indépendant du ticket, un seul handoff actif, opérateur local non vérifié et audit transactionnel. Aucun remboursement, e-mail ou transfert réel. [Contrats, migration 007, limites et scénario NovaShop](PHASE5D_ESCALATIONS.md). Les mentions de phases futures dans les audits historiques reflètent leur date de rédaction.

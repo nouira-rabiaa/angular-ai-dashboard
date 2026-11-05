@@ -1,4 +1,6 @@
-# Phase 5D-1 — Tickets persistants
+<a id="phase-5d-1--tickets-persistants"></a>
+
+# Gestion des tickets
 
 ## Audit et intégration
 
@@ -80,7 +82,10 @@ La validation responsive réelle reste à effectuer : Safari WebDriver refuse le
 
 Les parcours NovaShop (création, catégorie produit défectueux, persistance après rechargement, statut/priorité, audit et conversation vers ticket) ont été validés manuellement dans Safari par le propriétaire. Cela ne constitue pas une validation responsive instrumentée. Le commit local de livraison est autorisé ; aucun push ni fusion dans main dans cette revue finale.
 
-## Résultats de validation finale
+## Résultats historiques — livraison initiale Tickets
+
+Ces résultats précèdent Human Handoff et Workflow Automation. Le dernier audit
+complet et la recette Safari sont consignés dans l’[état de clôture local du Studio](PHASE5_SUPPORT_AGENT.md#cloture-locale-human-handoff-workflow).
 
 - `npm test --prefix client -- --runInBand` : **24 suites, 182 tests réussis**.
 - `npm test --prefix server` : **130 tests réussis**, dont les tests Tickets et la mise à niveau 001–005 → 006 ; aucun appel Groq réel.
