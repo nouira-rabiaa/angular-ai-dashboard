@@ -1,76 +1,81 @@
 <section class="studio" aria-labelledby="support-studio-title">
-  <header class="studio-hero">
-    <div><p class="studio-eyebrow">{{ 'configuration.enterprise_ai_dashboard_phases_5a_5b_5c' | transloco }}</p><h1 id="support-studio-title">{{ 'configuration.support_agent_studio' | transloco }}</h1><p>{{ 'configuration.configurez_vos_agents_associez_leurs_documents_et' | transloco }}</p></div>
-    <span class="studio-badge">{{ 'configuration.configuration_et_rag_autorise_demo_locale' | transloco }}</span>
+  <header class="studio-hero"><h1 class="studio-page-title" id="support-studio-title">{{ 'configuration.support_agent_studio' | transloco }}</h1>
+    <button #catalogueToggle type="button" class="studio-control agent-picker" [attr.aria-expanded]="catalogueOpen()" aria-controls="studio-catalogue" (click)="catalogueOpen.set(!catalogueOpen())"><span class="studio-selector-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="4" y="7" width="16" height="13" rx="4"/><path d="M12 3v4M8 12v3m8-3v3"/></svg></span>{{ selected()?.name || ('configuration.vos_agents' | transloco) }} ▾</button>
+    <span class="studio-status" [class.studio-active]="selected()?.status === 'active'">{{ (selected() ? (selected()?.status === 'active' ? 'configuration.configuration_active' : 'configuration.inactive') : 'configuration.nouvelle_configuration') | transloco }}</span>
+    <button type="button" class="studio-control studio-primary" (click)="newAgent()" [disabled]="listState() === 'loading' || saving() || loadingDetail()">{{ 'configuration.creer_un_agent' | transloco }}</button>
+    <button class="studio-control" type="button" [attr.aria-label]="'configurationDesign.help' | transloco" [attr.aria-expanded]="helpOpen()" aria-controls="studio-help" (click)="helpOpen.set(!helpOpen())">{{ 'configurationDesign.helpShort' | transloco }}</button>
   </header>
-  <p class="studio-scope">{{ 'configuration.configurez_l_agent_associez_ses_documents_puis' | transloco }}</p>
-  <div class="studio-layout">
-    <aside class="studio-panel studio-list" aria-labelledby="agent-list-title">
-      <div class="studio-panel-heading"><div><p class="studio-eyebrow">{{ 'configuration.catalogue' | transloco }}</p><h2 id="agent-list-title">{{ 'configuration.vos_agents' | transloco }}</h2></div><button type="button" class="studio-icon-button" [attr.aria-label]="'configuration.recharger_les_configurations' | transloco" (click)="reload()" [disabled]="listState() === 'loading' || saving() || loadingDetail()">↻</button></div>
-      <button type="button" class="studio-primary studio-new" (click)="newAgent()" [disabled]="listState() === 'loading' || saving() || loadingDetail()">{{ 'configuration.creer_un_agent' | transloco }}</button>
+  <div id="studio-help" class="studio-help" [hidden]="!helpOpen()"><p>{{ 'studioGuidance.configuration' | transloco }}</p><p>{{ 'configuration.configurez_l_agent_associez_ses_documents_puis' | transloco }}</p></div>
+  <div id="studio-catalogue" class="studio-catalog" [hidden]="!catalogueOpen()">
+    <aside class="studio-list" aria-labelledby="agent-list-title">
+      <div class="studio-panel-heading"><div><p class="studio-eyebrow">{{ 'configuration.catalogue' | transloco }}</p><h2 class="studio-title" id="agent-list-title">{{ 'configuration.vos_agents' | transloco }}</h2></div><button type="button" class="studio-control studio-icon-button" [attr.aria-label]="'configuration.recharger_les_configurations' | transloco" (click)="reload()" [disabled]="listState() === 'loading' || saving() || loadingDetail()">↻</button></div>
+
       @if (listState() === 'loading') { <p role="status" class="studio-notice">{{ 'configuration.chargement_des_configurations' | transloco }}</p> }
       @if (listState() === 'error') { <p role="alert" class="studio-error">{{ 'configuration.catalogue_indisponible_verifiez_le_serveur_local_et' | transloco }}</p> }
-      @if (listState() === 'ready' && !total()) { <div class="studio-empty"><span aria-hidden="true">◇</span><h3>{{ 'configuration.votre_premier_agent' | transloco }}</h3><p>{{ 'configuration.aucune_configuration_enregistree_completez_le_formulaire_puis' | transloco }}</p></div> }
+      @if (listState() === 'ready' && !total()) { <div class="studio-empty"><span aria-hidden="true">◇</span><h3 class="studio-title">{{ 'configuration.votre_premier_agent' | transloco }}</h3><p>{{ 'configuration.aucune_configuration_enregistree_completez_le_formulaire_puis' | transloco }}</p></div> }
       <nav [attr.aria-label]="'configuration.agents_de_support' | transloco" class="studio-agent-items">
         @for (agent of agents(); track agent.id) {
-          <button type="button" class="studio-agent" [class.studio-selected]="selected()?.id === agent.id" [attr.aria-pressed]="selected()?.id === agent.id" (click)="openAgent(agent)" [disabled]="saving() || loadingDetail() || listState() === 'loading'">
+          <button type="button" class="studio-control studio-agent" [class.studio-selected]="selected()?.id === agent.id" [attr.aria-pressed]="selected()?.id === agent.id" (click)="openAgent(agent)" [disabled]="saving() || loadingDetail() || listState() === 'loading'">
             <span class="studio-agent-avatar" aria-hidden="true">{{ agent.name.slice(0, 1) }}</span><span class="studio-agent-copy"><strong>{{ agent.name }}</strong><span>{{ agent.description || ('configuration.sans_description' | transloco) }}</span><small [class.studio-active]="agent.status === 'active'">{{ agent.status === 'active' ? ('configuration.configuration_active' | transloco) : ('configuration.inactive' | transloco) }}</small></span>
           </button>
         }
       </nav>
-      @if (total()) { <footer class="studio-pagination"><span>{{ offset() + 1 }}–{{ offset() + agents().length }} / {{ total() }}</span><button type="button" [attr.aria-label]="'configuration.agents_precedents' | transloco" (click)="page(-1)" [disabled]="offset() === 0 || listState() === 'loading' || saving() || loadingDetail()">←</button><button type="button" [attr.aria-label]="'configuration.agents_suivants' | transloco" (click)="page(1)" [disabled]="offset() + pageSize >= total() || listState() === 'loading' || saving() || loadingDetail()">→</button></footer> }
+      @if (total()) { <footer class="studio-pagination"><span>{{ offset() + 1 }}–{{ offset() + agents().length }} / {{ total() }}</span><button class="studio-control" type="button" [attr.aria-label]="'configuration.agents_precedents' | transloco" (click)="page(-1)" [disabled]="offset() === 0 || listState() === 'loading' || saving() || loadingDetail()">←</button><button class="studio-control" type="button" [attr.aria-label]="'configuration.agents_suivants' | transloco" (click)="page(1)" [disabled]="offset() + pageSize >= total() || listState() === 'loading' || saving() || loadingDetail()">→</button></footer> }
     </aside>
-
+  </div>
     <div class="min-w-0">
-      <nav [attr.aria-label]="'configuration.espaces_du_support_agent_studio' | transloco" class="mb-3 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-2">
+      <nav [attr.aria-label]="'configuration.espaces_du_support_agent_studio' | transloco" class="studio-tabs">
         @for (space of spaces; track space.id) {
-          <button type="button" [class.studio-primary]="activeSpace() === space.id" [class.studio-secondary]="activeSpace() !== space.id" [attr.aria-pressed]="activeSpace() === space.id" [attr.aria-controls]="space.id === 'configuration' ? 'studio-config-panel' : 'studio-extra-panel'" (click)="selectSpace(space.id)" [disabled]="saving() || loadingDetail() || workspaceBusy()">{{ space.label | transloco }}</button>
+          <button class="studio-control" type="button" [class.studio-primary]="activeSpace() === space.id" [class.studio-secondary]="activeSpace() !== space.id" [attr.aria-pressed]="activeSpace() === space.id" [attr.aria-controls]="space.id === 'configuration' ? 'studio-config-panel' : 'studio-extra-panel'" (click)="selectSpace(space.id)" [disabled]="saving() || loadingDetail() || workspaceBusy()">{{ space.label | transloco }}</button>
         }
       </nav>
-      @if (navigationMessage()) { <p role="status" class="studio-unsaved">{{ navigationMessage() | transloco }}</p> }
+      @if (navigationMessage() || form.dirty) { <p role="status" class="studio-unsaved">@if (form.dirty) { <strong>{{ 'configuration.modifications_non_enregistrees' | transloco }}</strong> } @if (navigationMessage()) { {{ navigationMessage() | transloco }} }</p> }
     <form id="studio-config-panel" [hidden]="activeSpace() !== 'configuration'" class="studio-panel studio-editor" [formGroup]="form" (ngSubmit)="save()" aria-labelledby="config-title">
-      <header class="studio-panel-heading"><div><p class="studio-eyebrow">{{ selected() ? ('configuration.configuration_enregistree' | transloco) : ('configuration.nouvelle_configuration' | transloco) }}</p><h2 id="config-title">{{ selected()?.name || ('configuration.creer_votre_agent_de_support' | transloco) }}</h2></div>
-        @if (selected(); as agent) { <button type="button" class="studio-secondary" (click)="toggleStatus()" [disabled]="saving() || loadingDetail() || form.dirty">{{ agent.status === 'active' ? ('configuration.desactiver' | transloco) : ('configuration.activer' | transloco) }}</button> }
+      <header class="studio-panel-heading"><div class="config-heading"><span class="agent-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="4" y="7" width="16" height="13" rx="4"/><path d="M12 3v4M8 12v3m8-3v3"/></svg></span><div><h2 class="studio-title" id="config-title">{{ 'configurationDesign.title' | transloco }}</h2><p class="studio-help">{{ 'configurationDesign.subtitle' | transloco }}</p></div></div>
+        @if (selected(); as agent) { <button type="button" class="studio-control studio-secondary" (click)="toggleStatus()" [disabled]="saving() || loadingDetail() || form.dirty">{{ agent.status === 'active' ? ('configuration.desactiver' | transloco) : ('configuration.activer' | transloco) }}</button> }
       </header>
       @if (loadingDetail()) { <p role="status" class="studio-notice">{{ 'configuration.chargement_de_la_configuration' | transloco }}</p> }
-      @if (form.dirty) { <p role="status" class="studio-unsaved">{{ 'configuration.modifications_non_enregistrees' | transloco }}</p> }
       @if (error()) { <p role="alert" class="studio-error">{{ error() | transloco }}</p> }
-      @if (message()) { <p role="status" class="studio-notice">{{ message() | transloco }}</p> }
+      @if (message() && !navigationMessage()) { <p role="status" class="studio-notice">{{ message() | transloco }}</p> }
       <div class="configuration-fields">
+      <section class="config-card">
       <fieldset [disabled]="saving() || loadingDetail()">
-        <legend>{{ 'configuration.identite_de_l_agent' | transloco }}</legend>
+        <legend class="studio-section-title"><span class="studio-section-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21v-3a8 8 0 0 1 16 0v3"/></svg></span>{{ 'configurationDesign.identity' | transloco }}</legend>
         <div class="studio-fields">
-          <label for="support-name">{{ 'configuration.nom' | transloco }}<input id="support-name" formControlName="name" maxlength="100" autocomplete="off" [attr.aria-invalid]="invalid('name')" aria-describedby="support-name-help" /><span id="support-name-help">{{ 'configuration.1_a_100_caracteres_sans_nom_vide' | transloco }}</span>@if (invalid('name')) { <em>{{ 'configuration.le_nom_est_obligatoire_et_limite_a' | transloco }}</em> }</label>
-          <label for="support-role">{{ 'configuration.role_metier' | transloco }}<input id="support-role" formControlName="role" maxlength="200" [attr.aria-invalid]="invalid('role')" />@if (invalid('role')) { <em>{{ 'configuration.role_requis_200_caracteres_maximum' | transloco }}</em> }</label>
-          <label for="support-description" class="studio-wide">{{ 'configuration.description' | transloco }}<textarea id="support-description" formControlName="description" rows="2" maxlength="500" [attr.aria-invalid]="invalid('description')"></textarea>@if (invalid('description')) { <em>{{ 'configuration.500_caracteres_maximum' | transloco }}</em> }</label>
+          <label for="support-name">{{ 'configuration.nom' | transloco }}<input class="studio-control" id="support-name" formControlName="name" maxlength="100" autocomplete="off" [attr.aria-invalid]="invalid('name')" aria-describedby="support-name-help" /><span id="support-name-help" class="configuration-hint">{{ 'configuration.1_a_100_caracteres_sans_nom_vide' | transloco }}</span>@if (invalid('name')) { <em>{{ 'configuration.le_nom_est_obligatoire_et_limite_a' | transloco }}</em> }</label>
+          <label for="support-role">{{ 'configuration.role_metier' | transloco }}<input class="studio-control" id="support-role" formControlName="role" maxlength="200" [attr.aria-invalid]="invalid('role')" />@if (invalid('role')) { <em>{{ 'configuration.role_requis_200_caracteres_maximum' | transloco }}</em> }</label>
+          <label for="support-description" class="studio-wide">{{ 'configuration.description' | transloco }}<textarea class="studio-control" id="support-description" formControlName="description" rows="2" maxlength="500" [attr.aria-invalid]="invalid('description')"></textarea>@if (invalid('description')) { <em>{{ 'configuration.500_caracteres_maximum' | transloco }}</em> }</label>
         </div>
+        <label for="support-status">{{ 'configuration.statut_de_la_configuration' | transloco }}<select class="studio-control" id="support-status" formControlName="status"><option value="inactive">{{ 'configuration.inactive' | transloco }}</option><option value="active">{{ 'configuration.active' | transloco }}</option></select><span>{{ 'configuration.une_configuration_active_peut_etre_testee_sur' | transloco }}</span></label>
       </fieldset>
+      </section>
+      <section class="config-card">
       <fieldset [disabled]="saving() || loadingDetail()">
-        <legend>{{ 'configuration.comportement_et_instructions' | transloco }}</legend>
-        <label for="support-instructions">{{ 'configuration.instructions_systeme' | transloco }}<textarea id="support-instructions" formControlName="systemInstructions" rows="5" maxlength="12000" [attr.aria-invalid]="invalid('systemInstructions')" aria-describedby="support-instructions-help"></textarea><span id="support-instructions-help">{{ 'configuration.definissez_la_mission_et_les_limites_metier' | transloco }}</span>@if (invalid('systemInstructions')) { <em>{{ 'configuration.instructions_requises_12_000_caracteres_maximum' | transloco }}</em> }</label>
+        <legend class="studio-section-title"><span class="studio-section-icon studio-teal"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg></span>{{ 'configurationDesign.mission' | transloco }}</legend>
+        <label for="support-instructions">{{ 'configuration.instructions_systeme' | transloco }}<textarea class="studio-control" id="support-instructions" formControlName="systemInstructions" rows="3" maxlength="12000" [attr.aria-invalid]="invalid('systemInstructions')" aria-describedby="support-instructions-help"></textarea><span id="support-instructions-help">{{ 'configuration.definissez_la_mission_et_les_limites_metier' | transloco }}</span>@if (invalid('systemInstructions')) { <em>{{ 'configuration.instructions_requises_12_000_caracteres_maximum' | transloco }}</em> }</label>
         <div class="studio-fields">
-          <label for="support-tone">{{ 'configuration.ton' | transloco }}<select id="support-tone" formControlName="tone"><option value="professional">{{ 'configuration.professionnel' | transloco }}</option><option value="friendly">{{ 'configuration.chaleureux' | transloco }}</option><option value="concise">{{ 'configuration.concis' | transloco }}</option></select></label>
-          <label for="support-language">{{ 'configuration.langue' | transloco }}<select id="support-language" formControlName="language"><option value="fr">{{ 'configuration.francais' | transloco }}</option><option value="en">{{ 'configuration.english' | transloco }}</option><option value="ar">{{ 'workspace.arabic' | transloco }}</option></select></label>
+          <label for="support-tone">{{ 'configuration.ton' | transloco }}<select class="studio-control" id="support-tone" formControlName="tone"><option value="professional">{{ 'configuration.professionnel' | transloco }}</option><option value="friendly">{{ 'configuration.chaleureux' | transloco }}</option><option value="concise">{{ 'configuration.concis' | transloco }}</option></select></label>
+          <label for="support-language">{{ 'configuration.langue' | transloco }}<select class="studio-control" id="support-language" formControlName="language"><option value="fr">{{ 'configuration.francais' | transloco }}</option><option value="en">{{ 'configuration.english' | transloco }}</option><option value="ar">{{ 'workspace.arabic' | transloco }}</option></select></label>
         </div>
+        <label for="support-fallback">{{ 'configuration.message_de_secours' | transloco }}<textarea class="studio-control" id="support-fallback" formControlName="fallbackMessage" rows="2" maxlength="2000" [attr.aria-invalid]="invalid('fallbackMessage')"></textarea>@if (invalid('fallbackMessage')) { <em>{{ 'configuration.message_requis_2_000_caracteres_maximum' | transloco }}</em> }</label>
       </fieldset>
+      </section>
+      </div>
+      <details class="configuration-advanced" [open]="invalid('temperature') || invalid('maxOutputTokens') || invalid('model')">
+        <summary class="studio-focus">{{ 'configurationDesign.advanced' | transloco }}</summary>
       <fieldset [disabled]="saving() || loadingDetail()">
-        <legend>{{ 'configuration.configuration_du_modele' | transloco }}</legend>
+        <legend><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16M8 3v6m8 0v6m-8 0v6"/></svg>{{ 'configuration.configuration_du_modele' | transloco }}</legend>
         <p class="studio-help">{{ 'configuration.parametres_utilises_pour_les_tests_documentaires_de' | transloco }}</p>
         <div class="studio-fields">
-          <label for="support-model" class="studio-wide">{{ 'configuration.modele_pris_en_charge' | transloco }}<select id="support-model" formControlName="model"><option value="openai/gpt-oss-120b">{{ 'configuration.groq_openai_gpt_oss_120b' | transloco }}</option></select></label>
-          <label for="support-temperature">{{ 'configuration.temperature' | transloco }}<input id="support-temperature" type="number" formControlName="temperature" min="0" max="2" step="any" [attr.aria-invalid]="invalid('temperature')" /><span>{{ 'configuration.de_0_a_2_une_valeur_plus' | transloco }}</span>@if (invalid('temperature')) { <em>{{ 'configuration.nombre_requis_entre_0_et_2' | transloco }}</em> }</label>
-          <label for="support-tokens">{{ 'configuration.limite_de_sortie_tokens' | transloco }}<input id="support-tokens" type="number" formControlName="maxOutputTokens" min="1" max="4096" step="1" [attr.aria-invalid]="invalid('maxOutputTokens')" /><span>{{ 'configuration.entier_de_1_a_4_096_plafond' | transloco }}</span>@if (invalid('maxOutputTokens')) { <em>{{ 'configuration.entier_requis_entre_1_et_4_096' | transloco }}</em> }</label>
+          <label for="support-model" class="studio-wide">{{ 'configuration.modele_pris_en_charge' | transloco }}<input class="studio-control" id="support-model" formControlName="model" readonly /></label>
+          <label for="support-temperature">{{ 'configuration.temperature' | transloco }}<input class="studio-control" id="support-temperature" type="number" formControlName="temperature" min="0" max="2" step="any" [attr.aria-invalid]="invalid('temperature')" /><span>{{ 'configuration.de_0_a_2_une_valeur_plus' | transloco }}</span>@if (invalid('temperature')) { <em>{{ 'configuration.nombre_requis_entre_0_et_2' | transloco }}</em> }</label>
+          <label for="support-tokens">{{ 'configuration.limite_de_sortie_tokens' | transloco }}<input class="studio-control" id="support-tokens" type="number" formControlName="maxOutputTokens" min="1" max="4096" step="1" [attr.aria-invalid]="invalid('maxOutputTokens')" /><span>{{ 'configuration.entier_de_1_a_4_096_plafond' | transloco }}</span>@if (invalid('maxOutputTokens')) { <em>{{ 'configuration.entier_requis_entre_1_et_4_096' | transloco }}</em> }</label>
         </div>
-      </fieldset>
-      <fieldset [disabled]="saving() || loadingDetail()">
-        <legend>{{ 'configuration.reponses_de_secours_et_support' | transloco }}</legend>
-        <label for="support-fallback">{{ 'configuration.message_de_secours' | transloco }}<textarea id="support-fallback" formControlName="fallbackMessage" rows="3" maxlength="2000" [attr.aria-invalid]="invalid('fallbackMessage')"></textarea>@if (invalid('fallbackMessage')) { <em>{{ 'configuration.message_requis_2_000_caracteres_maximum' | transloco }}</em> }</label>
-        <label class="studio-check" for="support-escalation"><input id="support-escalation" type="checkbox" formControlName="escalationEnabled" />{{ 'configuration.autoriser_l_escalade_humaine_dans_la_configuration' | transloco }}</label>
+        <label class="studio-check" for="support-escalation"><input class="studio-control" id="support-escalation" type="checkbox" formControlName="escalationEnabled" />{{ 'configuration.autoriser_l_escalade_humaine_dans_la_configuration' | transloco }}</label>
         <p class="studio-help">{{ 'configuration.option_memorisee_uniquement_aucun_conseiller_n_est' | transloco }}</p>
-        <label for="support-status">{{ 'configuration.statut_de_la_configuration' | transloco }}<select id="support-status" formControlName="status"><option value="inactive">{{ 'configuration.inactive' | transloco }}</option><option value="active">{{ 'configuration.active' | transloco }}</option></select><span>{{ 'configuration.une_configuration_active_peut_etre_testee_sur' | transloco }}</span></label>
       </fieldset>
-      </div>
-      <footer class="studio-actions"><span class="studio-help">{{ selected() ? ('configuration.modifiez_puis_enregistrez_pour_mettre_a_jour' | transloco) : ('configuration.rien_n_est_enregistre_avant_votre_validation' | transloco) }}</span><button type="button" class="studio-secondary" (click)="cancel()" [disabled]="saving() || loadingDetail()">{{ 'configuration.annuler' | transloco }}</button><button type="submit" class="studio-primary" [disabled]="saving() || loadingDetail()">{{ saving() ? ('configuration.enregistrement' | transloco) : ('configuration.enregistrer' | transloco) }}</button></footer>
+      </details>
+      <footer class="studio-actions"><span class="studio-help">{{ selected() ? ('configuration.modifiez_puis_enregistrez_pour_mettre_a_jour' | transloco) : ('configuration.rien_n_est_enregistre_avant_votre_validation' | transloco) }}</span><button type="button" class="studio-control studio-secondary" (click)="cancel()" [disabled]="saving() || loadingDetail()">{{ 'configuration.annuler' | transloco }}</button><button type="submit" class="studio-control studio-primary" [disabled]="saving() || loadingDetail()">{{ saving() ? ('configuration.enregistrement' | transloco) : ('configuration.enregistrer' | transloco) }}</button></footer>
     </form>
     <div id="studio-extra-panel" [hidden]="activeSpace() === 'configuration'">
         @if (selected(); as agent) {
@@ -86,8 +91,7 @@
           @if (activeSpace() === 'knowledge' || activeSpace() === 'test') {
             <app-agent-knowledge [agent]="agent" [mode]="activeSpace() === 'knowledge' ? 'knowledge' : 'test'" (dirtyChange)="knowledgeDraft($event)" (busyChange)="workspaceBusy.set($event)" />
           }
-        } @else { <div class="studio-panel"><h2>{{ 'configuration.enregistrez_ou_selectionnez_un_agent' | transloco }}</h2><p class="studio-scope">{{ 'configuration.la_base_documentaire_et_les_tests_utilisent' | transloco }}</p><button type="button" class="studio-secondary" (click)="selectSpace('configuration')">{{ 'configuration.ouvrir_configuration' | transloco }}</button></div> }
+        } @else { <div class="studio-panel"><h2 class="studio-title">{{ 'configuration.enregistrez_ou_selectionnez_un_agent' | transloco }}</h2><p class="studio-scope">{{ 'configuration.la_base_documentaire_et_les_tests_utilisent' | transloco }}</p><button type="button" class="studio-control studio-secondary" (click)="selectSpace('configuration')">{{ 'configuration.ouvrir_configuration' | transloco }}</button></div> }
     </div>
     </div>
-  </div>
 </section>

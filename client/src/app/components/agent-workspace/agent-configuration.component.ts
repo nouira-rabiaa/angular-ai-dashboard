@@ -7,7 +7,7 @@ import { UiLanguageService } from '../../i18n/ui-language.service';
 import { AgentConversationsComponent } from './agent-conversations.component';
 import { AgentKnowledgeComponent } from './agent-knowledge.component';
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, HostListener, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -21,6 +21,9 @@ import { SupportAgent, SupportAgentConfig, emptySupportAgent } from '../../model
   styleUrl: './agent-configuration.component.scss'
 })
 export class AgentConfigurationComponent implements OnInit {
+  private readonly catalogueToggle = viewChild<ElementRef<HTMLButtonElement>>('catalogueToggle');
+  readonly catalogueOpen = signal(false);
+  readonly helpOpen = signal(false);
   readonly ui = inject(UiLanguageService);
   private readonly api = inject(AgentService);
   private readonly destroyRef = inject(DestroyRef);
@@ -48,7 +51,7 @@ export class AgentConfigurationComponent implements OnInit {
   readonly error = signal('');
   readonly pageSize = 50;
   readonly activeSpace = signal<'configuration' | 'knowledge' | 'test' | 'conversations' | 'tickets' | 'workflows'>('configuration');
-  readonly spaces = [{ id: 'configuration', label: 'workspace.configuration' }, { id: 'knowledge', label: 'configuration.knowledge_base' }, { id: 'test', label: 'configuration.tester_l_agent' }, { id: 'conversations', label: 'workspace.conversations' }, { id: 'tickets', label: 'tickets.title' }, { id: 'workflows', label: 'automation.title' }] as const;
+  readonly spaces = [{ id: 'configuration', label: 'configurationDesign.tabConfiguration' }, { id: 'knowledge', label: 'configurationDesign.tabDocuments' }, { id: 'test', label: 'configurationDesign.tabTest' }, { id: 'conversations', label: 'configurationDesign.tabConversations' }, { id: 'tickets', label: 'configurationDesign.tabTickets' }, { id: 'workflows', label: 'configurationDesign.tabAutomation' }] as const;
   readonly workflowDirty = signal(false);
   readonly workflowsVisited = signal(false);
   readonly ticketDirty = signal(false);
@@ -95,7 +98,7 @@ export class AgentConfigurationComponent implements OnInit {
     if (this.ticketDirty()) { this.navigationMessage.set('tickets.unsaved');return false; }
     if (this.knowledgeDirty()) { this.navigationMessage.set('configuration.modifications_documentaires_non_enregistrees_enregistrez_ou_annulez');return false; }
     if (this.workspaceBusy()) { this.navigationMessage.set('configuration.attendez_la_fin_de_l_operation_en');return false; }
-    if (this.form.dirty) { this.message.set('configuration.modifications_non_enregistrees_enregistrez_ou_annulez_avant');this.navigationMessage.set('configuration.enregistrez_ou_annulez_la_configuration_avant_de'); return false; }
+    if (this.form.dirty) { this.navigationMessage.set('configuration.enregistrez_ou_annulez_la_configuration_avant_de'); return false; }
     return !this.saving() && !this.loadingDetail();
   }
   load(offset = this.offset()): void {
@@ -118,7 +121,7 @@ export class AgentConfigurationComponent implements OnInit {
   }
   newAgent(): void {
     if (!this.mayLeaveDraft()) return;
-    this.clearTicketContext();this.selected.set(null);this.activeSpace.set('configuration');this.navigationMessage.set('');this.form.reset(emptySupportAgent());this.message.set('configuration.nouvelle_configuration_non_enregistree');this.error.set('');
+    this.catalogueOpen.set(false);this.clearTicketContext();this.selected.set(null);this.activeSpace.set('configuration');this.navigationMessage.set('');this.form.reset(emptySupportAgent());this.message.set('configuration.nouvelle_configuration_non_enregistree');this.error.set('');
   }
   openAgent(agent: SupportAgent): void {
     if (!this.mayLeaveDraft()) return;
@@ -130,6 +133,8 @@ export class AgentConfigurationComponent implements OnInit {
   }
   private apply(agent: SupportAgent): void {
     if (this.selected()?.id !== agent.id) this.clearTicketContext();
+    if (this.catalogueOpen()) this.catalogueToggle()?.nativeElement.focus();
+    this.catalogueOpen.set(false);
     this.selected.set(agent);
     const { id, version, createdAt, updatedAt, ...config } = agent;
     this.form.reset(config);

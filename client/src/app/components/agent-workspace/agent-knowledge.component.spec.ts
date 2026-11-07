@@ -1,3 +1,4 @@
+import { UiLanguageService } from '../../i18n/ui-language.service';
 import { provideUiI18nTesting } from '../../i18n/ui-i18n.testing';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -96,4 +97,31 @@ describe('AgentKnowledgeComponent', () => {
     expect(text()).toContain('Génération…');expect(fixture.nativeElement.querySelector('fieldset').disabled).toBe(true);
     component.ask();expect(api.askAgent).toHaveBeenCalledTimes(1);expect(pending.observed).toBe(true);fixture.destroy();expect(pending.observed).toBe(false);
   });
+  it('distinguishes saved authorisations from the current unsaved selection', () => {
+    fixture.detectChanges();
+    component.toggle(2, true);fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#associated-title').textContent).toContain('1');
+    expect(fixture.nativeElement.querySelector('.selection-summary').textContent).toContain('2');
+    const saved: HTMLDetailsElement = fixture.nativeElement.querySelector('.saved-documents');
+    expect(saved.open).toBe(false);saved.open = true;fixture.detectChanges();
+    expect(saved.querySelectorAll('li')).toHaveLength(1);
+    expect(component.dirty()).toBe(true);
+    expect(api.setAgentDocuments).not.toHaveBeenCalled();expect(api.askAgent).not.toHaveBeenCalled();
+    component.cancel();fixture.detectChanges();expect(component.selection()).toEqual([1]);
+  });
+  it('preserves question and document scope when opening help and switching language without inference', async () => {
+    fixture.componentRef.setInput('mode', 'test');fixture.detectChanges();await fixture.whenStable();
+    component.question = 'Original question';component.documentId = 1;fixture.detectChanges();await fixture.whenStable();
+    const input: HTMLTextAreaElement = fixture.nativeElement.querySelector('#support-question');
+    const reads = api.getAgentDocuments.mock.calls.length;
+    const help: HTMLDetailsElement = fixture.nativeElement.querySelector('.context-help');
+    expect(help.open).toBe(false);help.open = true;fixture.detectChanges();
+    await TestBed.inject(UiLanguageService).use('en');fixture.detectChanges();await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('#support-question')).toBe(input);
+    expect(component.question).toBe('Original question');expect(component.documentId).toBe(1);
+    expect(fixture.nativeElement.querySelector('button[type=submit]').textContent).toContain('Test agent');
+    expect(api.getAgentDocuments).toHaveBeenCalledTimes(reads);
+    expect(api.askAgent).not.toHaveBeenCalled();expect(api.setAgentDocuments).not.toHaveBeenCalled();
+  });
+
 });

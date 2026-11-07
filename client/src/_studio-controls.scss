@@ -1,0 +1,14 @@
+// Explicitly opt-in Studio controls, reusable by subsequent approved lots.
+.studio-control{font:inherit;font-size:.8rem;border:1px solid var(--sl);border-radius:8px;background:#fff;color:var(--si);box-sizing:border-box;min-width:0}
+select.studio-control{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='m2 2 4 4 4-4' fill='none' stroke='%23647084' stroke-width='1.5'/%3E%3C/svg%3E");background-size:10px;background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.studio-control:focus-visible,.studio-focus:focus-visible{outline:3px solid var(--sb);outline-offset:2px}
+
+// Shell palette is route-scoped: other dashboard routes keep their current design.
+body:has(app-agent-workspace){--canvas:#f7f7fb;--nav:#17182e;--brand:#6d45d8;--brand-hover:#5935bd}
+.studio-selector-icon,.studio-section-icon{display:inline-grid;place-items:center;flex-shrink:0;background:#f1ecfb;color:#6d45d8;border-radius:9px;width:30px;height:30px}
+.agent-picker .studio-selector-icon svg,.studio-section-title .studio-section-icon svg{margin:0;width:18px;height:18px}
+.studio-selector-icon{width:24px;height:24px}
+.studio-section-icon.studio-teal{background:#eaf7f4;color:#117f74}
+.studio-section-title,.agent-picker{display:flex;align-items:center;gap:8px}
+
+.studio-title{font-weight:650}

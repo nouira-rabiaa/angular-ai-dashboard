@@ -130,4 +130,55 @@ describe('AgentConfigurationComponent', () => {
     const pending = new Subject<SupportAgentPage>();api.listAgents.mockReturnValue(pending);component.load();expect(pending.observed).toBe(true);
     fixture.destroy();expect(pending.observed).toBe(false);
   });
+  it('preserves advanced controls and values when collapsed without mutation', () => {
+    fixture.detectChanges();
+    const panel: HTMLDetailsElement = fixture.nativeElement.querySelector('.configuration-advanced');
+    const field = panel.querySelector('#support-temperature');
+    component.form.controls.temperature.setValue(0.8);
+    panel.open = true;fixture.detectChanges();panel.open = false;fixture.detectChanges();
+    expect(panel.querySelector('#support-temperature')).toBe(field);
+    expect(component.form.controls.temperature.value).toBe(0.8);
+    expect(api.createAgent).not.toHaveBeenCalled();expect(api.updateAgent).not.toHaveBeenCalled();
+  });
+  it('reveals invalid advanced fields on save without an API mutation', () => {
+    fixture.detectChanges();component.form.controls.temperature.setValue(3);
+    component.save();fixture.detectChanges();
+    const panel: HTMLDetailsElement = fixture.nativeElement.querySelector('.configuration-advanced');
+    expect(panel.open).toBe(true);
+    expect(panel.querySelector('#support-temperature')?.getAttribute('aria-invalid')).toBe('true');
+    expect(api.createAgent).not.toHaveBeenCalled();expect(api.updateAgent).not.toHaveBeenCalled();
+  });
+
+  it('opens the catalogue without resetting a draft or issuing a mutation', () => {
+    fixture.detectChanges();component.form.controls.name.setValue('Draft');component.form.markAsDirty();
+    const catalog: HTMLElement = fixture.nativeElement.querySelector('.studio-catalog');
+    expect(catalog.hidden).toBe(true);
+    const list = catalog.querySelector('.studio-agent-items');
+    const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-controls=studio-catalogue]');
+    toggle.click();fixture.detectChanges();expect(catalog.hidden).toBe(false);toggle.click();fixture.detectChanges();expect(catalog.hidden).toBe(true);
+    expect(catalog.querySelector('.studio-agent-items')).toBe(list);
+    expect(component.form.controls.name.value).toBe('Draft');expect(component.form.dirty).toBe(true);
+    expect(api.createAgent).not.toHaveBeenCalled();expect(api.updateAgent).not.toHaveBeenCalled();
+  });
+
+  it('starts with catalogue and help closed and closes the catalogue after agent selection', () => {
+    fixture.detectChanges();expect(component.catalogueOpen()).toBe(false);expect(component.helpOpen()).toBe(false);
+    component.catalogueOpen.set(true);component.openAgent(record());fixture.detectChanges();
+    expect(component.catalogueOpen()).toBe(false);expect(component.selected()?.id).toBe(record().id);
+    component.form.controls.name.setValue('Unsaved');component.form.markAsDirty();component.catalogueOpen.set(true);
+    component.openAgent(record({id:'00000000-0000-4000-8000-000000000002'}));fixture.detectChanges();
+    expect(component.form.controls.name.value).toBe('Unsaved');expect(component.catalogueOpen()).toBe(true);
+    expect(fixture.nativeElement.querySelectorAll('.studio-unsaved')).toHaveLength(1);
+    expect(api.getAgent).toHaveBeenCalledTimes(1);
+  });
+
+  it('restores focus to the agent selector after selecting from the catalogue', () => {
+    fixture.detectChanges();component.catalogueOpen.set(true);fixture.detectChanges();
+    const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-controls=studio-catalogue]');
+    const focus = jest.spyOn(toggle, 'focus');component.openAgent(record());fixture.detectChanges();
+    expect(focus).toHaveBeenCalled();expect(component.catalogueOpen()).toBe(false);
+    expect(fixture.nativeElement.querySelectorAll('.config-card')).toHaveLength(2);
+    expect(fixture.nativeElement.querySelector('[aria-controls=studio-help]').getAttribute('aria-expanded')).toBe('false');
+  });
+
 });

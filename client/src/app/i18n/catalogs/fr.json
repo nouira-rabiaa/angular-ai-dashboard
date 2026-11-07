@@ -1092,5 +1092,80 @@
     },
     "eventCode": "handoff.requested",
     "target": "local_simulator"
+  },
+  "studioGuidance": {
+    "configuration": "Définissez le comportement de l’agent, puis enregistrez sa configuration avant les autres opérations. « Actif » ne signifie pas déployé publiquement. Autoriser l’escalade ne déclenche aucun transfert automatique.",
+    "documents": "Importez un document dans le catalogue, sélectionnez-le pour cet agent, puis enregistrez l’association. Disponible ne signifie pas autorisé : votre sélection reste temporaire jusqu’à l’enregistrement.",
+    "test": "L’envoi peut appeler réellement Groq, sans créer de conversation persistante. Une abstention indique un contexte documentaire insuffisant, pas nécessairement une erreur technique.",
+    "conversations": "Les messages sont conservés localement. Une réponse IA ne signifie pas que la demande est résolue. Préparer un ticket ouvre un brouillon : sa création nécessite votre confirmation.",
+    "ticketHeading": "Suivi de la demande.",
+    "tickets": "Le statut suit le traitement du ticket ; la catégorie décrit le sujet et la priorité son urgence. Le transfert humain possède un statut indépendant.",
+    "handoffHeading": "Intervention humaine locale.",
+    "handoff": "« Affecté » désigne une affectation locale déclarée : aucun opérateur externe n’est contacté. Résoudre le transfert ne résout pas automatiquement le ticket. Aucun remboursement réel n’est effectué.",
+    "workflowChain": "Événement → Reçu durable → Exécution → Simulation.",
+    "workflows": "Le simulateur est local et son activation est partagée entre tous les agents. Aucun appel n8n, webhook ou notification externe n’est exécuté. Un succès simulé ne résout pas le ticket.",
+    "pausedReceipt": "Ce reçu est conservé. Pour le reprendre, la liaison et le simulateur partagé doivent être actifs ; leur activation ne reprend pas automatiquement les reçus en pause."
+  },
+  "configurationDesign": {
+    "advanced": "Paramètres avancés",
+    "context": "Définissez la mission et le comportement de votre agent.",
+    "help": "Comprendre la configuration",
+    "title": "Configuration de l’agent",
+    "subtitle": "Identité, mission et comportement",
+    "identity": "Identité",
+    "mission": "Mission",
+    "helpShort": "Aide",
+    "tabConfiguration": "Configuration",
+    "tabDocuments": "Documents",
+    "tabTest": "Tester l’agent",
+    "tabConversations": "Conversations",
+    "tabTickets": "Tickets",
+    "tabAutomation": "Automatisation"
+  },
+  "knowledgePremium": {
+    "help": "Comprendre les documents et les tests",
+    "selection": "Sélection en cours : {{count}} document(s) · À enregistrer après modification",
+    "saved": "Autorisations enregistrées · {{count}}",
+    "noSaved": "Aucun document autorisé enregistré.",
+    "liveNotice": "Appel Groq réel possible · Sans conversation persistante",
+    "test": "Tester l’agent",
+    "sources": "Sources documentaires · {{count}}"
+  },
+  "conversationPremium": {
+    "description": "Échanges persistants et réponses documentaires.",
+    "help": "Confidentialité et fonctionnement",
+    "prepareTicket": "Préparer un ticket",
+    "businessNotice": "Une réponse IA ne résout pas automatiquement une demande. Le ticket sera créé après confirmation."
+  },
+  "ticketsPremium": {
+    "help": "Comprendre les tickets et leur suivi",
+    "details": "Informations et classification",
+    "localHandoff": "Traitement local · Statut indépendant du ticket",
+    "handoffHelp": "Comprendre le transfert humain",
+    "transfers": "Transferts enregistrés"
+  },
+  "automationPremium": {
+    "title": "Automatisation",
+    "subtitle": "Pilotez vos workflows locaux",
+    "help": "Aide et sécurité",
+    "unconfigured": "Non configurée",
+    "stateDetails": "Détails des états",
+    "destination": "Destination locale",
+    "localSimulator": "Simulateur local",
+    "sharedSimulator": "Simulateur partagé",
+    "safety": "Simulation locale uniquement : aucun webhook, e-mail ou remboursement. Le simulateur est partagé entre tous les agents ; ses résultats ne résolvent ni ticket ni transfert.",
+    "events": "Événements",
+    "references": "Références associées",
+    "resumeRequirements": "Conditions de reprise",
+    "search": "Rechercher un identifiant",
+    "technical": "Informations techniques"
+  },
+  "conversationChat": {
+    "sources": "Sources ({{count}})",
+    "reference": "Document {{document}} · Passage {{chunk}}",
+    "backList": "Voir les conversations",
+    "backChat": "Revenir au chat",
+    "latest": "Derniers messages",
+    "unsent": "Un message n’a pas été envoyé. Envoyez-le ou effacez-le avant de changer ou de créer une conversation."
   }
 }
