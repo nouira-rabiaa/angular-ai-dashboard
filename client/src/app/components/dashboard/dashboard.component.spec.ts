@@ -324,4 +324,52 @@ describe('DashboardComponent', () => {
     }
   });
 
+  it('supports wrapping arrow navigation, Home/End and linked tab panels', () => {
+    createComponent(); fixture.detectChanges();
+    const tabs = Array.from(fixture.nativeElement.querySelectorAll('[role=tab]')) as HTMLButtonElement[];
+    expect(tabs).toHaveLength(4);
+    const press = (index: number, key: string, expected: number) => {
+      tabs[index].focus(); tabs[index].dispatchEvent(new KeyboardEvent('keydown', {key, bubbles:true})); fixture.detectChanges();
+      expect(document.activeElement).toBe(tabs[expected]);
+      tabs.forEach((tab,i) => { expect(tab.tabIndex).toBe(i===expected?0:-1); expect(tab.getAttribute('aria-selected')).toBe(String(i===expected)); });
+      const panel = fixture.nativeElement.querySelector('[role=tabpanel]');
+      expect(panel.id).toBe(tabs[expected].getAttribute('aria-controls'));
+      expect(panel.getAttribute('aria-labelledby')).toBe(tabs[expected].id);
+    };
+    press(0,'ArrowLeft',3); press(3,'ArrowRight',0);
+    press(0,'ArrowRight',1); press(1,'ArrowRight',2);
+    press(2,'End',3); press(3,'Home',0);
+  });
+
+  it('focuses the trace close button, traps focus and restores the trigger on Escape', () => {
+    createComponent(); fixture.detectChanges();
+    const trigger = fixture.nativeElement.querySelector('[role=tab]') as HTMLButtonElement;
+    trigger.focus();
+    component.openTrace({traceId:'trace-1'} as any, trigger);
+    component.selectView('inferences'); fixture.detectChanges();
+    const dialog = fixture.nativeElement.querySelector('[role=dialog]') as HTMLElement;
+    const close = dialog.querySelector('button')!;
+    expect(document.activeElement).toBe(close);
+    expect(dialog.getAttribute('aria-labelledby')).toBe('dashboard-trace-title');
+    expect(dialog.querySelector('#dashboard-trace-title')).not.toBeNull();
+    for (const shiftKey of [false,true]) {
+      const event = new KeyboardEvent('keydown',{key:'Tab',shiftKey,bubbles:true,cancelable:true});
+      close.dispatchEvent(event); expect(event.defaultPrevented).toBe(true); expect(document.activeElement).toBe(close);
+    }
+    trigger.focus(); expect(document.activeElement).toBe(close);
+    close.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role=dialog]')).toBeNull();
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('preserves close-button behavior and restores focus on component destruction', () => {
+    createComponent(); fixture.detectChanges(); component.selectView('inferences'); fixture.detectChanges();
+    const trigger = document.createElement('button'); document.body.appendChild(trigger);
+    component.openTrace({traceId:'trace-1'} as any,trigger); fixture.detectChanges();
+    (fixture.nativeElement.querySelector('[role=dialog] button') as HTMLButtonElement).click(); fixture.detectChanges();
+    expect(component.selectedTrace()).toBeNull(); expect(document.activeElement).toBe(trigger);
+    component.openTrace({traceId:'trace-1'} as any,trigger); fixture.detectChanges();
+    fixture.destroy(); expect(document.activeElement).toBe(trigger); trigger.remove();
+  });
+
 });

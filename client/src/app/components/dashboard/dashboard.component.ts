@@ -1,9 +1,10 @@
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UiDatePipe, UiStatusPipe } from '../../i18n/ui-format.pipe';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UiLanguageService } from '../../i18n/ui-language.service';
 import { FinopsComponent } from '../finops/finops.component';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { AfterViewChecked, Component, DestroyRef, ElementRef, HostListener, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
@@ -58,10 +59,67 @@ export interface CiStatus {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, AfterViewChecked, OnDestroy {
   readonly ui = inject(UiLanguageService);
   private readonly dashboardData = inject(DashboardDataService);
   private readonly http = inject(HttpClient);
+
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private traceTrigger: HTMLElement | null = null;
+  private focusedDialog: HTMLElement | null = null;
+
+  ngAfterViewChecked(): void {
+    const dialog = this.host.nativeElement.querySelector<HTMLElement>('[role="dialog"]');
+    if (dialog && dialog !== this.focusedDialog) {
+      this.focusedDialog = dialog;
+      this.dialogControls(dialog)[0]?.focus();
+    } else if (!dialog) this.focusedDialog = null;
+  }
+
+  private dialogControls(dialog: HTMLElement): HTMLElement[] {
+    return Array.from(dialog.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex="0"]'));
+  }
+
+  @HostListener('document:focusin', ['$event'])
+  containTraceFocus(event: FocusEvent): void {
+    const dialog = this.host.nativeElement.querySelector<HTMLElement>('[role="dialog"]');
+    if (this.selectedTrace() && dialog && !dialog.contains(event.target as Node)) this.dialogControls(dialog)[0]?.focus();
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onTraceKeydown(event: KeyboardEvent): void {
+    const dialog = this.host.nativeElement.querySelector<HTMLElement>('[role="dialog"]');
+    if (!dialog) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closeTrace();
+    } else if (event.key === 'Tab') {
+      const controls = this.dialogControls(dialog);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    }
+  }
+
+  ngOnDestroy(): void { this.selectedTrace.set(null); this.restoreTraceFocus(); }
+
+  private restoreTraceFocus(): void {
+    const trigger = this.traceTrigger;
+    this.traceTrigger = null;
+    if (trigger?.isConnected) trigger.focus();
+  }
+
+  onTabKeydown(event: KeyboardEvent, index: number): void {
+    const count = this.views.length;
+    const next = event.key === 'ArrowRight' ? (index + 1) % count
+      : event.key === 'ArrowLeft' ? (index + count - 1) % count
+      : event.key === 'Home' ? 0 : event.key === 'End' ? count - 1 : -1;
+    if (next < 0) return;
+    event.preventDefault();
+    this.selectView(this.views[next].id);
+    this.host.nativeElement.querySelector<HTMLElement>('#dashboard-tab-' + this.views[next].id)?.focus();
+  }
 
   readonly pageSize = 25;
   readonly views: { id: DashboardView; label: string }[] = [
@@ -210,9 +268,10 @@ export class DashboardComponent implements OnInit {
     this.loadSubmissions();
   }
 
-  openTrace(item: InferenceHistoryItem): void {
+  openTrace(item: InferenceHistoryItem, trigger?: HTMLElement): void {
+    this.traceTrigger = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     this.selectedTrace.set(null);
-    this.dashboardData.getInferenceDetail(item.traceId).subscribe({
+    this.dashboardData.getInferenceDetail(item.traceId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: trace => this.selectedTrace.set(trace),
       error: () => this.errorMessage.set('dashboard.impossible_de_charger_le_detail_d_execution')
     });
@@ -220,6 +279,8 @@ export class DashboardComponent implements OnInit {
 
   closeTrace(): void {
     this.selectedTrace.set(null);
+    this.focusedDialog = null;
+    this.restoreTraceFocus();
   }
 
   exportSubmissionsMetadata(): void {
