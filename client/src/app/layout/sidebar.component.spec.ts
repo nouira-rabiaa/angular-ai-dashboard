@@ -141,4 +141,15 @@ describe('SidebarComponent', () => {
     dashboardLink.click();
     expect(mobileChanges).toEqual([false, false]);
   });
+  it('uses the same active navigation token on all five routes', async () => {
+    for (const path of ['/dashboard','/generator','/guided-demo','/architecture','/agent-workspace']) {
+      await router.navigateByUrl(path); fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
+      const active = fixture.nativeElement.querySelector('nav a[aria-current="page"]') as HTMLAnchorElement;
+      expect(active.getAttribute('href')).toBe(path);
+      expect(active.classList.contains('!bg-[var(--brand)]')).toBe(true);
+      expect(active.classList.contains('focus-visible:ring-violet-300')).toBe(true);
+      expect(fixture.nativeElement.querySelector('aside').classList.contains('bg-[var(--nav)]')).toBe(true);
+    }
+  });
+
 });

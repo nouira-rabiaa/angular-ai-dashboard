@@ -41,7 +41,7 @@ import {
       (keydown)="onMobileDialogKeydown($event)">
       <div class="flex h-full min-h-0 flex-col">
         <div class="flex h-[5.25rem] shrink-0 items-center gap-3 border-b border-white/10 px-5">
-          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-lg shadow-indigo-950/40">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand)] text-white shadow-lg shadow-indigo-950/40">
             <svg lucideBot class="h-5 w-5"></svg>
           </div>
           @if (expanded || mobileOpen) {
@@ -50,33 +50,33 @@ import {
               <p class="mt-0.5 text-[10px] font-medium leading-snug text-slate-300">{{ 'brand.subtitle' | transloco }}</p>
             </div>
           }
-          <button type="button" data-mobile-focus class="ml-auto rounded-lg p-2 text-blue-100 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 lg:hidden" [attr.aria-label]="'nav.closeMenu' | transloco" (click)="closeMobile()">
+          <button type="button" data-mobile-focus class="ml-auto rounded-lg p-2 text-[var(--nav-text)] transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-300 lg:hidden" [attr.aria-label]="'nav.closeMenu' | transloco" (click)="closeMobile()">
             <svg lucidePanelLeftClose class="h-4 w-4"></svg>
           </button>
         </div>
 
         <nav class="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 py-4" [attr.aria-label]="'nav.main' | transloco">
           <div>
-            @if (expanded || mobileOpen) { <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-200">{{ 'nav.workspace' | transloco }}</p> }
+            @if (expanded || mobileOpen) { <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-200">{{ 'nav.workspace' | transloco }}</p> }
             <div class="space-y-1.5">
-              <a routerLink="/dashboard" [attr.aria-label]="'nav.dashboard' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
-                <svg lucideLayoutDashboard class="h-[18px] w-[18px] shrink-0 text-blue-200 transition group-hover:text-white"></svg>
+              <a routerLink="/dashboard" [attr.aria-label]="'nav.dashboard' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-[var(--nav-text)] outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-violet-300 motion-reduce:transition-none">
+                <svg lucideLayoutDashboard class="h-[18px] w-[18px] shrink-0 text-violet-200 transition group-hover:text-white"></svg>
                 @if (expanded || mobileOpen) { <span class="min-w-0 whitespace-normal leading-snug">{{ 'nav.dashboard' | transloco }}</span> }
               </a>
-              <a routerLink="/generator" [attr.aria-label]="'nav.generator' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
-                <svg lucideSparkles class="h-[18px] w-[18px] shrink-0 text-blue-200 transition group-hover:text-white"></svg>
+              <a routerLink="/generator" [attr.aria-label]="'nav.generator' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-[var(--nav-text)] outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-violet-300 motion-reduce:transition-none">
+                <svg lucideSparkles class="h-[18px] w-[18px] shrink-0 text-violet-200 transition group-hover:text-white"></svg>
                 @if (expanded || mobileOpen) { <span class="min-w-0 whitespace-normal leading-snug">{{ 'nav.generator' | transloco }}</span> }
               </a>
-              <a routerLink="/guided-demo" [attr.aria-label]="'nav.guidedDemo' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
-                <svg lucideWorkflow class="h-[18px] w-[18px] shrink-0 text-blue-200 transition group-hover:text-white"></svg>
+              <a routerLink="/guided-demo" [attr.aria-label]="'nav.guidedDemo' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-[var(--nav-text)] outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-violet-300 motion-reduce:transition-none">
+                <svg lucideWorkflow class="h-[18px] w-[18px] shrink-0 text-violet-200 transition group-hover:text-white"></svg>
                 @if (expanded || mobileOpen) { <span class="min-w-0 whitespace-normal leading-snug">{{ 'nav.guidedDemo' | transloco }}</span> }
               </a>
-              <a routerLink="/architecture" [attr.aria-label]="'nav.architecture' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
-                <svg lucideWorkflow class="h-[18px] w-[18px] shrink-0 text-blue-200 transition group-hover:text-white"></svg>
+              <a routerLink="/architecture" [attr.aria-label]="'nav.architecture' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" [routerLinkActiveOptions]="{exact: true}" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-[var(--nav-text)] outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-violet-300 motion-reduce:transition-none">
+                <svg lucideWorkflow class="h-[18px] w-[18px] shrink-0 text-violet-200 transition group-hover:text-white"></svg>
                 @if (expanded || mobileOpen) { <span class="min-w-0 whitespace-normal leading-snug">{{ 'nav.architecture' | transloco }}</span> }
               </a>
-              <a routerLink="/agent-workspace" [attr.aria-label]="'nav.studio' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-blue-100 outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300 motion-reduce:transition-none">
-                <svg lucideBot class="h-[18px] w-[18px] shrink-0 text-blue-200 transition group-hover:text-white"></svg>
+              <a routerLink="/agent-workspace" [attr.aria-label]="'nav.studio' | transloco" data-mobile-focus routerLinkActive="!bg-[var(--brand)] !text-white !shadow-md" ariaCurrentWhenActive="page" (click)="closeMobile()" class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-[var(--nav-text)] outline-none transition duration-200 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-violet-300 motion-reduce:transition-none">
+                <svg lucideBot class="h-[18px] w-[18px] shrink-0 text-violet-200 transition group-hover:text-white"></svg>
                 @if (expanded || mobileOpen) { <span class="min-w-0 whitespace-normal leading-snug">{{ 'nav.studio' | transloco }}</span> }
               </a>
             </div>
@@ -84,7 +84,7 @@ import {
         </nav>
 
         <div class="hidden shrink-0 border-t border-white/10 p-3 lg:block">
-          <button type="button" data-desktop-focus (click)="toggleExpanded()" [attr.aria-expanded]="expanded" [attr.aria-label]="(expanded ? 'nav.collapseLabel' : 'nav.expandLabel') | transloco" class="flex min-h-11 w-full items-center justify-center gap-3 rounded-xl px-3 text-xs font-semibold text-blue-100 outline-none transition hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-300">
+          <button type="button" data-desktop-focus (click)="toggleExpanded()" [attr.aria-expanded]="expanded" [attr.aria-label]="(expanded ? 'nav.collapseLabel' : 'nav.expandLabel') | transloco" class="flex min-h-11 w-full items-center justify-center gap-3 rounded-xl px-3 text-xs font-semibold text-[var(--nav-text)] outline-none transition hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-violet-300">
             @if (expanded) { <svg lucidePanelLeftClose class="h-4 w-4"></svg><span>{{ 'nav.collapse' | transloco }}</span> }
             @else { <svg lucidePanelLeftOpen class="h-4 w-4"></svg> }
           </button>
