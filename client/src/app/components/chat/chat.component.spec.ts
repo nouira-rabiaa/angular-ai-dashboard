@@ -59,7 +59,7 @@ describe('ChatComponent', () => {
     const input = thread.querySelector('textarea') as HTMLTextAreaElement;
     expect(thread.querySelector('.generator-composer')?.contains(input)).toBe(true);
     expect(fixture.nativeElement.querySelector('.generator-documents textarea')).toBeNull();
-    expect(input.rows).toBe(4);expect(input.getAttribute('aria-describedby')).toBe('generator-prompt-help');
+    expect(input.rows).toBe(3);expect(input.getAttribute('aria-describedby')).toBe('generator-prompt-help');
     const pending = new Subject<any>();sendChatPrompt.mockReturnValue(pending);
     input.value = '  Une question documentaire  ';input.dispatchEvent(new Event('input'));fixture.detectChanges();await fixture.whenStable();
     (thread.querySelector('.generator-send') as HTMLButtonElement).click();fixture.detectChanges();
@@ -390,4 +390,28 @@ describe('ChatComponent', () => {
     expect(text).toContain('Erreur');
     expect(text).toContain('Indisponible');
   });
+  it('keeps citations closed initially and exposes unmatched-label warnings outside the disclosure', () => {
+    const fixture=TestBed.createComponent(ChatComponent),c=fixture.componentInstance;
+    c.messages.set([{sender:'ai',text:'Answer [S1]',chatResponse:true,sources:[{label:'S1',filename:'policy.txt',chunkId:1,documentId:2,excerpt:'Original passage',cited:true}],citationValidation:{validLabels:['S1'],invalidLabels:['S99'],sourceIdentityValidated:true,factualEntailmentValidated:false}}]);fixture.detectChanges();
+    const sources:HTMLDetailsElement=fixture.nativeElement.querySelector('.generator-sources');
+    expect(sources.open).toBe(false);expect(sources.querySelector('details')?.open).toBe(false);
+    expect(sources.querySelector('summary')?.textContent).toContain('Sources (1)');
+    const warning:HTMLElement=fixture.nativeElement.querySelector('.agent-bubble [role=status]');expect(warning.textContent).toContain('S99');expect(sources.contains(warning)).toBe(false);
+    sources.querySelector('summary')!.focus();expect(document.activeElement).toBe(sources.querySelector('summary'));
+    sources.open=true;fixture.detectChanges();expect(sources.textContent).toContain('Original passage');
+    expect(sendChatPrompt).not.toHaveBeenCalled();expect(uploadDocument).not.toHaveBeenCalled();
+  });
+  it('preserves prompt, active scope and mounted generated-form values when panels collapse', async () => {
+    const fixture=TestBed.createComponent(ChatComponent),c=fixture.componentInstance;
+    c.messages.set([{sender:'ai',formSchema:{title:'Original form',fields:[{name:'name',label:'Name',type:'text',required:true}]}}]);c.userPrompt.set('Unsaved question');c.activeDocumentId.set(7);c.retrievalScope.set('active');fixture.detectChanges();await fixture.whenStable();
+    const form:HTMLDetailsElement=fixture.nativeElement.querySelector('.generated-form');
+    const input:HTMLInputElement=form.querySelector('input')!;input.value='Retained value';input.dispatchEvent(new Event('input'));fixture.detectChanges();
+    form.open=false;fixture.detectChanges();form.open=true;fixture.detectChanges();
+    expect(form.querySelector('input')).toBe(input);expect(input.value).toBe('Retained value');
+    const toggle:HTMLButtonElement=fixture.nativeElement.querySelector('.document-toggle');
+    toggle.click();fixture.detectChanges();expect(c.documentsOpen()).toBe(true);toggle.click();fixture.detectChanges();expect(c.documentsOpen()).toBe(false);
+    expect(c.userPrompt()).toBe('Unsaved question');expect(c.activeDocumentId()).toBe(7);expect(c.retrievalScope()).toBe('active');
+    expect(sendChatPrompt).not.toHaveBeenCalled();expect(uploadDocument).not.toHaveBeenCalled();
+  });
+
 });

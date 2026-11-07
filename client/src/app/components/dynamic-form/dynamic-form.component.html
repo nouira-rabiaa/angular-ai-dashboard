@@ -22,7 +22,7 @@
                 [id]="field.name"
                 [formControlName]="field.name"
                 [placeholder]="field.placeholder || ''"
-                class="form-control"
+                class="form-control studio-control"
               />
             }
             @case ('email') {
@@ -31,7 +31,7 @@
                 [id]="field.name"
                 [formControlName]="field.name"
                 [placeholder]="field.placeholder || ('dynamicForm.exemple_domaine_com' | transloco)"
-                class="form-control"
+                class="form-control studio-control"
               />
             }
             @case ('number') {
@@ -40,7 +40,7 @@
                 [id]="field.name"
                 [formControlName]="field.name"
                 [placeholder]="field.placeholder || ''"
-                class="form-control"
+                class="form-control studio-control"
               />
             }
             @case ('textarea') {
@@ -49,11 +49,11 @@
                 [formControlName]="field.name"
                 [placeholder]="field.placeholder || ''"
                 rows="3"
-                class="form-control"
+                class="form-control studio-control"
               ></textarea>
             }
             @case ('select') {
-              <select [id]="field.name" [formControlName]="field.name" class="form-control">
+              <select [id]="field.name" [formControlName]="field.name" class="form-control studio-control">
                 <option value="">{{ 'dynamicForm.selectionner' | transloco }}</option>
                 @for (opt of field.options; track $index) {
                   <!-- Gère à la fois les objets {label, value} et les chaînes simples "Option" -->
@@ -78,7 +78,7 @@
                 [id]="field.name"
                 [formControlName]="field.name"
                 [placeholder]="field.placeholder || ''"
-                class="form-control"
+                class="form-control studio-control"
               />
             }
           }

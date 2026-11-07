@@ -1347,5 +1347,15 @@
     "help": "Learn more",
     "simulationRules": "Uses valid configured pricing for the selected model. The result changes neither observed consumption nor the saved budget.",
     "indexDetails": "Document catalogue counts; document contents are not displayed here."
+  },
+  "generatorPremium": {
+    "send": "Send",
+    "sources": "Sources ({{count}})",
+    "generatedForm": "Generated form · complete and submit",
+    "documentContext": "Document passages are available; check the cited references.",
+    "unsourced": "Answer without attached document citations.",
+    "help": "About retrieval and forms",
+    "open": "Open",
+    "close": "Collapse"
   }
 }

@@ -1347,5 +1347,15 @@
     "help": "En savoir plus",
     "simulationRules": "Utilise les tarifs valides configurés pour le modèle choisi. Le résultat ne modifie ni consommation observée ni budget enregistré.",
     "indexDetails": "Compteurs du catalogue documentaire ; le contenu des documents n’est pas affiché ici."
+  },
+  "generatorPremium": {
+    "send": "Envoyer",
+    "sources": "Sources ({{count}})",
+    "generatedForm": "Formulaire généré · saisie et soumission",
+    "documentContext": "Passages documentaires disponibles ; vérifiez les références citées.",
+    "unsourced": "Réponse sans citation documentaire jointe.",
+    "help": "À propos de la recherche et des formulaires",
+    "open": "Ouvrir",
+    "close": "Replier"
   }
 }

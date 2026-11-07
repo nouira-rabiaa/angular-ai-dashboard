@@ -1,11 +1,66 @@
 <section class="generator-shell" aria-labelledby="generator-title">
   <header class="generator-header">
-    <div><p class="generator-eyebrow">{{ 'generator.espace_de_travail_ia' | transloco }}</p><h1 id="generator-title">{{ 'generator.generateur_ia' | transloco }}</h1><p>{{ 'generator.documents_reponses_sourcees_et_formulaires_dynamiques' | transloco }}</p></div>
+    <div><h1 id="generator-title">{{ 'generator.generateur_ia' | transloco }}</h1><p>{{ 'generator.documents_reponses_sourcees_et_formulaires_dynamiques' | transloco }}</p></div>
     <span class="generator-badge">{{ 'generator.recherche_lexicale_fts5' | transloco }}</span>
   </header>
   <div class="generator-body">
+    <aside class="generator-documents ui-card" [class.documents-open]="documentsOpen()" aria-labelledby="generator-documents-title">
+      <div class="document-heading"><h2 id="generator-documents-title">{{ 'generator.documents_et_recherche' | transloco }}</h2><button type="button" class="document-toggle studio-control" aria-controls="generator-document-content" [attr.aria-expanded]="documentsOpen()" (click)="documentsOpen.set(!documentsOpen())">{{ (documentsOpen() ? 'generatorPremium.close' : 'generatorPremium.open') | transloco }}</button></div><div id="generator-document-content" class="document-content">
+      <p class="generator-context-help">{{ 'generator.importez_un_pdf_txt_ou_csv_pour' | transloco }}</p>
+        <label class="generator-upload" [title]="'generator.joindre_un_fichier_pdf_txt_csv_pour' | transloco">
+          <span aria-hidden="true">↥</span> {{ 'generator.importer_un_document' | transloco }}
+          <input [attr.aria-label]="'generator.importer_un_document_pdf_txt_ou_csv' | transloco" type="file" (change)="onFileSelected($event)" accept=".pdf,.txt,.csv" class="sr-only" [disabled]="isUploadingDoc()" />
+        </label>
+      <p class="generator-file-help">{{ 'generator.pdf_txt_csv' | transloco }}</p>
+      @if (isUploadingDoc()) {
+        <div class="p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs flex items-center gap-2">
+          <span>⏳</span> {{ 'generator.extraction_et_indexation_lexicale_fts5_en_cours' | transloco }}
+        </div>
+      }
+
+      @if (attachedDocument(); as doc) {
+        <div class="p-2 px-3 bg-violet-50 border border-blue-200 rounded-lg flex justify-between items-center text-blue-800 text-xs">
+          <span>{{ 'generator.contexte_actif' | transloco }} <strong>{{ doc.name }}</strong></span>
+          <button (click)="removeDocument()" [attr.aria-label]="'generator.retirer_le_document_actif' | transloco" class="text-rose-600 hover:text-rose-800 font-bold text-sm">✕</button>
+        </div>
+      }
+
+      <div class="flex flex-wrap items-center gap-2 text-xs" role="group" [attr.aria-label]="'generator.portee_de_la_recherche_documentaire' | transloco">
+        <span class="font-semibold text-slate-600">{{ 'generator.portee_de_recherche' | transloco }}</span>
+        <button
+          type="button"
+          (click)="setRetrievalScope('active')"
+          [disabled]="activeDocumentId() === null"
+          [attr.aria-pressed]="retrievalScope() === 'active'"
+          class="studio-control px-3 py-1.5 rounded-lg border font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+          [class.bg-violet-50]="retrievalScope() === 'active'"
+          [class.border-violet-300]="retrievalScope() === 'active'"
+          [class.text-violet-700]="retrievalScope() === 'active'"
+          [class.bg-white]="retrievalScope() !== 'active'"
+          [class.border-slate-200]="retrievalScope() !== 'active'"
+          [class.text-slate-600]="retrievalScope() !== 'active'"
+        >{{ 'generator.document_actif' | transloco }}</button>
+        <button
+          type="button"
+          (click)="setRetrievalScope('all')"
+          [attr.aria-pressed]="retrievalScope() === 'all'"
+          class="studio-control px-3 py-1.5 rounded-lg border font-medium"
+          [class.bg-violet-50]="retrievalScope() === 'all'"
+          [class.border-violet-300]="retrievalScope() === 'all'"
+          [class.text-violet-700]="retrievalScope() === 'all'"
+          [class.bg-white]="retrievalScope() !== 'all'"
+          [class.border-slate-200]="retrievalScope() !== 'all'"
+          [class.text-slate-600]="retrievalScope() !== 'all'"
+        >{{ 'generator.tous_les_documents' | transloco }}</button>
+        <span class="text-slate-500">{{ retrievalScope() === 'active' ? ('generator.seul_le_document_actif_est_interroge' | transloco) : ('generator.la_recherche_peut_inclure_tous_les_documents' | transloco) }}</span>
+      </div>
+
+
+      @if (!attachedDocument()) { <p class="generator-no-document">{{ 'generator.aucun_document_actif_vous_pouvez_importer_un' | transloco }}</p> }
+      <details class="generator-boundary"><summary>{{ 'generatorPremium.help' | transloco }}</summary><p class="generator-context-help">{{ 'generator.la_generation_de_formulaires_reste_independante_de' | transloco }}</p></details>
+    </div></aside>
     <section class="generator-thread ui-card" aria-labelledby="generator-conversation-title">
-      <header class="generator-thread-heading"><h2 id="generator-conversation-title">{{ 'generator.conversation' | transloco }}</h2><span>{{ 'generator.vos_echanges_dans_cet_onglet' | transloco }}</span></header>
+      <h2 id="generator-conversation-title" class="sr-only">{{ 'generator.conversation' | transloco }}</h2>
       <div class="generator-messages" role="region" [attr.aria-label]="'generator.messages_et_citations' | transloco" tabindex="0" [attr.aria-busy]="isLoading()">
       @if (messages().length === 0) {
         <div class="generator-empty">
@@ -19,7 +74,7 @@
       @for (msg of messages(); track $index) {
         @if (msg.sender === 'user') {
           <div class="flex justify-end">
-            <div class="max-w-[80%] bg-blue-600 text-white px-4 py-3 rounded-2xl rounded-br-none shadow-sm text-sm">
+            <div class="user-bubble max-w-[80%] bg-violet-700 text-white px-4 py-3 rounded-2xl rounded-br-none shadow-sm text-sm">
               @if (msg.text) {
                 <p style="white-space: pre-wrap; margin: 0;">{{ msg.text }}</p>
               }
@@ -27,13 +82,14 @@
           </div>
         } @else {
           <div class="flex justify-start">
-            <div class="max-w-full bg-slate-50 text-slate-800 px-4 py-3 rounded-2xl rounded-bl-none shadow-sm text-sm border border-slate-200 space-y-3">
+            <div class="agent-bubble max-w-full bg-white text-slate-800 px-4 py-3 rounded-2xl rounded-bl-none shadow-sm text-sm border border-slate-200 space-y-3">
               @if (msg.uiKey) { <p style="white-space: pre-wrap; margin: 0;">{{ msg.uiKey | transloco: messageParams(msg) }}</p> }
               @if (msg.text) {
                 <p style="white-space: pre-wrap; margin: 0;">{{ msg.text }}</p>
               }
               @if (msg.chatResponse) {
-                <section class="border-t border-slate-200 pt-3 space-y-2" [attr.aria-label]="'generator.sources_documentaires' | transloco">
+                <p class="text-xs text-slate-600">{{ (msg.sources?.length ? 'generatorPremium.documentContext' : 'generatorPremium.unsourced') | transloco }}</p>
+                <details class="generator-sources"><summary>{{ 'generatorPremium.sources' | transloco:{count:ui.number(msg.sources?.length ?? 0)} }}</summary><section class="border-t border-slate-200 pt-3 space-y-2" [attr.aria-label]="'generator.sources_documentaires' | transloco">
                   <div class="flex items-center justify-between gap-2">
                     <h3 class="text-xs font-bold text-slate-700 m-0">{{ 'generator.sources' | transloco }}</h3>
                     @if (msg.sources?.length) {
@@ -45,9 +101,9 @@
                     <p class="text-[11px] text-slate-500 m-0">{{ 'generator.les_labels_identifient_les_passages_retrouves_ils' | transloco }}</p>
                     <div class="space-y-2">
                       @for (source of msg.sources; track source.chunkId) {
-                        <details open class="rounded-lg border border-slate-200 bg-white">
+                        <details class="rounded-lg border border-slate-200 bg-white">
                           <summary class="cursor-pointer list-none p-2.5 flex flex-wrap items-center gap-2 text-xs">
-                            <span class="font-bold text-blue-700">[{{ source.label }}]</span>
+                            <span class="font-bold text-violet-700">[{{ source.label }}]</span>
                             <span class="font-semibold text-slate-800 break-all">{{ source.filename }}</span>
                             @if (source.pageNumber !== undefined && source.pageNumber !== null) {
                               <span class="text-slate-500">{{ 'generator.page' | transloco: { value1: (source.pageNumber) } }}</span>
@@ -66,11 +122,12 @@
                     <p class="text-xs text-slate-500 m-0">{{ 'generator.aucun_passage_pertinent_n_a_ete_retrouve' | transloco }}</p>
                   }
 
+                </section></details>
                   @if (msg.citationValidation?.invalidLabels?.length) {
                     <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md p-2 m-0" role="status">
                       {{ 'generator.labels_de_citation_non_reconnus_ces_labels' | transloco: { value1: (msg.citationValidation?.invalidLabels?.join(', ')) } }}</p>
                   }
-                </section>
+
 
                 @if (msg.executionTrace; as trace) {
                   <details class="border-t border-slate-200 pt-2" data-testid="execution-details">
@@ -105,12 +162,12 @@
                 }
               }
               @if (msg.formSchema) {
-                <div class="mt-3 p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
+                <details open class="generated-form mt-3 rounded-xl border border-slate-200 bg-white p-3"><summary>{{ 'generatorPremium.generatedForm' | transloco }}</summary>
                   <app-dynamic-form
                     [schema]="msg.formSchema"
                     (formSubmit)="onFormSubmit($event)">
                   </app-dynamic-form>
-                </div>
+                </details>
               }
             </div>
           </div>
@@ -118,7 +175,7 @@
       }
 
       @if (isLoading()) {
-        <div role="status" class="p-3.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-700 animate-pulse text-sm flex items-center gap-3">
+        <div role="status" class="p-3.5 rounded-xl bg-violet-50 border border-blue-100 text-violet-700 animate-pulse text-sm flex items-center gap-3">
           <span>🧠</span> {{ 'generator.recherche_documentaire_et_generation_en_cours' | transloco }}
         </div>
       }
@@ -136,7 +193,7 @@
           id="generator-prompt"
           [attr.aria-label]="'generator.instructions_ou_question_documentaire' | transloco"
           [placeholder]="'generator.saisissez_vos_instructions_pour_la_generation_dynamique' | transloco"
-          rows="4"
+          rows="3"
           class="generator-prompt"
         ></textarea>
 
@@ -145,67 +202,13 @@
           [disabled]="isLoading() || !userPrompt().trim()"
           class="generator-send"
         >
-          <span>{{ 'generator.executer' | transloco }}</span>
+          <span>{{ 'generatorPremium.send' | transloco }}</span>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </button>
 
         </div>
       </div>
     </section>
-    <aside class="generator-documents ui-card" aria-labelledby="generator-documents-title">
-      <div><p class="generator-eyebrow">{{ 'generator.contexte_documentaire' | transloco }}</p><h2 id="generator-documents-title">{{ 'generator.documents_et_recherche' | transloco }}</h2></div>
-      <p class="generator-context-help">{{ 'generator.importez_un_pdf_txt_ou_csv_pour' | transloco }}</p>
-        <label class="generator-upload" [title]="'generator.joindre_un_fichier_pdf_txt_csv_pour' | transloco">
-          <span aria-hidden="true">↥</span> {{ 'generator.importer_un_document' | transloco }}
-          <input [attr.aria-label]="'generator.importer_un_document_pdf_txt_ou_csv' | transloco" type="file" (change)="onFileSelected($event)" accept=".pdf,.txt,.csv" class="sr-only" [disabled]="isUploadingDoc()" />
-        </label>
-      <p class="generator-file-help">{{ 'generator.pdf_txt_csv' | transloco }}</p>
-      @if (isUploadingDoc()) {
-        <div class="p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs flex items-center gap-2">
-          <span>⏳</span> {{ 'generator.extraction_et_indexation_lexicale_fts5_en_cours' | transloco }}
-        </div>
-      }
 
-      @if (attachedDocument(); as doc) {
-        <div class="p-2 px-3 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center text-blue-800 text-xs">
-          <span>{{ 'generator.contexte_actif' | transloco }} <strong>{{ doc.name }}</strong></span>
-          <button (click)="removeDocument()" [attr.aria-label]="'generator.retirer_le_document_actif' | transloco" class="text-rose-600 hover:text-rose-800 font-bold text-sm">✕</button>
-        </div>
-      }
-
-      <div class="flex flex-wrap items-center gap-2 text-xs" role="group" [attr.aria-label]="'generator.portee_de_la_recherche_documentaire' | transloco">
-        <span class="font-semibold text-slate-600">{{ 'generator.portee_de_recherche' | transloco }}</span>
-        <button
-          type="button"
-          (click)="setRetrievalScope('active')"
-          [disabled]="activeDocumentId() === null"
-          [attr.aria-pressed]="retrievalScope() === 'active'"
-          class="px-3 py-1.5 rounded-lg border font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-          [class.bg-blue-50]="retrievalScope() === 'active'"
-          [class.border-blue-300]="retrievalScope() === 'active'"
-          [class.text-blue-700]="retrievalScope() === 'active'"
-          [class.bg-white]="retrievalScope() !== 'active'"
-          [class.border-slate-200]="retrievalScope() !== 'active'"
-          [class.text-slate-600]="retrievalScope() !== 'active'"
-        >{{ 'generator.document_actif' | transloco }}</button>
-        <button
-          type="button"
-          (click)="setRetrievalScope('all')"
-          [attr.aria-pressed]="retrievalScope() === 'all'"
-          class="px-3 py-1.5 rounded-lg border font-medium"
-          [class.bg-blue-50]="retrievalScope() === 'all'"
-          [class.border-blue-300]="retrievalScope() === 'all'"
-          [class.text-blue-700]="retrievalScope() === 'all'"
-          [class.bg-white]="retrievalScope() !== 'all'"
-          [class.border-slate-200]="retrievalScope() !== 'all'"
-          [class.text-slate-600]="retrievalScope() !== 'all'"
-        >{{ 'generator.tous_les_documents' | transloco }}</button>
-        <span class="text-slate-500">{{ retrievalScope() === 'active' ? ('generator.seul_le_document_actif_est_interroge' | transloco) : ('generator.la_recherche_peut_inclure_tous_les_documents' | transloco) }}</span>
-      </div>
-
-
-      @if (!attachedDocument()) { <p class="generator-no-document">{{ 'generator.aucun_document_actif_vous_pouvez_importer_un' | transloco }}</p> }
-      <p class="generator-context-help generator-boundary">{{ 'generator.la_generation_de_formulaires_reste_independante_de' | transloco }}</p>
-    </aside>
   </div>
 </section>

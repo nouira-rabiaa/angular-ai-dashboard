@@ -7,7 +7,7 @@
   .form-group { min-width: 0; display: grid; gap: .35rem; }
   label { font-size: var(--label); font-weight: 600; overflow-wrap: anywhere; }
   .required,.error-msg { color: var(--bad); }
-  .form-control { width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid var(--line); border-radius: .65rem; padding: .65rem .75rem; background: var(--canvas); color: var(--ink); font-size: var(--body); }
+  .form-control { width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid var(--line); border-radius: .65rem; padding: .65rem .75rem; background-color: var(--surface); color: var(--ink); font-size: var(--body); }
   .form-control::placeholder { color: var(--muted); }
   textarea { resize: vertical; }
   .checkbox-container { display: flex; align-items: center; gap: .6rem; }
@@ -19,3 +19,5 @@
   .btn-submit:disabled { opacity: .55; cursor: not-allowed; }
   :is(input,textarea,select,button):focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
 }
+
+.dynamic-form-card input[type=number]{appearance:textfield}.dynamic-form-card input::-webkit-inner-spin-button,.dynamic-form-card input::-webkit-outer-spin-button{appearance:none;margin:0}

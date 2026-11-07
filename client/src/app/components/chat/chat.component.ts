@@ -41,6 +41,7 @@ export class ChatComponent {
   private apiService = inject(ApiService);
   private readonly errors = inject(ErrorService);
 
+  readonly documentsOpen = signal(false);
   messages = signal<Message[]>([]);
   userPrompt = signal<string>('');
   
