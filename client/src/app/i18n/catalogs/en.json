@@ -1325,5 +1325,27 @@
     "related": "Related connections",
     "catalogue": "Technical catalogue and connections",
     "intro": "Explore support journeys, lexical RAG and existing modules. Select a component to inspect its role and limitations."
+  },
+  "dashboardPremium": {
+    "advanced": "Advanced analytics",
+    "configureBudget": "Configure monthly budget",
+    "estimatedMonth": "Current month · estimate, not an invoice",
+    "available": "Available",
+    "pending": "Pending",
+    "unavailable": "Unavailable",
+    "error": "Error",
+    "requestsHelp": "Request count for the selected period.",
+    "forecastHelp": "Calendar-month projection, only with sufficient history.",
+    "simulatorHelp": "Explore an estimated scenario without AI calls or changes to the saved budget.",
+    "coverage": "Pricing coverage",
+    "coverageHelp": "Identify calculable costs and requests without pricing.",
+    "activity": "Activity and latency",
+    "activityHelp": "Provider usage and server measurements for the selected period.",
+    "indexing": "Documents and indexing",
+    "indexHelp": "Documents and chunks actually present in the catalogue.",
+    "method": "Methodology and limitations",
+    "help": "Learn more",
+    "simulationRules": "Uses valid configured pricing for the selected model. The result changes neither observed consumption nor the saved budget.",
+    "indexDetails": "Document catalogue counts; document contents are not displayed here."
   }
 }

@@ -155,7 +155,7 @@ describe('FinopsComponent', () => {
     api.saveBudget.mockReturnValue(throwError(() => new Error('DB unavailable')));component.saveBudget();fixture.detectChanges();expect(text()).toContain('Budget non enregistré');
   });
 
-  it('groups the chart with budget alerts and keeps the simulator and model coverage visible', () => {
+  it('groups the chart with budget alerts and keeps the simulator and model coverage mounted in advanced analytics', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
     const kpis = root.querySelector('.finops-kpis')!;const chart = root.querySelector('.finops-charts')!;
@@ -166,7 +166,7 @@ describe('FinopsComponent', () => {
     expect(root.querySelectorAll('.finops-kpis article')).toHaveLength(2);
     expect(root.querySelector('[aria-label="Projections complémentaires"]')?.textContent).toContain('Projection sur 7 jours');
     expect(root.querySelector('[aria-label="Projections complémentaires"]')?.textContent).toContain('Projection sur 30 jours');
-    expect(root.querySelector('#finops-models-title')?.closest('details')).toBeNull();
+    expect(root.querySelector('#finops-models-title')?.closest('details')).toBe(root.querySelector('.finops-advanced'));
     expect(chart.querySelector('#finops-chart-title')).not.toBeNull();
     expect(chart.querySelector('#finops-budget-title')).not.toBeNull();
     expect(chart.querySelectorAll('.finops-budget-alert')).toHaveLength(2);
@@ -175,6 +175,31 @@ describe('FinopsComponent', () => {
     expect(root.querySelector('progress[aria-label="Requêtes tarifées dans l’échantillon"]')?.getAttribute('value')).toBe('20');
     expect(root.textContent).toContain('Budget restant');expect(root.textContent).toContain('Non fourni');
     expect(root.querySelector('summary')?.textContent).toContain('Valeurs et dates');
+  });
+
+  it('folds analytics and budget settings without losing inputs or triggering mutations', async () => {
+    fixture.detectChanges();await fixture.whenStable();
+    const advanced:HTMLDetailsElement=fixture.nativeElement.querySelector('.finops-advanced');
+    const budget:HTMLDetailsElement=fixture.nativeElement.querySelector('.finops-budget-editor');
+    expect(advanced.open).toBe(false);expect(budget.open).toBe(false);
+    const input:HTMLInputElement=advanced.querySelector('input[name="requestsPerDay"]')!;
+    advanced.open=true;input.value='250';input.dispatchEvent(new Event('input'));fixture.detectChanges();await fixture.whenStable();
+    const form=advanced.querySelector('form');advanced.open=false;fixture.detectChanges();advanced.open=true;fixture.detectChanges();
+    expect(advanced.querySelector('input[name="requestsPerDay"]')).toBe(input);
+    expect(advanced.querySelector('form')).toBe(form);expect(component.scenario.requestsPerDay).toBe(250);
+    expect(api.simulate).not.toHaveBeenCalled();expect(api.saveBudget).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelectorAll('.finops-budget-alert')).toHaveLength(2);
+  });
+
+  it('labels zero costs as available and distinguishes pending, unavailable and error without mutations', () => {
+    fixture.detectChanges();component.summary.set(summary({observedMonthUsd:0,projectedMonthEndUsd:0}));fixture.detectChanges();
+    const states=()=>Array.from(fixture.nativeElement.querySelectorAll('.finops-kpis [data-state]')).map((node:any)=>node.getAttribute('data-state'));
+    expect(states()).toEqual(['available','available']);expect(fixture.nativeElement.querySelector('.finops-observed').textContent).toContain(usdFr(0,2));
+    component.summary.set(summary({observedMonthUsd:null,status:'unavailable',projectedMonthEndUsd:null}));fixture.detectChanges();expect(states()).toEqual(['unavailable','unavailable']);
+    component.summary.set(summary({status:'insufficient_data',projectedMonthEndUsd:null}));fixture.detectChanges();expect(states()).toEqual(['available','pending']);
+    component.state.set('error');fixture.detectChanges();expect(states()).toEqual(['error','error']);
+    component.state.set('loading');fixture.detectChanges();expect(states()).toEqual(['pending','pending']);
+    expect(api.simulate).not.toHaveBeenCalled();expect(api.saveBudget).not.toHaveBeenCalled();
   });
 
 });

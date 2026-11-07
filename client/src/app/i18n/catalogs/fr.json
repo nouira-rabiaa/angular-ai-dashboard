@@ -1325,5 +1325,27 @@
     "related": "Flux associés",
     "catalogue": "Catalogue technique et connexions",
     "intro": "Explorez les parcours du support, le RAG lexical et les modules historiques. Sélectionnez un composant pour comprendre son rôle et ses limites."
+  },
+  "dashboardPremium": {
+    "advanced": "Analyses avancées",
+    "configureBudget": "Configurer le budget mensuel",
+    "estimatedMonth": "Mois courant · estimation, pas une facture",
+    "available": "Disponible",
+    "pending": "En attente",
+    "unavailable": "Indisponible",
+    "error": "Erreur",
+    "requestsHelp": "Nombre de requêtes sur la période sélectionnée.",
+    "forecastHelp": "Projection du mois civil, uniquement si l’historique est suffisant.",
+    "simulatorHelp": "Explorez un scénario estimé sans appel IA ni modification du budget enregistré.",
+    "coverage": "Couverture tarifaire",
+    "coverageHelp": "Identifiez les coûts calculables et les requêtes sans tarif.",
+    "activity": "Activité et latence",
+    "activityHelp": "Usage fournisseur et mesures serveur sur la période sélectionnée.",
+    "indexing": "Documents et indexation",
+    "indexHelp": "Documents et chunks réellement présents dans le catalogue.",
+    "method": "Méthodologie et limites",
+    "help": "En savoir plus",
+    "simulationRules": "Utilise les tarifs valides configurés pour le modèle choisi. Le résultat ne modifie ni consommation observée ni budget enregistré.",
+    "indexDetails": "Compteurs du catalogue documentaire ; le contenu des documents n’est pas affiché ici."
   }
 }

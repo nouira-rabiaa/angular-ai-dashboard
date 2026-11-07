@@ -1,7 +1,6 @@
-<section class="dashboard-shell" aria-labelledby="dashboard-title">
+<section class="dashboard-shell" [class.premium-overview]="activeView() === 'overview'" aria-labelledby="dashboard-title">
   <header class="dashboard-header">
     <div>
-      <p class="dashboard-eyebrow"><svg lucideSparkles aria-hidden="true" class="h-3.5 w-3.5"></svg> {{ 'dashboard.vue_operationnelle' | transloco }}</p>
       <h1 id="dashboard-title">{{ 'dashboard.tableau_de_bord' | transloco }}</h1>
       <p class="dashboard-subtitle">{{ 'dashboard.activite_ia_couts_estimes_et_pilotage_budgetaire' | transloco }}</p>
     </div>
@@ -16,9 +15,7 @@
   <nav class="dashboard-tabs" [attr.aria-label]="'dashboard.sections_du_tableau_de_bord' | transloco" role="tablist">
     @for (view of views; track view.id) {
       <button type="button" role="tab" [attr.aria-selected]="activeView() === view.id" (click)="selectView(view.id)"
-        class="whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-blue-400 sm:text-sm"
-        [class.bg-blue-600]="activeView() === view.id" [class.text-white]="activeView() === view.id" [class.shadow-md]="activeView() === view.id" [class.shadow-blue-200]="activeView() === view.id"
-        [class.text-slate-500]="activeView() !== view.id" [class.hover:bg-slate-50]="activeView() !== view.id" [class.hover:text-slate-900]="activeView() !== view.id">
+        class="studio-focus whitespace-nowrap font-semibold">
         {{ view.label | transloco }}
       </button>
     }
@@ -26,41 +23,40 @@
 
   @if (activeView() === 'overview') {
     <section role="tabpanel" [attr.aria-label]="'dashboard.overview' | transloco" class="dashboard-overview">
-      <div class="dashboard-period">
+
+
+      <app-finops>
+      <div class="dashboard-period" finops-period>
+        <span class="sr-only">{{ 'dashboard.periode_des_metriques_et_de_l_historique' | transloco }}</span>
         <label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{ 'dashboard.du' | transloco }} <input #rangeFrom type="date" [value]="dateRange().from" class="block rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-normal text-slate-700"></label>
         <label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{ 'dashboard.au' | transloco }} <input #rangeTo type="date" [value]="dateRange().to" class="block rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-normal text-slate-700"></label>
         <button type="button" (click)="setDateRange(rangeFrom.value, rangeTo.value)" class="inline-flex min-h-9 items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"><svg lucideCalendarDays class="h-4 w-4"></svg> {{ 'dashboard.appliquer' | transloco }}</button>
-        <span class="text-[11px] text-slate-600">{{ 'dashboard.periode_des_metriques_et_de_l_historique' | transloco }}</span>
-      </div>
 
-      <app-finops>
+      </div>
         <ng-container finops-primary>
           @if (overviewState() === 'ready' && metrics()) {
             @let metric = metrics()!;
-            <article class="dashboard-kpi"><div class="dashboard-kpi-heading"><h2>{{ 'dashboard.requetes_ia' | transloco }}</h2><span class="dashboard-icon"><svg lucideSparkles aria-hidden="true" class="h-4 w-4"></svg></span></div><p class="dashboard-value">{{ metric.requestCount.toLocaleString(ui.locale()) }}</p><p class="dashboard-caption">{{ 'dashboard.periode_selectionnee' | transloco }}</p></article>
-            <article class="dashboard-kpi"><div class="dashboard-kpi-heading"><h2>{{ 'dashboard.tokens_consommes' | transloco }}</h2><span class="dashboard-icon"><svg lucideLayers aria-hidden="true" class="h-4 w-4"></svg></span></div><p class="dashboard-value">{{ metric.totalTokens === null ? ('dashboard.indisponible' | transloco) : formatTokens(metric.totalTokens) }}</p><p class="dashboard-caption">{{ metric.totalTokens === null ? ('dashboard.usage_fournisseur_non_disponible' | transloco) : ('dashboard.usage_fournisseur_disponible' | transloco) }}</p></article>
+            <article class="dashboard-kpi"><div class="dashboard-kpi-heading"><h2>{{ 'dashboard.requetes_ia' | transloco }}</h2><span class="dashboard-icon"><svg lucideSparkles aria-hidden="true" class="h-4 w-4"></svg></span></div><p class="dashboard-value">{{ metric.requestCount.toLocaleString(ui.locale()) }}</p><span class="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-medium text-emerald-800" data-state="available"><span aria-hidden="true">✓</span>{{ 'dashboardPremium.available' | transloco }}</span><p class="dashboard-caption">{{ 'dashboardPremium.requestsHelp' | transloco }}</p></article>
+            <article class="dashboard-kpi"><div class="dashboard-kpi-heading"><h2>{{ 'dashboard.tokens_consommes' | transloco }}</h2><span class="dashboard-icon"><svg lucideLayers aria-hidden="true" class="h-4 w-4"></svg></span></div><p class="dashboard-value">{{ metric.totalTokens === null ? ('dashboard.indisponible' | transloco) : formatTokens(metric.totalTokens) }}</p><span class="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-medium" [attr.data-state]="metric.totalTokens === null ? 'unavailable' : 'available'" [class.text-emerald-800]="(metric.totalTokens === null ? 'unavailable' : 'available') === 'available'"><span aria-hidden="true">{{ metric.totalTokens === null ? '◷' : '✓' }}</span>{{ ('dashboardPremium.' + (metric.totalTokens === null ? 'unavailable' : 'available')) | transloco }}</span><p class="dashboard-caption">{{ metric.totalTokens === null ? ('dashboard.usage_fournisseur_non_disponible' | transloco) : ('dashboard.usage_fournisseur_disponible' | transloco) }}</p></article>
           } @else {
-            <article class="dashboard-kpi"><h2>{{ 'dashboard.requetes_ia' | transloco }}</h2><p class="dashboard-value">{{ overviewState() === 'loading' ? ('dashboard.chargement' | transloco) : ('dashboard.indisponible' | transloco) }}</p><p class="dashboard-caption">{{ 'dashboard.periode_selectionnee' | transloco }}</p></article>
+            <article class="dashboard-kpi"><h2>{{ 'dashboard.requetes_ia' | transloco }}</h2><p class="dashboard-value">{{ overviewState() === 'loading' ? ('dashboard.chargement' | transloco) : ('dashboard.indisponible' | transloco) }}</p><p class="dashboard-caption">{{ 'dashboardPremium.requestsHelp' | transloco }}</p></article>
             <article class="dashboard-kpi"><h2>{{ 'dashboard.tokens_consommes' | transloco }}</h2><p class="dashboard-value">{{ overviewState() === 'loading' ? ('dashboard.chargement' | transloco) : ('dashboard.indisponible' | transloco) }}</p><p class="dashboard-caption">{{ 'dashboard.usage_fournisseur_non_disponible' | transloco }}</p></article>
           }
         </ng-container>
-      </app-finops>
-      @if (overviewState() === 'loading') {
-        <p role="status" class="dashboard-caption">{{ 'dashboard.chargement_des_metriques' | transloco }}</p>
-      } @else if (overviewState() === 'error') {
-        <p role="alert" class="rounded-xl bg-rose-50 p-2 text-xs text-rose-800">{{ 'dashboard.metriques_indisponibles_verifiez_que_l_api_de' | transloco }}</p>
-      }
+        <ng-container finops-secondary>
       @if (overviewState() === 'ready' && metrics()) {
         @let metric = metrics()!;
 <p class="dashboard-caption">{{ 'dashboard.executions_ok_erreur_s_sans_resultat' | transloco: { value1: (metric.successCount.toLocaleString(ui.locale())), value2: (metric.errorCount), value3: (metric.noMatchCount) } }}</p>
-        <div class="dashboard-secondary" [attr.aria-label]="'dashboard.indicateurs_secondaires_de_la_periode' | transloco">
+        <div class="dashboard-secondary" [attr.aria-label]="'dashboard.indicateurs_secondaires_de_la_periode' | transloco"><section class="min-w-0 rounded-xl border border-slate-200 bg-white p-3" aria-labelledby="index-details-title"><h2 id="index-details-title" class="flex items-center gap-2 text-sm font-semibold"><svg lucideDatabase aria-hidden="true" class="h-4 w-4 text-teal-700"></svg>{{ 'dashboardPremium.indexing' | transloco }}</h2><p class="dashboard-caption">{{ 'dashboardPremium.indexHelp' | transloco }}</p><div class="dashboard-metrics">
           <div><svg lucideDatabase aria-hidden="true" class="h-4 w-4"></svg><span>{{ 'dashboard.documents_indexes' | transloco }}<strong>{{ documentTotal().toLocaleString(ui.locale()) }}</strong></span></div>
           <div><svg lucideLayers aria-hidden="true" class="h-4 w-4"></svg><span>{{ 'dashboard.chunks_indexes' | transloco }}<strong>{{ documentChunksTotal().toLocaleString(ui.locale()) }}</strong></span></div>
+        </div><details class="mt-2 text-xs"><summary>{{ 'dashboardPremium.help' | transloco }}</summary><p class="dashboard-caption">{{ 'dashboardPremium.indexDetails' | transloco }}</p></details></section><section class="min-w-0 rounded-xl border border-slate-200 bg-white p-3"><h2 id="activity-details-title" class="flex items-center gap-2 text-sm font-semibold"><svg lucideTimer aria-hidden="true" class="h-4 w-4 text-violet-700"></svg>{{ 'dashboardPremium.activity' | transloco }}</h2><p class="dashboard-caption">{{ 'dashboardPremium.activityHelp' | transloco }}</p><div class="dashboard-metrics">
           <div><svg lucideArrowDownToLine aria-hidden="true" class="h-4 w-4"></svg><span>{{ 'dashboard.tokens_entrants' | transloco }}<strong>{{ formatTokens(metric.inputTokens) }}</strong></span></div>
           <div><svg lucideSparkles aria-hidden="true" class="h-4 w-4"></svg><span>{{ 'dashboard.tokens_sortants' | transloco }}<strong>{{ formatTokens(metric.outputTokens) }}</strong></span></div>
           <div><svg lucideCircleDollarSign aria-hidden="true" class="h-4 w-4"></svg><span>{{ 'dashboard.cout_estime_periode' | transloco }}<strong>{{ formatCost(metric.estimatedCostUsd, 2) }}</strong><span>{{ 'dashboard.tarifees_sans_tarif' | transloco: { value1: (metric.pricedRequestCount), value2: (metric.unpricedRequestCount) } }}</span></span></div>
           <div><svg lucideTimer aria-hidden="true" class="h-4 w-4"></svg><span>{{ 'dashboard.latence_moyenne_serveur' | transloco }}<strong>{{ metric.averageLatencyMs === null ? ('dashboard.indisponible' | transloco) : (metric.averageLatencyMs.toLocaleString(ui.locale(), { maximumFractionDigits: 2 }) + ' ms') }}</strong></span></div>
         </div>
+        <details class="mt-2 text-xs"><summary>{{ 'dashboardPremium.help' | transloco }}</summary><p class="dashboard-caption">{{ 'dashboard.le_cout_non_tarife_reste_indisponible' | transloco }}</p></details></section></div>
         <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_12px_40px_-32px_rgba(30,41,59,0.5)] sm:p-6">
           <div class="flex flex-wrap items-baseline justify-between gap-2"><div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">{{ 'dashboard.tendance_reelle' | transloco }}</p><h2 class="mt-1 text-base font-bold text-slate-900">{{ 'dashboard.activite_et_latence_quotidienne' | transloco }}</h2></div><span class="text-[11px] text-slate-500">{{ 'dashboard.le_cout_non_tarife_reste_indisponible' | transloco }}</span></div>
           @if (timeseriesState() === 'loading') { <p role="status" class="py-6 text-center text-xs text-slate-500">{{ 'dashboard.chargement_des_metriques_quotidiennes' | transloco }}</p> }
@@ -86,6 +82,14 @@
           } @else { <p class="py-5 text-center text-xs text-slate-500">{{ 'dashboard.aucune_donnee_d_execution_sur_cette_periode' | transloco }}</p> }
         </div>
       }
+        </ng-container>
+      </app-finops>
+      @if (overviewState() === 'loading') {
+        <p role="status" class="dashboard-caption">{{ 'dashboard.chargement_des_metriques' | transloco }}</p>
+      } @else if (overviewState() === 'error') {
+        <p role="alert" class="rounded-xl bg-rose-50 p-2 text-xs text-rose-800">{{ 'dashboard.metriques_indisponibles_verifiez_que_l_api_de' | transloco }}</p>
+      }
+
     </section>
   }
 
@@ -93,8 +97,8 @@
     <section role="tabpanel" [attr.aria-label]="'dashboard.historique_des_executions_ia' | transloco" class="space-y-3">
       <header class="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-end sm:justify-between"><div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">{{ 'dashboard.tracabilite' | transloco }}</p><h2 class="mt-1 text-lg font-bold text-slate-900">{{ 'dashboard.historique_des_executions_ia' | transloco }}</h2><p class="mt-1 text-xs text-slate-500">{{ 'dashboard.metadonnees_des_appels_rag' | transloco: { value1: (dateRange().from), value2: (dateRange().to) } }}</p></div>
       <div class="flex flex-wrap gap-2">
-        <label class="text-[10px] font-bold uppercase tracking-wide text-slate-500">{{ 'dashboard.statut' | transloco }}<select [ngModel]="inferenceStatus()" (ngModelChange)="inferenceStatus.set($event); applyInferenceFilters()" class="mt-1 block rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium normal-case text-slate-700 outline-none focus-visible:ring-2 focus-visible:ring-blue-400"><option value="">{{ 'dashboard.tous' | transloco }}</option><option value="success">{{ 'dashboard.succes' | transloco }}</option><option value="no_match">{{ 'dashboard.sans_resultat' | transloco }}</option><option value="error">{{ 'dashboard.erreur' | transloco }}</option></select></label>
-        <label class="text-[10px] font-bold uppercase tracking-wide text-slate-500">{{ 'dashboard.portee' | transloco }}<select [ngModel]="inferenceScope()" (ngModelChange)="inferenceScope.set($event); applyInferenceFilters()" class="mt-1 block rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium normal-case text-slate-700 outline-none focus-visible:ring-2 focus-visible:ring-blue-400"><option value="">{{ 'dashboard.toutes' | transloco }}</option><option value="document">{{ 'dashboard.document' | transloco }}</option><option value="all">{{ 'dashboard.tous_les_documents' | transloco }}</option></select></label>
+        <label class="text-[10px] font-bold uppercase tracking-wide text-slate-500">{{ 'dashboard.statut' | transloco }}<select [ngModel]="inferenceStatus()" (ngModelChange)="inferenceStatus.set($event); applyInferenceFilters()" class="studio-control mt-1 block px-3 py-2 font-medium normal-case"><option value="">{{ 'dashboard.tous' | transloco }}</option><option value="success">{{ 'dashboard.succes' | transloco }}</option><option value="no_match">{{ 'dashboard.sans_resultat' | transloco }}</option><option value="error">{{ 'dashboard.erreur' | transloco }}</option></select></label>
+        <label class="text-[10px] font-bold uppercase tracking-wide text-slate-500">{{ 'dashboard.portee' | transloco }}<select [ngModel]="inferenceScope()" (ngModelChange)="inferenceScope.set($event); applyInferenceFilters()" class="studio-control mt-1 block px-3 py-2 font-medium normal-case"><option value="">{{ 'dashboard.toutes' | transloco }}</option><option value="document">{{ 'dashboard.document' | transloco }}</option><option value="all">{{ 'dashboard.tous_les_documents' | transloco }}</option></select></label>
       </div></header>
       @if (inferenceState() === 'loading') { <p role="status" class="rounded-2xl border border-slate-200 bg-white py-6 text-center text-sm text-slate-500 shadow-sm">{{ 'dashboard.chargement_de_l_historique_ia' | transloco }}</p> }
       @else if (inferenceState() === 'error') { <p role="alert" class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{{ 'dashboard.historique_ia_indisponible' | transloco }}</p> }

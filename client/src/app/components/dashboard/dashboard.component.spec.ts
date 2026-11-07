@@ -270,4 +270,58 @@ describe('DashboardComponent', () => {
     }
   });
 
+  it('keeps real secondary metrics mounted inside closed advanced analytics', () => {
+    createComponent();fixture.detectChanges();
+    const root=fixture.nativeElement as HTMLElement;
+    const advanced=root.querySelector<HTMLDetailsElement>('.finops-advanced')!;
+    expect(advanced.open).toBe(false);
+    const secondary=root.querySelector('.dashboard-secondary');
+    expect(advanced.contains(secondary)).toBe(true);
+    expect(root.querySelectorAll('.finops-kpis article')).toHaveLength(4);
+    advanced.open=true;fixture.detectChanges();advanced.open=false;fixture.detectChanges();
+    expect(root.querySelector('.dashboard-secondary')).toBe(secondary);
+    expect(root.querySelector('.dashboard-ci-link')).not.toBeNull();
+  });
+
+  it('projects the real date filter into the same toolbar as FinOps refresh', () => {
+    createComponent();fixture.detectChanges();const root=fixture.nativeElement as HTMLElement;
+    const toolbar=root.querySelector('.toolbar')!;
+    const dates=toolbar.querySelectorAll<HTMLInputElement>('input[type=date]');expect(dates).toHaveLength(2);
+    expect(dates[0].value).toBe(component.dateRange().from);expect(dates[1].value).toBe(component.dateRange().to);
+    expect(toolbar.querySelector('.refresh')).not.toBeNull();
+    const apply=jest.spyOn(component,'setDateRange').mockImplementation(()=>{});
+    dates[0].value='2026-10-01';dates[1].value='2026-10-15';
+    (Array.from(toolbar.querySelectorAll('button')).find(button=>button.textContent?.includes('Appliquer')) as HTMLButtonElement).click();
+    expect(apply).toHaveBeenCalledWith('2026-10-01','2026-10-15');
+  });
+  it('distinguishes zero tokens and requests from unavailable metrics', () => {
+    createComponent(dashboardService({getMetrics:jest.fn().mockReturnValue(of({...metrics,requestCount:0,totalTokens:0}))}));fixture.detectChanges();
+    const cards=fixture.nativeElement.querySelectorAll('.dashboard-kpi');
+    expect(cards[0].querySelector('[data-state]').getAttribute('data-state')).toBe('available');
+    expect(cards[1].querySelector('[data-state]').getAttribute('data-state')).toBe('available');
+    component.metrics.set({...metrics,totalTokens:null});fixture.detectChanges();
+    expect(cards[1].querySelector('[data-state]').getAttribute('data-state')).toBe('unavailable');
+  });
+
+  it('preserves accessible active states across all four Premium tabs and shared history controls', () => {
+    createComponent();fixture.detectChanges();
+    for(const view of component.views) {
+      const buttons=Array.from(fixture.nativeElement.querySelectorAll('.dashboard-tabs button')) as HTMLButtonElement[];
+      const index=component.views.findIndex(item=>item.id===view.id);
+      buttons[index].focus();buttons[index].click();fixture.detectChanges();
+      expect(component.activeView()).toBe(view.id);
+      expect(buttons.filter(button=>button.getAttribute('aria-selected')==='true')).toHaveLength(1);
+      expect(buttons[index].getAttribute('aria-selected')).toBe('true');
+      expect(buttons.every(button=>!button.classList.contains('bg-blue-600'))).toBe(true);
+      if(view.id==='inferences') {
+        const selects=fixture.nativeElement.querySelectorAll('select');
+        expect(selects).toHaveLength(2);
+        expect(selects[0].classList.contains('studio-control')).toBe(true);
+        expect(selects[1].classList.contains('studio-control')).toBe(true);
+        expect(Array.from(selects[0].options).map((option:any)=>option.value)).toEqual(['','success','no_match','error']);
+        expect(Array.from(selects[1].options).map((option:any)=>option.value)).toEqual(['','document','all']);
+      }
+    }
+  });
+
 });
