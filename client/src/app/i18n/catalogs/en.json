@@ -1167,5 +1167,163 @@
     "backChat": "Back to chat",
     "latest": "Latest messages",
     "unsent": "You have an unsent message. Send or clear it before switching or creating a conversation."
+  },
+  "studioTour": {
+    "intro": "Explore six real Studio workspaces. This tour performs no business actions.",
+    "choose": "Choose a tour",
+    "studio": "Support Agent Studio",
+    "original": "Generator, RAG and observability",
+    "journey": "Studio journey",
+    "local": "Local application · no multi-user authentication",
+    "openNote": "New tab: the requested workspace opens. Choose your agent if needed; the tour stays here.",
+    "steps": {
+      "0": {
+        "title": "Agent configuration",
+        "value": "Define your agent’s identity, mission and behaviour.",
+        "technical": "Active enables local use; it does not deploy a public service. Allowing handoff does not create a request.",
+        "action": "Open Configuration. Select a saved agent or prepare a configuration.",
+        "observe": "Find Identity, Mission and advanced settings."
+      },
+      "1": {
+        "title": "Agent knowledge base",
+        "value": "Choose the documents this agent may use.",
+        "technical": "Import into the catalogue, select documents, then save their association. Retrieval is lexical: SQLite FTS5/BM25, without embeddings or a vector database.",
+        "action": "Open Documents. Distinguish the temporary selection from saved associations.",
+        "observe": "Observe the available documents and those authorised for the agent."
+      },
+      "2": {
+        "title": "Test agent",
+        "value": "Evaluate a question and inspect its sources.",
+        "technical": "An explicit test may call Groq. It does not create a persistent conversation. Abstention indicates insufficient context, not necessarily a technical failure.",
+        "action": "Open Test agent. Running a test is optional and may consume tokens.",
+        "observe": "Find the question, answer, citations and abstention states."
+      },
+      "3": {
+        "title": "Conversations",
+        "value": "Follow an exchange and revisit its local history.",
+        "technical": "Messages are persisted locally. Each explicit send may call Groq. An AI answer does not resolve a business request.",
+        "action": "Open Conversations. Inspect an existing exchange without sending a message.",
+        "observe": "Find message bubbles, collapsible sources and Prepare ticket."
+      },
+      "4": {
+        "title": "Tickets and human handoff",
+        "value": "Organise requests and their local human handling.",
+        "technical": "Tickets and handoffs have independent statuses. Assignment is locally declared, with no authenticated external operator or real refund.",
+        "action": "Open Tickets. Inspect a ticket and its handoff without creating or changing data.",
+        "observe": "Distinguish priority, ticket status, handoff status and their histories."
+      },
+      "5": {
+        "title": "Workflow Automation",
+        "value": "Understand durable tracking of a business event.",
+        "technical": "Event → durable receipt → execution → local simulation. No n8n transport, webhook, real email or refund. Simulated success resolves neither a ticket nor a handoff.",
+        "action": "Open Automation. Inspect states without enabling a binding or simulator.",
+        "observe": "Find receipts, executions, confirmations and the audit trail."
+      }
+    }
+  },
+  "architecturePremium": {
+    "nodes": {
+      "studio-ui": {
+        "title": "Support Agent Studio",
+        "role": "Six workspaces to configure, test and track support.",
+        "limits": "Local application without multi-user authentication. No publicly deployed agent."
+      },
+      "support-query": {
+        "title": "Document question API",
+        "role": "Validates active configuration, question and authorised documents.",
+        "limits": "Without documents or relevant context: abstention before Groq. Permissions are filtered in SQL."
+      },
+      "support-context": {
+        "title": "Document context",
+        "role": "Filters retrieved passages and builds S1, S2… labels.",
+        "limits": "Lexical FTS5/BM25, without embeddings. Only current excerpts provide evidence."
+      },
+      "support-response": {
+        "title": "Answer and citations",
+        "role": "Checks cited labels and returns chunk references.",
+        "limits": "Abstains for empty answers, ABSTAIN markers or invalid citations. Label validation does not guarantee truth."
+      },
+      "support-conversations": {
+        "title": "Persistent conversations",
+        "role": "Stores exchanges and documentary references locally.",
+        "limits": "References are revalidated; an AI answer does not resolve a business request."
+      },
+      "ticket-draft": {
+        "title": "Draft and confirmation",
+        "role": "Prepares a ticket from a conversation; requires explicit confirmation.",
+        "limits": "Preparing a draft creates no ticket. Idempotency and versions govern mutations."
+      },
+      "support-tickets": {
+        "title": "Tickets and audit",
+        "role": "Persists the ticket, its classification and transactional history.",
+        "limits": "Ticket status is independent of handoff. No real refund."
+      },
+      "support-handoff": {
+        "title": "Local Human Handoff",
+        "role": "Declared request, assignment, notes and resolution.",
+        "limits": "No authenticated external operator. Resolving a handoff does not resolve the ticket."
+      },
+      "workflow-receipts": {
+        "title": "Durable event receipts",
+        "role": "Captures handoff.requested for eligible enabled bindings.",
+        "limits": "Transactional capture with the handoff request. May remain paused or deferred without blocking handoff."
+      },
+      "workflow-engine": {
+        "title": "Local engine and simulator",
+        "role": "Prepares runs, claims an attempt and records a simulated result.",
+        "limits": "Confirmed manual actions; binding and simulator required. No n8n, webhook, real email or refund."
+      },
+      "workflow-audit": {
+        "title": "Executions and history",
+        "role": "Stores states, attempts, versions, fencing and audit trail.",
+        "limits": "Simulated success is distinct from business resolution. Explicit resumes; duplicates possible, bounded attempts."
+      },
+      "conversation-api": {
+        "title": "Conversations API",
+        "role": "Validates agent scope and persists exchanges through Express.",
+        "limits": "Groq only after an explicit send. Local history."
+      },
+      "ticket-api": {
+        "title": "Tickets API",
+        "role": "Validates confirmations, versions and agent/conversation ownership.",
+        "limits": "Idempotent creation and transactional audit; no AI call."
+      }
+    },
+    "edges": {
+      "sq": "Explicit question and authorised scope.",
+      "search": "FTS5 retrieval ranked by BM25.",
+      "context": "Filtered, bounded and labelled passages.",
+      "generation": "Only with sufficient context: explicit Groq call.",
+      "validation": "Text and citation-label validation.",
+      "answer": "Sourced answer or abstention; no business action.",
+      "history": "Read and send through Express conversation endpoints.",
+      "draft": "Frontend preparation from a selected conversation.",
+      "ticket": "Confirmation then Tickets POST: transactional persistence and audit.",
+      "handoff": "Separate confirmed handoff request for this ticket.",
+      "receipt": "handoff.requested: receipt for an eligible enabled binding, inside the business transaction.",
+      "prepare": "Explicit preparation subject to binding, simulator and capacity.",
+      "simulate": "Claim, deterministic simulation and result audit.",
+      "conversation-write": "SQLite reads and writes through the Express Conversations module.",
+      "ticket-write": "Writes ticket and events inside a SQLite transaction."
+    },
+    "flows": {
+      "support-question": {
+        "title": "Document question",
+        "purpose": "Question → lexical retrieval → context → Groq → citations or abstention."
+      },
+      "support-case": {
+        "title": "Conversation and ticket",
+        "purpose": "History → draft → confirmation → ticket → local handoff."
+      },
+      "local-automation": {
+        "title": "Local automation",
+        "purpose": "Event → durable receipt → preparation → simulation → audit."
+      }
+    },
+    "limits": "Local application · no multi-user authentication or public agent deployment. No vector RAG, active n8n, real email or refund.",
+    "open": "Open this Studio workspace",
+    "related": "Related connections",
+    "catalogue": "Technical catalogue and connections",
+    "intro": "Explore support journeys, lexical RAG and existing modules. Select a component to inspect its role and limitations."
   }
 }

@@ -1,4 +1,8 @@
 import { provideUiI18nTesting } from '../../i18n/ui-i18n.testing';
+import { UiLanguageService } from '../../i18n/ui-language.service';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ArchitectureExplorerComponent } from './architecture-explorer.component';
 
@@ -7,14 +11,14 @@ describe('ArchitectureExplorerComponent', () => {
   let component: ArchitectureExplorerComponent;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ providers: [...provideUiI18nTesting()],  imports: [ArchitectureExplorerComponent] }).compileComponents();
+    await TestBed.configureTestingModule({ providers: [...provideUiI18nTesting(), provideRouter([]), provideHttpClient(), provideHttpClientTesting()],  imports: [ArchitectureExplorerComponent] }).compileComponents();
     fixture = TestBed.createComponent(ArchitectureExplorerComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('starts on form generation and highlights only the selected flow references', () => {
-    expect(component.activeFlow().id).toBe('form-generation');
+  it('starts on the document question flow and highlights only the selected flow references', () => {
+    expect(component.activeFlow().id).toBe('support-question');
     expect(fixture.nativeElement.querySelector('svg.lucide-workflow')).not.toBeNull();
     const ragFlow = component.flows.find(flow => flow.id === 'pdf-rag')!;
     component.selectFlow(ragFlow);
@@ -138,6 +142,7 @@ describe('ArchitectureExplorerComponent', () => {
   });
 
   it('highlights a selected map node while preserving its detailed inspection', () => {
+    component.selectFlow(component.flows.find(flow=>flow.id==='form-generation')!);fixture.detectChanges();
     fixture.nativeElement.querySelector('button[aria-label="Sélectionner Formulaire dynamique"]').click();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('.architecture-canvas .architecture-selected')).toHaveLength(1);
@@ -202,6 +207,68 @@ describe('ArchitectureExplorerComponent', () => {
     const selected = root.querySelector('button[aria-label^="Sélectionner "][aria-pressed="true"]');
     expect(selected?.getAttribute('aria-label')).toBe(`Sélectionner ${component.ui.text(component.nodes.find(node => node.id === nextFlow.nodeIds[0])!.name)}`);
     expect(root.querySelectorAll('button[aria-label^="Sélectionner "][aria-pressed="true"]')).toHaveLength(1);
+  });
+
+  it('keeps all architecture identifiers and references valid', () => {
+    for (const data of [component.nodes,component.edges,component.flows,component.layers]) {
+      expect(new Set(data.map(item=>item.id)).size).toBe(data.length);
+    }
+    for (const edge of component.edges) {
+      expect(component.nodes.some(node=>node.id===edge.sourceNodeId)).toBe(true);
+      expect(component.nodes.some(node=>node.id===edge.targetNodeId)).toBe(true);
+    }
+    for (const flow of component.flows) {
+      expect(flow.nodeIds.every(id=>component.nodes.some(node=>node.id===id))).toBe(true);
+      expect(flow.edgeIds.every(id=>component.edges.some(edge=>edge.id===id))).toBe(true);
+    }
+  });
+  it('inspects real support modules with whitelisted Studio links in both languages without HTTP', async () => {
+    for(const lang of ['fr','en'] as const) {
+      await TestBed.inject(UiLanguageService).use(lang);
+      for(const flowId of ['support-question','support-case','local-automation']) {
+        component.selectFlow(component.flows.find(flow=>flow.id===flowId)!);fixture.detectChanges();
+        for(const node of component.diagramNodes()) {
+          fixture.nativeElement.querySelector(`[data-node-id="${node.id}"]`).click();fixture.detectChanges();
+          expect(fixture.nativeElement.querySelector('#node-details-title').textContent).toContain(component.ui.text(node.name));
+          expect(fixture.nativeElement.querySelector('.architecture-details').textContent).toContain(component.ui.text(node.description));
+          const link=fixture.nativeElement.querySelector('.studio-link');
+          if(component.destination()) {
+            expect(link.getAttribute('href')).toBe('/agent-workspace?space='+component.destination());
+            expect(['configuration','knowledge','test','conversations','tickets','workflows']).toContain(component.destination());
+            expect(link.getAttribute('target')).toBe('_blank');expect(link.getAttribute('rel')).toContain('noopener');
+          }
+          TestBed.inject(HttpTestingController).expectNone(()=>true);
+        }
+      }
+    }
+  });
+
+  it('renders a vertical alternative containing only real directed connections for all seven flows', () => {
+    for(const flow of component.flows) {
+      component.selectFlow(flow);fixture.detectChanges();
+      const connections=fixture.nativeElement.querySelectorAll('.mobile-connections>li');
+      expect(connections).toHaveLength(component.flowEdges().length);
+      component.flowEdges().forEach((edge,index)=>{
+        const buttons=connections[index].querySelectorAll('button');
+        expect(buttons[0].textContent).toContain(component.ui.text(component.nodeName(edge.sourceNodeId)));
+        expect(buttons[1].textContent).toContain(component.ui.text(component.nodeName(edge.targetNodeId)));
+        buttons[1].click();fixture.detectChanges();
+        expect(component.selectedNodeId()).toBe(edge.targetNodeId);
+        expect(buttons[1].getAttribute('aria-pressed')).toBe('true');
+      });
+    }
+    const detail=fixture.nativeElement.querySelector('.architecture-details details');
+    expect(detail.open).toBe(false);
+    detail.open=true;fixture.detectChanges();
+    expect(detail.textContent).toContain(component.ui.text(component.selectedNode().description));
+    TestBed.inject(HttpTestingController).expectNone(()=>true);
+  });
+
+  it('anchors return arrows on the compact target node boundary', () => {
+    component.selectFlow(component.flows.find(flow=>flow.id==='pdf-rag')!);
+    const edge=component.flowEdges().find(edge=>edge.id==='rag-model-response')!;
+    const target=component.diagramPoint(edge.targetNodeId);
+    expect(component.diagramPath(edge,0).endsWith(`L${target.x+132},${target.y+29}`)).toBe(true);
   });
 
 });

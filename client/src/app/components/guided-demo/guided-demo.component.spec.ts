@@ -17,6 +17,7 @@ describe('GuidedDemoComponent', () => {
     }).compileComponents();
     fixture = TestBed.createComponent(GuidedDemoComponent);
     component = fixture.componentInstance;
+    component.studioTour.set(false);
     fixture.detectChanges();
   });
 
@@ -291,6 +292,26 @@ describe('GuidedDemoComponent', () => {
       expect(document.activeElement).toBe(fixture.nativeElement.querySelector('h2[tabindex="-1"]'));
       http.expectNone(() => true);
     });
+  });
+
+  it('offers all six Studio capabilities with honest local limits and no business requests in either language', async () => {
+    const language = TestBed.inject((await import('../../i18n/ui-language.service')).UiLanguageService);
+    for (const lang of ['fr','en'] as const) {
+      await language.use(lang);component.selectTour(true);fixture.detectChanges();
+      for (let index=0;index<6;index++) {
+        (fixture.nativeElement.querySelectorAll('nav button')[index] as HTMLButtonElement).click();fixture.detectChanges();
+        const step=component.currentStep();
+        expect(fixture.nativeElement.textContent).toContain(component.ui.text(step.title));
+        expect(fixture.nativeElement.textContent).toContain(component.ui.text(step.technicalExplanation));
+        expect(fixture.nativeElement.querySelector('a[target="_blank"]').getAttribute('href')).toBe('/agent-workspace?space='+['configuration','knowledge','test','conversations','tickets','workflows'][index]);
+        expect(fixture.nativeElement.querySelector('[role="progressbar"]').getAttribute('aria-valuenow')).toBe(String(index+1));
+        component.confirmCurrentStep();expect(component.stepStatuses()[step.id]).toBe('user-confirmed');
+        TestBed.inject(HttpTestingController).expectNone(()=>true);
+      }
+      expect(fixture.nativeElement.textContent).toContain('n8n');
+      component.selectTour(false);fixture.detectChanges();expect(component.steps).toBe(GUIDED_DEMO_STEPS);
+      expect(component.currentStepIndex()).toBe(0);
+    }
   });
 
 });

@@ -89,6 +89,9 @@ describe('AppComponent', () => {
     fixture.detectChanges();
 
     expect(router.url).toBe('/guided-demo');
+    expect(fixture.nativeElement.textContent).toContain('Configuration de l’agent');
+    const originalTour = (Array.from(fixture.nativeElement.querySelectorAll('.tour-switch button')) as HTMLButtonElement[]).find(button => button.textContent?.includes('Générateur, RAG'));
+    expect(originalTour).toBeDefined();originalTour!.click();fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Une IA utile, avec de la visibilité');
     expect(fixture.nativeElement.querySelectorAll('main')).toHaveLength(1);
     expect(fixture.nativeElement.querySelector('a[routerLink="/guided-demo"]')?.getAttribute('aria-current')).toBe('page');

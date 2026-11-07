@@ -1,22 +1,23 @@
-<section class="mx-auto w-full max-w-[1500px] space-y-3 text-slate-800" aria-labelledby="guided-demo-title">
+<section class="premium-demo mx-auto w-full max-w-[1500px] space-y-3 text-slate-800" aria-labelledby="guided-demo-title">
   <header class="demo-hero flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <div class="max-w-3xl">
       <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-700">{{ 'demo.enterprise_ai_dashboard_visite_guidee_3_a' | transloco }}</p>
       <h1 id="guided-demo-title" class="mt-1 text-xl font-bold tracking-tight text-slate-950">{{ 'demo.guided_demo' | transloco }}</h1>
-      <p class="mt-1 text-xs leading-5 text-slate-600">{{ 'demo.decouvrez_les_parcours_reels_du_produit_aucun' | transloco }}</p>
+      <p class="mt-1 text-xs leading-5 text-slate-600">{{ (studioTour() ? 'studioTour.intro' : 'demo.decouvrez_les_parcours_reels_du_produit_aucun') | transloco }}</p>
     </div>
     <a routerLink="/generator" class="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-500">
       {{ 'demo.quitter_la_demo' | transloco }}
     </a>
   </header>
 
-  <section class="space-y-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm" [attr.aria-label]="'demo.progression_de_la_visite_guidee' | transloco">
+  <div class="tour-switch" role="group" [attr.aria-label]="'studioTour.choose' | transloco"><button type="button" [attr.aria-pressed]="studioTour()" (click)="selectTour(true)">{{ 'studioTour.studio' | transloco }}</button><button type="button" [attr.aria-pressed]="!studioTour()" (click)="selectTour(false)">{{ 'studioTour.original' | transloco }}</button></div>
+  <section class="space-y-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm" [attr.aria-label]="'demo.progression_de_la_visite_guidee' | transloco">
     <div class="flex flex-wrap items-center justify-between gap-2">
-      <p class="text-sm font-bold text-slate-900">{{ 'demo.etape_sur' | transloco: { value1: (progressValue()), value2: (steps.length) } }}<span class="font-normal text-slate-600">· {{ currentStep().title | transloco }}</span></p>
+      <p class="text-sm font-bold text-slate-900">{{ 'demo.etape_sur' | transloco: { value1: (progressValue()), value2: (steps.length) } }}</p>
       <p class="text-xs text-slate-600" aria-live="polite">{{ statusLabel(stepStatuses()[currentStep().id]) }}</p>
     </div>
     <div class="h-2 overflow-hidden rounded-full bg-slate-200" role="progressbar" [attr.aria-label]="'demo.progression_de_la_demonstration' | transloco" [attr.aria-valuemin]="1" [attr.aria-valuemax]="steps.length" [attr.aria-valuenow]="progressValue()" [attr.aria-valuetext]="'workspace.stepProgress' | transloco: { step: progressValue(), total: steps.length, status: statusLabel(stepStatuses()[currentStep().id]) }">
-      <div class="h-full rounded-full bg-blue-600 transition-[width] duration-300 motion-reduce:transition-none" [style.width.%]="progressPercent()"></div>
+      <div class="h-full rounded-full bg-[#6D45D8] transition-[width] duration-300 motion-reduce:transition-none" [style.width.%]="progressPercent()"></div>
     </div>
     <nav [attr.aria-label]="'demo.etapes_de_la_demonstration' | transloco" class="demo-workflow grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
       @for (step of steps; track step.id; let index = $index) {
@@ -29,10 +30,13 @@
   </section>
 
   <section class="grid grid-cols-1 items-start gap-3 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,0.8fr)]" [attr.aria-label]="'demo.etape_courante_et_consignes' | transloco">
-    <article class="min-w-0 rounded-2xl border border-slate-200 border-t-2 border-t-blue-600 bg-white p-4 shadow-sm">
+    <article class="min-w-0 rounded-2xl border border-slate-200 border-t-2 border-t-[#6D45D8] bg-white p-4 shadow-sm">
       <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-700">{{ 'demo.etape_0' | transloco: { value1: (progressValue()) } }}</p>
       <h2 #stepHeading tabindex="-1" class="mt-1 text-lg font-bold text-slate-950 outline-none focus-visible:ring-2 focus-visible:ring-blue-500">{{ currentStep().title | transloco }}</h2>
 
+      @if (studioTour()) {
+      <section class="studio-scene" [attr.aria-label]="'studioTour.journey' | transloco"><span class="scene-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="4"/><path d="M12 3v4M8 12v2m8-2v2"/></svg></span><div><p>{{ 'studioTour.local' | transloco }}</p><p>{{ currentStep().completionCriteria | transloco }}</p></div></section>
+      } @else {
       <section class="demo-scene" aria-labelledby="demo-scene-title" [attr.data-step]="currentStep().id">
         <div class="demo-scene-heading"><div><p class="demo-scene-eyebrow">{{ 'demo.parcours_reel_vue_explicative' | transloco }}</p><h3 id="demo-scene-title">{{ currentStep().id === 'introduction' || currentStep().id === 'conclusion' ? ('demo.les_capacites_du_produit' | transloco) : ('demo.du_composant_au_resultat' | transloco) }}</h3></div><span class="demo-scene-badge">{{ 'demo.aucun_appel_execute' | transloco }}</span></div>
         @if (visualEdges().length) {
@@ -51,31 +55,32 @@
         }
         <p class="demo-scene-note">{{ 'demo.schema_de_lecture_sans_resultat_simule_ni' | transloco }}</p>
       </section>
-      <div class="mt-3 grid gap-3 md:grid-cols-2">
-        <section aria-labelledby="business-explanation-title" class="demo-explanation rounded-xl bg-blue-50/60 p-3">
+      }
+      <div class="mt-2 grid gap-2 md:grid-cols-2">
+        <section aria-labelledby="business-explanation-title" class="demo-explanation rounded-xl bg-blue-50/60 p-2">
           <h3 id="business-explanation-title" class="text-xs font-bold uppercase tracking-wide text-slate-600"><span aria-hidden="true">✦</span> {{ 'demo.valeur_metier' | transloco }}</h3>
-          <p class="mt-1 text-sm leading-5 text-slate-800">{{ currentStep().businessExplanation | transloco }}</p>
+          <p class="mt-1 text-xs leading-5 text-slate-800">{{ currentStep().businessExplanation | transloco }}</p>
         </section>
-        <details class="demo-technical rounded-xl border border-blue-100 bg-white p-3">
+        <details class="demo-technical rounded-xl border border-blue-100 bg-white p-2">
           <summary id="technical-explanation-title" class="cursor-pointer text-xs font-bold uppercase tracking-wide text-blue-800">{{ 'demo.ce_qui_se_passe_reellement' | transloco }}</summary>
-          <p class="mt-1 text-sm leading-5 text-slate-700">{{ currentStep().technicalExplanation | transloco }}</p>
+          <p class="mt-1 text-xs leading-5 text-slate-700">{{ currentStep().technicalExplanation | transloco }}</p>
         </details>
-        <section aria-labelledby="user-instruction-title" class="demo-action rounded-xl border border-cyan-200 bg-cyan-50 p-3 md:col-span-2">
+        <section aria-labelledby="user-instruction-title" class="demo-action rounded-xl border border-cyan-200 bg-cyan-50 p-2 md:col-span-2">
           <h3 id="user-instruction-title" class="text-xs font-bold uppercase tracking-wide text-sky-900"><span aria-hidden="true">↗</span> {{ 'demo.a_vous_de_jouer' | transloco }}</h3>
-          <p class="mt-1 text-sm leading-5 text-slate-700">{{ currentStep().userInstruction | transloco }}</p>
+          <p class="mt-1 text-xs leading-5 text-slate-700">{{ currentStep().userInstruction | transloco }}</p>
         </section>
       </div>
 
       @if (currentStep().destinationRoute) {
         <div class="mt-3 flex flex-wrap items-center gap-3">
-          <a [href]="currentStep().destinationRoute" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'workspace.openFeature' | transloco: { title: (currentStep().title | transloco) }" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white outline-none transition hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+          <a [routerLink]="currentStep().destinationRoute" [queryParams]="currentStep().destinationSpace ? {space: currentStep().destinationSpace} : null" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'workspace.openFeature' | transloco: { title: (currentStep().title | transloco) }" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#6D45D8] px-4 text-xs font-semibold text-white outline-none transition hover:bg-[#5935bd] focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
             {{ 'demo.ouvrir_la_fonctionnalite' | transloco }} <span aria-hidden="true">↗</span>
           </a>
-          <span class="text-[11px] text-slate-600">{{ 'demo.nouvel_onglet_cette_etape_reste_ouverte_ici' | transloco }}</span>
+          <span class="text-[11px] text-slate-600">{{ (studioTour() ? 'studioTour.openNote' : 'demo.nouvel_onglet_cette_etape_reste_ouverte_ici') | transloco }}</span>
         </div>
       }
 
-      @if (currentStep().id === 'conclusion') {
+      @if (!studioTour() && currentStep().id === 'conclusion') {
         <section class="mt-3 border-t border-slate-200 pt-3" aria-labelledby="roadmap-title">
           <p class="mb-3 text-sm text-slate-700">{{ 'demo.prevision_des_couts_ia_disponible_dans_le' | transloco }}</p>
           <h3 id="roadmap-title" class="text-xs font-bold uppercase tracking-wide text-slate-600">{{ 'demo.feuille_de_route_planifiee_non_implementee' | transloco }}</h3>
@@ -88,7 +93,7 @@
 
     <aside class="demo-validation min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" aria-labelledby="completion-title">
       <h3 id="completion-title" class="text-sm font-bold text-slate-900"><span aria-hidden="true">✓</span> {{ 'demo.critere_de_completion' | transloco }}</h3>
-      <p class="mt-1 text-sm leading-5 text-slate-700">{{ currentStep().completionCriteria | transloco }}</p>
+      <p class="mt-1 text-xs leading-5 text-slate-700">{{ currentStep().completionCriteria | transloco }}</p>
       <div class="mt-3 rounded-xl border p-3" [class.bg-orange-50]="currentStep().liveAiCallMayBeRequired" [class.border-orange-200]="currentStep().liveAiCallMayBeRequired" [class.border-slate-100]="!currentStep().liveAiCallMayBeRequired">
         <p class="text-xs font-semibold text-slate-700">{{ 'demo.appel_ia_en_direct_potentiellement_requis' | transloco }}</p>
         <p class="mt-1 text-xs text-slate-600">{{ currentStep().liveAiCallMayBeRequired ? ('demo.oui_seulement_apres_votre_action_explicite_dans' | transloco) : ('demo.non_cette_etape_ne_necessite_pas_d' | transloco) }}</p>
@@ -114,7 +119,7 @@
       <button type="button" (click)="restart()" class="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-xs font-semibold text-slate-600 outline-none transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500">
         {{ 'demo.recommencer' | transloco }}
       </button>
-      <button type="button" (click)="nextStep()" [disabled]="isLastStep()" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white outline-none transition hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40">
+      <button type="button" (click)="nextStep()" [disabled]="isLastStep()" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#6D45D8] px-4 text-xs font-semibold text-white outline-none transition hover:bg-[#5935bd] focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40">
         {{ 'demo.suivant' | transloco }}
       </button>
     </div>

@@ -1,14 +1,13 @@
 import { UiStatusPipe } from '../../i18n/ui-format.pipe';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UiLanguageService } from '../../i18n/ui-language.service';
+import { RouterLink } from '@angular/router';
+import { PREMIUM_NODES, PREMIUM_EDGES, PREMIUM_FLOWS, STUDIO_DESTINATIONS } from './architecture-premium.data';
 import { CommonModule } from '@angular/common';
 import { inject, Component, signal } from '@angular/core';
 import { LucideWorkflow } from '@lucide/angular';
 import {
-  ARCHITECTURE_EDGES,
-  ARCHITECTURE_FLOWS,
-  ARCHITECTURE_LAYERS,
-  ARCHITECTURE_NODES
+  ARCHITECTURE_LAYERS
 } from './architecture.data';
 import {
   ArchitectureEdge,
@@ -21,20 +20,22 @@ import {
 @Component({
   selector: 'app-architecture-explorer',
   standalone: true,
-  imports: [TranslocoPipe, UiStatusPipe, CommonModule, LucideWorkflow],
+  imports: [TranslocoPipe, UiStatusPipe, CommonModule, RouterLink, LucideWorkflow],
   templateUrl: './architecture-explorer.component.html',
   styleUrl: './architecture-explorer.component.scss'
 })
 export class ArchitectureExplorerComponent {
   readonly ui = inject(UiLanguageService);
   readonly layers = ARCHITECTURE_LAYERS;
-  readonly nodes = ARCHITECTURE_NODES;
-  readonly edges = ARCHITECTURE_EDGES;
-  readonly flows = ARCHITECTURE_FLOWS;
+  readonly nodes = PREMIUM_NODES;
+  readonly edges = PREMIUM_EDGES;
+  readonly flows = PREMIUM_FLOWS;
 
   selectedFlowId = signal(this.flows[0].id);
   selectedNodeId = signal(this.flows[0].nodeIds[0]);
 
+  destination() { return STUDIO_DESTINATIONS[this.selectedNodeId()] ?? null; }
+  relatedEdges() { return this.edges.filter(edge => edge.sourceNodeId === this.selectedNodeId() || edge.targetNodeId === this.selectedNodeId()); }
   activeFlow(): ArchitectureFlow {
     return this.flows.find(flow => flow.id === this.selectedFlowId()) ?? this.flows[0];
   }
@@ -83,7 +84,7 @@ export class ArchitectureExplorerComponent {
     const column = this.layers.findIndex(layer => layer.id === node.layerId);
     const row = this.diagramNodes().filter(candidate => candidate.layerId === node.layerId)
       .findIndex(candidate => candidate.id === nodeId);
-    return { x: 20 + column * 190, y: 80 + row * 90 };
+    return { x: 20 + column * 150, y: 80 + row * 90 };
   }
 
   diagramHeight(): number {
@@ -98,11 +99,11 @@ export class ArchitectureExplorerComponent {
     const sy = source.y + 36 + offset;
     const ty = target.y + 36 + offset;
     if (source.x === target.x) {
-      return `M${source.x + 170},${sy} C${source.x + 190},${sy} ${target.x + 190},${ty} ${target.x + 170},${ty}`;
+      return `M${source.x + 132},${sy} C${source.x + 150},${sy} ${target.x + 150},${ty} ${target.x + 132},${ty}`;
     }
     const direction = target.x > source.x ? 1 : -1;
-    const sx = source.x + (direction > 0 ? 170 : 0);
-    const tx = target.x + (direction > 0 ? 0 : 170);
+    const sx = source.x + (direction > 0 ? 132 : 0);
+    const tx = target.x + (direction > 0 ? 0 : 132);
     const exit = sx + direction * (10 + index * 2);
     const entry = tx - direction * (10 + index * 2);
     const lane = 38 + index * 4;

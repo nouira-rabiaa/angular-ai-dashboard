@@ -6,6 +6,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { UiLanguageService } from '../../i18n/ui-language.service';
 import { AgentConversationsComponent } from './agent-conversations.component';
 import { AgentKnowledgeComponent } from './agent-knowledge.component';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, ElementRef, HostListener, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -27,6 +28,7 @@ export class AgentConfigurationComponent implements OnInit {
   readonly ui = inject(UiLanguageService);
   private readonly api = inject(AgentService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute, { optional: true });
   private readonly fb = inject(FormBuilder).nonNullable;
   readonly form = this.fb.group({
     name: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(100)]],
@@ -76,6 +78,12 @@ export class AgentConfigurationComponent implements OnInit {
   ngOnInit(): void {
     this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       if (this.form.dirty) { this.message.set('');this.error.set(''); }
+    });
+    this.route?.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      const requested = this.spaces.find(space => space.id === params.get('space'));
+      if (!requested) return;
+      this.selectSpace(requested.id);
+      if (this.activeSpace() === requested.id && !this.selected()) this.catalogueOpen.set(true);
     });
     this.load();
   }

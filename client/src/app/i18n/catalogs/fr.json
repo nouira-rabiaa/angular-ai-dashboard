@@ -1167,5 +1167,163 @@
     "backChat": "Revenir au chat",
     "latest": "Derniers messages",
     "unsent": "Un message n’a pas été envoyé. Envoyez-le ou effacez-le avant de changer ou de créer une conversation."
+  },
+  "studioTour": {
+    "intro": "Découvrez six espaces réels du Studio. Cette visite ne lance aucune opération métier.",
+    "choose": "Choisir un parcours",
+    "studio": "Support Agent Studio",
+    "original": "Générateur, RAG et observabilité",
+    "journey": "Parcours du Studio",
+    "local": "Application locale · sans authentification multi-utilisateur",
+    "openNote": "Nouvel onglet : l’espace demandé est ouvert. Choisissez votre agent si nécessaire ; la visite reste ici.",
+    "steps": {
+      "0": {
+        "title": "Configuration de l’agent",
+        "value": "Définissez l’identité, la mission et le comportement de votre agent.",
+        "technical": "Le statut Actif autorise les usages locaux ; il ne déploie pas un service public. Autoriser le transfert ne crée aucune demande.",
+        "action": "Ouvrez Configuration. Sélectionnez un agent enregistré ou préparez une configuration.",
+        "observe": "Repérez les champs Identité, Mission et les paramètres avancés."
+      },
+      "1": {
+        "title": "Base documentaire",
+        "value": "Choisissez les documents que cet agent pourra utiliser.",
+        "technical": "Importez dans le catalogue, sélectionnez les documents, puis enregistrez leur association. La recherche est lexicale : SQLite FTS5/BM25, sans embeddings ni base vectorielle.",
+        "action": "Ouvrez Documents. Distinguez la sélection temporaire des associations enregistrées.",
+        "observe": "Observez les documents disponibles et ceux autorisés pour l’agent."
+      },
+      "2": {
+        "title": "Tester l’agent",
+        "value": "Évaluez une question et consultez ses sources.",
+        "technical": "Un test explicite peut appeler Groq. Il ne crée pas de conversation persistante. Une abstention indique un contexte insuffisant, pas nécessairement une panne.",
+        "action": "Ouvrez Tester l’agent. Le test est facultatif et peut consommer des tokens.",
+        "observe": "Repérez la question, la réponse, les citations et les états d’abstention."
+      },
+      "3": {
+        "title": "Conversations",
+        "value": "Suivez un échange et retrouvez son historique local.",
+        "technical": "Les messages sont persistés localement. Chaque envoi explicite peut appeler Groq. Une réponse IA ne résout pas une demande métier.",
+        "action": "Ouvrez Conversations. Consultez un échange existant sans envoyer de message.",
+        "observe": "Repérez les bulles, les sources repliables et l’action Préparer un ticket."
+      },
+      "4": {
+        "title": "Tickets et transfert humain",
+        "value": "Organisez la demande et son traitement humain local.",
+        "technical": "Le ticket et le transfert ont des statuts indépendants. L’affectation est déclarative et locale, sans opérateur externe authentifié ni remboursement réel.",
+        "action": "Ouvrez Tickets. Inspectez un ticket et son transfert sans créer ni modifier de données.",
+        "observe": "Distinguez priorité, statut du ticket, statut du transfert et leurs historiques."
+      },
+      "5": {
+        "title": "Workflow Automation",
+        "value": "Comprenez le suivi durable d’un événement métier.",
+        "technical": "Événement → reçu durable → exécution → simulation locale. Aucun transport n8n, webhook, e-mail ou remboursement réel. Un succès simulé ne résout ni ticket ni transfert.",
+        "action": "Ouvrez Automatisation. Consultez les états sans activer de liaison ni de simulateur.",
+        "observe": "Repérez les reçus, les exécutions, les confirmations et la piste d’audit."
+      }
+    }
+  },
+  "architecturePremium": {
+    "nodes": {
+      "studio-ui": {
+        "title": "Support Agent Studio",
+        "role": "Six espaces pour configurer, tester et suivre le support.",
+        "limits": "Application locale sans authentification multi-utilisateur. Aucun agent déployé publiquement."
+      },
+      "support-query": {
+        "title": "API de question documentaire",
+        "role": "Valide la configuration active, la question et les documents autorisés.",
+        "limits": "Sans documents ou contexte pertinent : abstention avant Groq. Les permissions sont filtrées dans SQL."
+      },
+      "support-context": {
+        "title": "Contexte documentaire",
+        "role": "Filtre les passages retrouvés et construit les labels S1, S2…",
+        "limits": "FTS5/BM25 lexical, sans embeddings. Seuls les extraits actuels servent de preuves."
+      },
+      "support-response": {
+        "title": "Réponse et citations",
+        "role": "Vérifie les labels cités et retourne les références des chunks.",
+        "limits": "Abstention si réponse vide, marqueur ABSTAIN ou citations invalides. La validation des labels ne garantit pas la véracité."
+      },
+      "support-conversations": {
+        "title": "Conversations persistantes",
+        "role": "Conserve les échanges et les références documentaires localement.",
+        "limits": "Les références sont revalidées ; une réponse IA ne résout pas une demande métier."
+      },
+      "ticket-draft": {
+        "title": "Brouillon et confirmation",
+        "role": "Prépare un ticket depuis une conversation ; exige une confirmation explicite.",
+        "limits": "Préparer le brouillon ne crée aucun ticket. Idempotence et version contrôlent les mutations."
+      },
+      "support-tickets": {
+        "title": "Tickets et audit",
+        "role": "Persiste le ticket, sa classification et son historique transactionnel.",
+        "limits": "Statut du ticket indépendant du transfert. Aucun remboursement réel."
+      },
+      "support-handoff": {
+        "title": "Human Handoff local",
+        "role": "Demande, affectation, notes et résolution déclaratives.",
+        "limits": "Aucun opérateur externe authentifié. Résoudre le transfert ne résout pas le ticket."
+      },
+      "workflow-receipts": {
+        "title": "Reçus durables",
+        "role": "Capture handoff.requested pour les liaisons éligibles activées.",
+        "limits": "Capture transactionnelle avec la demande de transfert. Peut rester en pause ou différée sans bloquer le transfert."
+      },
+      "workflow-engine": {
+        "title": "Moteur et simulateur locaux",
+        "role": "Prépare les runs, réserve une tentative et enregistre un résultat simulé.",
+        "limits": "Actions manuelles confirmées ; liaison et simulateur requis. Aucun n8n, webhook, e-mail ou remboursement réel."
+      },
+      "workflow-audit": {
+        "title": "Exécutions et historique",
+        "role": "Conserve états, tentatives, versions, fencing et piste d’audit.",
+        "limits": "Succès simulé distinct de la résolution métier. Reprises explicites ; doublons possibles, tentatives bornées."
+      },
+      "conversation-api": {
+        "title": "API Conversations",
+        "role": "Valide le périmètre agent et persiste les échanges via Express.",
+        "limits": "Groq uniquement après un envoi explicite. Historique local."
+      },
+      "ticket-api": {
+        "title": "API Tickets",
+        "role": "Valide les confirmations, les versions et l’appartenance agent/conversation.",
+        "limits": "Création idempotente et audit transactionnel ; aucun appel IA."
+      }
+    },
+    "edges": {
+      "sq": "Question explicite et périmètre autorisé.",
+      "search": "Recherche FTS5 classée par BM25.",
+      "context": "Passages filtrés, limités et étiquetés.",
+      "generation": "Contexte suffisant uniquement : appel Groq explicite.",
+      "validation": "Validation du texte et des labels de citation.",
+      "answer": "Réponse sourcée ou abstention ; aucune action métier.",
+      "history": "Lecture et envoi via les endpoints de conversation Express.",
+      "draft": "Préparation frontend depuis une conversation sélectionnée.",
+      "ticket": "Confirmation puis POST Tickets : persistance transactionnelle et audit.",
+      "handoff": "Demande de transfert distincte et confirmée pour ce ticket.",
+      "receipt": "handoff.requested : reçu pour une liaison éligible activée, dans la transaction métier.",
+      "prepare": "Préparation explicite sous conditions de liaison, simulateur et capacité.",
+      "simulate": "Réservation, simulation déterministe puis audit du résultat.",
+      "conversation-write": "Lecture et écriture SQLite par le module Express Conversations.",
+      "ticket-write": "Écriture du ticket et des événements dans une transaction SQLite."
+    },
+    "flows": {
+      "support-question": {
+        "title": "Question documentaire",
+        "purpose": "Question → recherche lexicale → contexte → Groq → citations ou abstention."
+      },
+      "support-case": {
+        "title": "Conversation et ticket",
+        "purpose": "Historique → brouillon → confirmation → ticket → transfert local."
+      },
+      "local-automation": {
+        "title": "Automatisation locale",
+        "purpose": "Événement → reçu durable → préparation → simulation → audit."
+      }
+    },
+    "limits": "Application locale · sans authentification multi-utilisateur ni déploiement public d’agent. Aucun RAG vectoriel, n8n actif, e-mail ou remboursement réel.",
+    "open": "Ouvrir cet espace du Studio",
+    "related": "Flux associés",
+    "catalogue": "Catalogue technique et connexions",
+    "intro": "Explorez les parcours du support, le RAG lexical et les modules historiques. Sélectionnez un composant pour comprendre son rôle et ses limites."
   }
 }

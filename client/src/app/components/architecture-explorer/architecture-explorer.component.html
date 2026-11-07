@@ -1,24 +1,25 @@
-<section class="mx-auto w-full max-w-[1500px] space-y-3 text-slate-800" aria-labelledby="architecture-title">
+<section class="premium-architecture mx-auto w-full max-w-[1500px] space-y-3 text-slate-800" aria-labelledby="architecture-title">
   <header class="architecture-hero space-y-1">
     <p class="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-700"><svg lucideWorkflow class="h-3.5 w-3.5"></svg> {{ 'architecture.enterprise_ai_dashboard_architecture_explorer' | transloco }}</p>
     <h1 id="architecture-title" class="mt-1 text-xl font-bold tracking-tight text-slate-950">{{ 'architecture.explorez_les_flux_reels_du_systeme' | transloco }}</h1>
-    <p class="mt-1 max-w-3xl text-xs leading-5 text-slate-600">{{ 'architecture.une_carte_interactive_des_parcours_reellement_presents' | transloco }}</p>
+    <p class="mt-1 max-w-3xl text-xs leading-5 text-slate-600">{{ 'architecturePremium.intro' | transloco }}</p>
   </header>
 
+  <p class="local-limits">{{ 'architecturePremium.limits' | transloco }}</p>
   <section class="space-y-2" aria-labelledby="flow-selector-title">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div><p class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">{{ 'architecture.parcours' | transloco }}</p><h2 id="flow-selector-title" class="mt-1 text-base font-bold text-slate-900">{{ 'architecture.choisir_un_flux_metier' | transloco }}</h2></div>
       <span class="text-xs text-slate-600">{{ 'architecture.les_n_uds_et_connexions_sont_mis' | transloco }}</span>
     </div>
-    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4" role="group" [attr.aria-label]="'architecture.selection_du_flux_d_architecture' | transloco">
+    <div class="flow-selector grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4" role="group" [attr.aria-label]="'architecture.selection_du_flux_d_architecture' | transloco">
       @for (flow of flows; track flow.id) {
         <button type="button" (click)="selectFlow(flow)" [attr.aria-label]="'workspace.selectFlow' | transloco: { title: (flow.title | transloco) }" [attr.aria-pressed]="selectedFlowId() === flow.id"
-          class="rounded-xl border p-3 text-left outline-none transition duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-blue-400 motion-reduce:transform-none motion-reduce:transition-none"
+          class="rounded-xl border px-3 py-2 text-left outline-none transition duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-blue-400 motion-reduce:transform-none motion-reduce:transition-none"
           [class.border-blue-300]="selectedFlowId() === flow.id" [class.bg-blue-50]="selectedFlowId() === flow.id" [class.shadow-md]="selectedFlowId() === flow.id" [class.shadow-blue-100]="selectedFlowId() === flow.id"
           [class.border-slate-200]="selectedFlowId() !== flow.id" [class.bg-white]="selectedFlowId() !== flow.id">
-          <span class="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">{{ 'architecture.flux_0' | transloco: { value1: ($index + 1) } }}</span>
-          <span class="mt-1 block text-xs font-bold text-slate-900">{{ flow.title | transloco }}</span>
-          <span class="mt-1 block text-xs leading-5 text-slate-600">{{ flow.purpose | transloco }}</span>
+          <span class="sr-only">{{ 'architecture.flux_0' | transloco: { value1: ($index + 1) } }}</span>
+          <span class="block text-xs font-bold text-slate-900">{{ flow.title | transloco }}</span>
+          <span class="sr-only">{{ flow.purpose | transloco }}</span>
         </button>
       }
     </div>
@@ -26,16 +27,16 @@
 
   <section class="architecture-workbench" [attr.aria-label]="'architecture.diagramme_interactif_et_inspection' | transloco">
     <div class="architecture-stage">
-      <div class="architecture-stage-heading"><div><p>{{ 'architecture.explorateur_interactif' | transloco }}</p><h2 id="architecture-map-title">{{ activeFlow().title | transloco }}</h2></div><span>{{ 'architecture.composants_connexions' | transloco: { value1: (diagramNodes().length), value2: (flowEdges().length) } }}</span></div>
+      <div class="architecture-stage-heading"><div><p>{{ 'architecture.explorateur_interactif' | transloco }}</p><h2 id="architecture-map-title">{{ activeFlow().title | transloco }}</h2><p class="text-xs leading-5">{{ activeFlow().purpose | transloco }}</p></div><span>{{ 'architecture.composants_connexions' | transloco: { value1: (diagramNodes().length), value2: (flowEdges().length) } }}</span></div>
       <div class="architecture-map-scroll" tabindex="0" role="region" [attr.aria-label]="'architecture.schema_architectural_du_flux_selectionne_defilement_horizontal' | transloco" aria-describedby="architecture-map-help">
         <div class="architecture-canvas" role="group" [attr.aria-label]="'workspace.flowDiagram' | transloco: { title: (activeFlow().title | transloco) }" [style.height.px]="diagramHeight()">
-          <svg class="architecture-map" [attr.viewBox]="'0 0 800 ' + diagramHeight()" aria-hidden="true">
+          <svg class="architecture-map" [attr.viewBox]="'0 0 640 ' + diagramHeight()" aria-hidden="true">
             <defs><marker id="architecture-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="var(--purple)" /></marker></defs>
             @for (edge of flowEdges(); track edge.id; let index = $index) {
               <path [attr.data-edge-id]="edge.id" [attr.data-kind]="edge.connectionType" [attr.d]="diagramPath(edge, index)" [class.architecture-edge-selected]="edge.sourceNodeId === selectedNodeId() || edge.targetNodeId === selectedNodeId()" class="architecture-edge" marker-end="url(#architecture-arrow)" />
             }
           </svg>
-          @for (layer of layers; track layer.id; let column = $index) { <div class="architecture-lane" [style.left.px]="20 + column * 190">{{ layer.name | transloco }}</div> }
+          @for (layer of layers; track layer.id; let column = $index) { <div class="architecture-lane" [style.left.px]="20 + column * 150">{{ layer.name | transloco }}</div> }
           @for (node of diagramNodes(); track node.id) {
             <button type="button" class="architecture-map-node" [attr.data-node-id]="node.id" [attr.data-layer]="node.layerId" [class.architecture-selected]="selectedNodeId() === node.id" [style.left.px]="diagramPoint(node.id).x" [style.top.px]="diagramPoint(node.id).y" (click)="selectNode(node)" (keydown)="onDiagramKeydown($event, node)" [attr.aria-label]="'workspace.inspect' | transloco: { name: (node.name | transloco) }" [attr.aria-pressed]="selectedNodeId() === node.id" aria-describedby="selected-node-details">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -49,6 +50,13 @@
           }
         </div>
       </div>
+      <ol class="mobile-connections p-3 space-y-2" [attr.aria-label]="'architecture.connexions_du_flux' | transloco:{value1:flowEdges().length}">
+        @for(edge of flowEdges();track edge.id){<li class="rounded-xl border border-slate-200 p-2 text-xs"><div class="flex flex-col items-start gap-1">
+          <button type="button" class="min-h-11 rounded-lg border border-violet-200 bg-violet-50 p-2 text-left ring-violet-500" [class.ring-2]="selectedNodeId()===edge.sourceNodeId" [attr.aria-pressed]="selectedNodeId()===edge.sourceNodeId" (click)="selectedNodeId.set(edge.sourceNodeId)">{{ nodeName(edge.sourceNodeId) | transloco }}</button>
+          <span class="text-violet-800">↓ {{ edge.connectionType | uiStatus }}</span>
+          <button type="button" class="min-h-11 rounded-lg border border-teal-200 bg-teal-50 p-2 text-left ring-violet-500" [class.ring-2]="selectedNodeId()===edge.targetNodeId" [attr.aria-pressed]="selectedNodeId()===edge.targetNodeId" (click)="selectedNodeId.set(edge.targetNodeId)">{{ nodeName(edge.targetNodeId) | transloco }}</button>
+        </div><details class="mt-2"><summary>{{ 'architecture.description_verifiee' | transloco }}</summary><p>{{ edge.description | transloco }}</p></details></li>}
+      </ol>
       <div class="architecture-legend" [attr.aria-label]="'architecture.legende_des_couches_et_connexions' | transloco"><span data-tone="client">{{ 'architecture.frontend' | transloco }}</span><span data-tone="api">{{ 'architecture.api' | transloco }}</span><span data-tone="ai">{{ 'architecture.ia_outils' | transloco }}</span><span data-tone="data">{{ 'architecture.sqlite' | transloco }}</span>@for (type of connectionTypes(); track type) { <span class="architecture-connection-key" [attr.data-kind]="type">{{ type | uiStatus }}</span> }</div>
       <p id="architecture-map-help" class="architecture-map-help">{{ 'architecture.selectionnez_un_n_ud_au_clic_ou' | transloco }}</p>
     </div>
@@ -59,13 +67,15 @@
       <dl class="mt-3 space-y-3 text-xs">
         <div><dt class="font-semibold text-slate-600">{{ 'architecture.technologie' | transloco }}</dt><dd class="mt-1 leading-5 text-slate-800">{{ selectedNode().technology.startsWith('workspace.') ? (selectedNode().technology | transloco) : selectedNode().technology }}</dd></div>
         <div><dt class="font-semibold text-slate-600">{{ 'architecture.responsabilite' | transloco }}</dt><dd class="mt-1 leading-5 text-slate-800">{{ selectedNode().responsibility | transloco }}</dd></div>
-        <div><dt class="font-semibold text-slate-600">{{ 'architecture.description_verifiee' | transloco }}</dt><dd class="mt-1 leading-5 text-slate-700">{{ selectedNode().description | transloco }}</dd></div>
         <div><dt class="font-semibold text-slate-600">{{ 'architecture.present_dans_le_flux' | transloco }}</dt><dd class="mt-1 text-slate-700">{{ isNodeInFlow(selectedNodeId()) ? ('architecture.oui_flux_selectionne' | transloco) : ('architecture.non_autre_parcours' | transloco) }}</dd></div>
       </dl>
+      <details class="related"><summary>{{ 'architecture.description_verifiee' | transloco }}</summary><p class="mt-2 leading-5">{{ selectedNode().description | transloco }}</p></details>
+      @if(destination();as space){<a class="studio-link" [routerLink]="'/agent-workspace'" [queryParams]="{space:space}" target="_blank" rel="noopener noreferrer">{{ 'architecturePremium.open' | transloco }} ↗</a>}
+      <details class="related"><summary>{{ 'architecturePremium.related' | transloco }} · {{ relatedEdges().length }}</summary><ul>@for(edge of relatedEdges();track edge.id){<li>{{ nodeName(edge.sourceNodeId) | transloco }} → {{ nodeName(edge.targetNodeId) | transloco }}<p>{{ edge.description | transloco }}</p></li>}</ul></details>
     </aside>
   </section>
 
-  <section class="min-w-0" [attr.aria-label]="'architecture.catalogue_et_documentation_des_flux' | transloco">
+  <details class="technical-catalogue"><summary>{{ 'architecturePremium.catalogue' | transloco }}</summary><section class="min-w-0" [attr.aria-label]="'architecture.catalogue_et_documentation_des_flux' | transloco">
     <div class="min-w-0 space-y-3">
       <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
         <div class="flex flex-col gap-2 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -131,6 +141,7 @@
 
   </section>
 
+  </details>
   <section class="grid grid-cols-1 gap-4 lg:grid-cols-2" [attr.aria-label]="'architecture.etat_des_capacites_et_feuille_de_route' | transloco">
     <article class="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/80 to-white p-3 shadow-sm"><div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span><h2 class="text-sm font-bold text-emerald-950">{{ 'architecture.capacites_implementees' | transloco }}</h2></div><ul class="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-700 sm:grid-cols-2"><li>{{ 'architecture.sqlite_fts5_lexical_sans_embeddings' | transloco }}</li><li>{{ 'architecture.citations_reliees_aux_chunks_retrouves' | transloco }}</li><li>{{ 'architecture.historique_d_inference_metadata_only' | transloco }}</li><li>{{ 'architecture.prevision_des_couts_ia_et_simulation_budgetaire' | transloco }}</li><li>{{ 'architecture.moteur_interne_a_outils_de_lecture_seule' | transloco }}</li></ul></article>
     <article class="rounded-2xl border border-amber-200/80 bg-gradient-to-br from-amber-50/80 to-white p-3 shadow-sm"><div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span><h2 class="text-sm font-bold text-amber-950">{{ 'architecture.pistes_futures_non_implementees' | transloco }}</h2></div><ul class="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-700 sm:grid-cols-2"><li>{{ 'architecture.integration_n8n' | transloco }}</li><li>{{ 'architecture.authentification_et_multi_tenancy' | transloco }}</li><li>{{ 'architecture.embeddings_recherche_semantique' | transloco }}</li></ul></article>

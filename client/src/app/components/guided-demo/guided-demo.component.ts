@@ -9,7 +9,7 @@ import {
   GuidedDemoStepId,
   GuidedDemoStepStatus
 } from '../../models/guided-demo.model';
-import { GUIDED_DEMO_STEPS } from './guided-demo.data';
+import { GUIDED_DEMO_STEPS, STUDIO_DEMO_STEPS } from './guided-demo.data';
 
 const INITIAL_STATUSES: Record<GuidedDemoStepId, GuidedDemoStepStatus> = {
   introduction: 'viewed',
@@ -30,7 +30,9 @@ const INITIAL_STATUSES: Record<GuidedDemoStepId, GuidedDemoStepStatus> = {
 export class GuidedDemoComponent implements OnDestroy {
   readonly ui = inject(UiLanguageService);
   private focusFrame: number | null = null;
-  readonly steps = GUIDED_DEMO_STEPS;
+  readonly studioTour = signal(true);
+  get steps() { return this.studioTour() ? STUDIO_DEMO_STEPS : GUIDED_DEMO_STEPS; }
+  selectTour(studio: boolean): void { this.studioTour.set(studio);this.restart(); }
   readonly currentStepIndex = signal(0);
   readonly stepStatuses = signal<Record<GuidedDemoStepId, GuidedDemoStepStatus>>({ ...INITIAL_STATUSES });
   readonly currentStep = computed(() => this.steps[this.currentStepIndex()]);

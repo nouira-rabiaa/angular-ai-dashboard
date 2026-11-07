@@ -19,6 +19,7 @@ export interface GuidedDemoStep {
   technicalExplanation: string;
   userInstruction: string;
   destinationRoute?: `/${string}`;
+  destinationSpace?: 'configuration' | 'knowledge' | 'test' | 'conversations' | 'tickets' | 'workflows';
   completionCriteria: string;
   liveAiCallMayBeRequired: boolean;
 }

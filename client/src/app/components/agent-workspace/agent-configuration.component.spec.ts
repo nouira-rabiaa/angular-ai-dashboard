@@ -2,6 +2,8 @@ import { provideUiI18nTesting } from '../../i18n/ui-i18n.testing';
 import { DashboardDataService } from '../../services/dashboard-data.service';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 import { of, Subject, throwError } from 'rxjs';
 import { AgentConfigurationComponent } from './agent-configuration.component';
 import { AgentService } from '../../services/agent.service';
@@ -14,14 +16,16 @@ const record = (overrides: Partial<SupportAgent> = {}): SupportAgent => ({ ...em
 const page = (items: SupportAgent[] = []): SupportAgentPage => ({ items, total: items.length, offset: 0, limit: 50 });
 
 describe('AgentConfigurationComponent', () => {
+  let query: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   let fixture: ComponentFixture<AgentConfigurationComponent>;
   let component: AgentConfigurationComponent;
   let api: Record<'listAgents' | 'getAgent' | 'createAgent' | 'updateAgent' | 'setAgentStatus' | 'getAgentDocuments', jest.Mock>;
   beforeEach(async () => {
+    query = new BehaviorSubject(convertToParamMap({}));
     api = { getAgentDocuments: jest.fn().mockReturnValue(of({ documentIds: [], documents: [], scopeVersion: 'scope' })), listAgents: jest.fn().mockReturnValue(of(page())), getAgent: jest.fn().mockReturnValue(of(record())),
       createAgent: jest.fn().mockReturnValue(of(record())), updateAgent: jest.fn().mockReturnValue(of(record({ version: 2 }))),
       setAgentStatus: jest.fn().mockReturnValue(of(record({ status: 'active', version: 2 }))) };
-    await TestBed.configureTestingModule({ imports: [AgentConfigurationComponent], providers: [...provideUiI18nTesting(), { provide: AgentService, useValue: api }, { provide: DashboardDataService, useValue: { getDocuments: jest.fn().mockReturnValue(of({ items: [], total: 0, offset: 0, limit: 25 })) } }] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [AgentConfigurationComponent], providers: [...provideUiI18nTesting(), { provide: ActivatedRoute, useValue: { queryParamMap: query } }, { provide: AgentService, useValue: api }, { provide: DashboardDataService, useValue: { getDocuments: jest.fn().mockReturnValue(of({ items: [], total: 0, offset: 0, limit: 25 })) } }] }).compileComponents();
     fixture = TestBed.createComponent(AgentConfigurationComponent);component = fixture.componentInstance;
   });
   const text = () => fixture.nativeElement.textContent as string;
@@ -179,6 +183,32 @@ describe('AgentConfigurationComponent', () => {
     expect(focus).toHaveBeenCalled();expect(component.catalogueOpen()).toBe(false);
     expect(fixture.nativeElement.querySelectorAll('.config-card')).toHaveLength(2);
     expect(fixture.nativeElement.querySelector('[aria-controls=studio-help]').getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('opens all six whitelisted deep links without selecting an agent or mutating data', () => {
+    fixture.detectChanges();
+    for (const space of ['configuration','knowledge','test','conversations','tickets','workflows']) {
+      query.next(convertToParamMap({space}));fixture.detectChanges();
+      expect(component.activeSpace()).toBe(space);expect(component.catalogueOpen()).toBe(true);
+      expect(component.selected()).toBeNull();
+    }
+    query.next(convertToParamMap({space:'invalid'}));expect(component.activeSpace()).toBe('workflows');
+    query.next(convertToParamMap({}));expect(component.activeSpace()).toBe('workflows');
+    expect(api.createAgent).not.toHaveBeenCalled();expect(api.updateAgent).not.toHaveBeenCalled();
+    expect(api.setAgentStatus).not.toHaveBeenCalled();expect(api.getAgent).not.toHaveBeenCalled();
+  });
+  it('preserves selected agent, mounted form and unsaved draft when a deep link is blocked', () => {
+    fixture.detectChanges();component.openAgent(record());fixture.detectChanges();
+    const input=fixture.nativeElement.querySelector('#support-name');const selected=component.selected();
+    fillDraft();query.next(convertToParamMap({space:'conversations'}));fixture.detectChanges();
+    expect(component.activeSpace()).toBe('configuration');expect(component.selected()).toBe(selected);
+    expect(component.form.controls.name.value).toBe('Mon agent');expect(component.form.dirty).toBe(true);
+    expect(component.navigationMessage()).toBeTruthy();expect(fixture.nativeElement.querySelector('#support-name')).toBe(input);
+    expect(api.updateAgent).not.toHaveBeenCalled();
+    component.cancel();query.next(convertToParamMap({space:'knowledge'}));fixture.detectChanges();
+    expect(component.activeSpace()).toBe('knowledge');expect(component.selected()).toBe(selected);
+    query.next(convertToParamMap({space:'configuration'}));fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#support-name')).toBe(input);
   });
 
 });

@@ -60,3 +60,16 @@ export const GUIDED_DEMO_STEPS: readonly GuidedDemoStep[] = [
     liveAiCallMayBeRequired: false
   }
 ];
+
+// Existing tour retained above; stable internal IDs preserve progress semantics.
+export const STUDIO_DEMO_STEPS: readonly GuidedDemoStep[] = GUIDED_DEMO_STEPS.map((step, index) => ({
+  ...step,
+  title: `studioTour.steps.${index}.title`,
+  businessExplanation: `studioTour.steps.${index}.value`,
+  technicalExplanation: `studioTour.steps.${index}.technical`,
+  userInstruction: `studioTour.steps.${index}.action`,
+  completionCriteria: `studioTour.steps.${index}.observe`,
+  destinationRoute: '/agent-workspace',
+  destinationSpace: (['configuration', 'knowledge', 'test', 'conversations', 'tickets', 'workflows'] as const)[index],
+  liveAiCallMayBeRequired: index === 2 || index === 3
+}));
