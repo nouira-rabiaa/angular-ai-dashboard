@@ -14,4 +14,47 @@ describe('Workflow Automation management panel',()=>{
  it('keeps pending confirmation, filters and DOM across FR/EN without HTTP mutation',async()=>{c.filter='queued';c.search='Original';c.review('binding');fixture.detectChanges();const input=fixture.nativeElement.querySelector('input[name=search]');const reads=api.overview.mock.calls.length;await TestBed.inject(UiLanguageService).use('en');fixture.detectChanges();expect(text()).toContain('Workflow Automation');expect(text()).toContain('Confirm local action');expect(c.search).toBe('Original');expect(c.pending()).not.toBeNull();expect(fixture.nativeElement.querySelector('input[name=search]')).toBe(input);expect(api.overview).toHaveBeenCalledTimes(reads);expect(api.command).not.toHaveBeenCalled();});
  it('reports load failures and empty state, ignores old reads, cancels subscriptions',()=>{api.overview.mockReturnValue(throwError(()=>new Error('PRIVATE')));c.load();fixture.detectChanges();expect(text()).toContain('Gestion des workflows indisponible');expect(text()).not.toContain('PRIVATE');api.overview.mockReturnValue(of(overview));api.runs.mockReturnValue(of({items:[],total:0,offset:0,limit:25}));c.load();fixture.detectChanges();expect(text()).toContain('Aucune exécution');const pending=new Subject<WorkflowOverview>();api.overview.mockReturnValue(pending);c.load();fixture.destroy();expect(pending.observed).toBe(false);});
  it('emits draft protection for unsaved shared capacity and preserves original data',()=>{const dirty=jest.fn();c.dirtyChange.subscribe(dirty);c.capacity=7;c.editCapacity();expect(dirty).toHaveBeenLastCalledWith(true);c.review('binding');expect(c.pending()).toBeNull();c.review('dispatcher');expect(c.pending()?.body['capacity']).toBe(7);c.cancel();expect(dirty).toHaveBeenLastCalledWith(false);expect(overview.settings.capacity).toBe(1000);});
+ it('shows four real KPI cards and keeps state details and safety help available without commands',()=>{
+  const metrics=fixture.nativeElement.querySelectorAll('.metrics>div');expect(metrics).toHaveLength(4);
+  expect(metrics[1].querySelector('dd').textContent.trim()).toBe('2');
+  expect(metrics[2].querySelector('dd').textContent.trim()).toBe('1');
+  expect(metrics[3].querySelector('dd').textContent).toContain('Indisponible');
+  const states:HTMLDetailsElement=fixture.nativeElement.querySelector('.state-details');
+  const help:HTMLDetailsElement=fixture.nativeElement.querySelector('.context-help');
+  const advanced:HTMLDetailsElement=fixture.nativeElement.querySelector('.advanced');
+  expect(states.open).toBe(false);expect(help.open).toBe(false);expect(advanced.open).toBe(false);
+  const reads=api.overview.mock.calls.length;states.open=true;help.open=true;advanced.open=true;fixture.detectChanges();
+  expect(fixture.nativeElement.querySelector('.safety').textContent).toContain('aucun webhook');
+  expect(fixture.nativeElement.querySelector('.states').textContent).toContain('En attente');
+  expect(api.command).not.toHaveBeenCalled();expect(api.overview).toHaveBeenCalledTimes(reads);
+ });
+ it('preserves edited capacity and pending confirmation when collapsing advanced settings and changing language',async()=>{
+  const advanced:HTMLDetailsElement=fixture.nativeElement.querySelector('.advanced');advanced.open=true;
+  const input:HTMLInputElement=advanced.querySelector('input[type=number]')!;
+  input.value='12';input.dispatchEvent(new Event('input'));fixture.detectChanges();await fixture.whenStable();
+  expect(c.capacity).toBe(12);expect(c.capacityDirty()).toBe(true);
+  advanced.open=false;fixture.detectChanges();c.review('dispatcher');fixture.detectChanges();const pending=c.pending();
+  await TestBed.inject(UiLanguageService).use('en');fixture.detectChanges();
+  expect(fixture.nativeElement.querySelector('.advanced input')).toBe(input);
+  expect(c.capacity).toBe(12);expect(c.pending()).toBe(pending);expect(c.pending()?.body['capacity']).toBe(12);
+  expect(c.overview()?.settings.enabled).toBe(0);expect(c.overview()?.binding?.enabled).toBe(0);
+  expect(fixture.nativeElement.querySelector('.safety').textContent).toContain('shared across all agents');
+  expect(api.command).not.toHaveBeenCalled();
+ });
+ it('retains selected execution and durable receipt histories when folding their panels',()=>{
+  const receipt={id:'receipt',version:2,state:'paused',ticket_id:'t',handoff_id:'h',created_at:100000};
+  c.receipts.set([receipt]);c.open(run);c.inspectReceipt(receipt);fixture.detectChanges();
+  const selected=c.selected(),events=c.events(),receiptEvents=c.receiptEvents();
+  const historyReads=api.history.mock.calls.length,receiptReads=api.receiptHistory.mock.calls.length;
+  const technical:HTMLDetailsElement=fixture.nativeElement.querySelector('.run-detail .technical');
+  const audit:HTMLDetailsElement=fixture.nativeElement.querySelector('.run-detail .audit');
+  const receiptAudit:HTMLDetailsElement=fixture.nativeElement.querySelector('.receipt-audit');
+  expect(technical.open).toBe(false);expect(audit.open).toBe(false);expect(receiptAudit.open).toBe(true);
+  technical.open=true;audit.open=true;receiptAudit.open=false;fixture.detectChanges();
+  expect(c.selected()).toBe(selected);expect(c.events()).toBe(events);expect(c.receiptEvents()).toBe(receiptEvents);
+  expect(c.inspectedReceipt()?.id).toBe('receipt');expect(technical.textContent).toContain('handoff.requested');
+  expect(api.history).toHaveBeenCalledTimes(historyReads);expect(api.receiptHistory).toHaveBeenCalledTimes(receiptReads);
+  expect(api.command).not.toHaveBeenCalled();
+ });
+
 });

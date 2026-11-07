@@ -91,4 +91,22 @@ describe('Human escalation panel',()=>{
   const active=record({status:'assigned'});api.escalations.mockReturnValue(of({active,items:[active],total:1}));c.load();c.inspect(record({id:'past',status:'resolved'}));fixture.detectChanges();await TestBed.inject(UiLanguageService).use('en');fixture.detectChanges();expect(text()).toContain('Open active handoff');expect(text()).toContain('Handoff history');expect(c.selected()?.id).toBe('past');expect(api.updateEscalation).not.toHaveBeenCalled();
  });
 
+ it('keeps assigned handoff resolution, its note and confirmation when folding history and switching language',async()=>{
+  c.inspect(record({status:'assigned',version:2,operator:'Opérateur local'}));fixture.detectChanges();
+  const audit:HTMLDetailsElement=fixture.nativeElement.querySelector('.audit');
+  const help:HTMLDetailsElement=fixture.nativeElement.querySelector('.context-help');
+  expect(audit.open).toBe(false);expect(help.open).toBe(false);
+  c.treatment.controls.note.setValue('Note à conserver');c.treatment.markAsDirty();fixture.detectChanges();
+  const note=fixture.nativeElement.querySelector('textarea[formControlName="note"]');
+  const reads=api.escalationEvents.mock.calls.length;const selected=c.selected();const events=c.events();
+  button('Résoudre le transfert').click();fixture.detectChanges();expect(c.confirmation()).toBe('resolve');
+  audit.open=true;help.open=true;fixture.detectChanges();audit.open=false;
+  await TestBed.inject(UiLanguageService).use('en');fixture.detectChanges();
+  expect(c.selected()).toBe(selected);expect(c.selected()?.status).toBe('assigned');expect(c.events()).toBe(events);
+  expect(c.treatment.controls.note.value).toBe('Note à conserver');expect(c.dirty()).toBe(true);
+  expect(c.confirmation()).toBe('resolve');expect(fixture.nativeElement.querySelector('textarea[formControlName="note"]')).toBe(note);
+  expect(api.escalationEvents).toHaveBeenCalledTimes(reads);
+  expect(api.requestEscalation).not.toHaveBeenCalled();expect(api.updateEscalation).not.toHaveBeenCalled();
+ });
+
 });

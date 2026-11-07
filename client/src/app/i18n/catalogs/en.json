@@ -1092,5 +1092,80 @@
     },
     "eventCode": "handoff.requested",
     "target": "local_simulator"
+  },
+  "studioGuidance": {
+    "configuration": "Define the agent’s behaviour, then save its configuration before other operations. Active does not mean publicly deployed. Allowing escalation does not trigger an automatic handoff.",
+    "documents": "Import a document into the catalogue, select it for this agent, then save the association. Available does not mean authorised: your selection remains temporary until saved.",
+    "test": "Sending a question may make a real Groq call without creating a persistent conversation. Abstention indicates insufficient documentary context, not necessarily a technical error.",
+    "conversations": "Messages are stored locally. An AI response does not mean the request is resolved. Preparing a ticket opens a draft: creation requires your confirmation.",
+    "ticketHeading": "Request tracking.",
+    "tickets": "Status tracks ticket handling; category describes the subject and priority its urgency. Human handoff has an independent status.",
+    "handoffHeading": "Local human intervention.",
+    "handoff": "Assigned means a locally declared assignment: no external operator is contacted. Resolving the handoff does not automatically resolve the ticket. No real refund is issued.",
+    "workflowChain": "Event → Durable receipt → Execution → Simulation.",
+    "workflows": "The simulator runs locally and its activation is shared across all agents. No n8n call, webhook or external notification is executed. Simulated success does not resolve the ticket.",
+    "pausedReceipt": "This receipt is retained. Resuming it requires an active binding and shared simulator; enabling them does not automatically resume paused receipts."
+  },
+  "configurationDesign": {
+    "advanced": "Advanced settings",
+    "context": "Define your agent’s mission and behaviour.",
+    "help": "About agent configuration",
+    "title": "Agent configuration",
+    "subtitle": "Identity, mission and behaviour",
+    "identity": "Identity",
+    "mission": "Mission",
+    "helpShort": "Help",
+    "tabConfiguration": "Configuration",
+    "tabDocuments": "Documents",
+    "tabTest": "Test agent",
+    "tabConversations": "Conversations",
+    "tabTickets": "Tickets",
+    "tabAutomation": "Automation"
+  },
+  "knowledgePremium": {
+    "help": "About documents and testing",
+    "selection": "Current selection: {{count}} document(s) · Save after making changes",
+    "saved": "Saved authorisations · {{count}}",
+    "noSaved": "No saved document authorisations.",
+    "liveNotice": "May make a real Groq call · No persistent conversation",
+    "test": "Test agent",
+    "sources": "Document sources · {{count}}"
+  },
+  "conversationPremium": {
+    "description": "Persistent conversations and document-grounded answers.",
+    "help": "Privacy and how conversations work",
+    "prepareTicket": "Prepare a ticket",
+    "businessNotice": "An AI response does not automatically resolve a request. Ticket creation requires confirmation."
+  },
+  "ticketsPremium": {
+    "help": "About tickets and request tracking",
+    "details": "Information and classification",
+    "localHandoff": "Local handling · Status independent of the ticket",
+    "handoffHelp": "About human handoff",
+    "transfers": "Saved handoffs"
+  },
+  "automationPremium": {
+    "title": "Automation",
+    "subtitle": "Manage your local workflows",
+    "help": "Help and safety",
+    "unconfigured": "Not configured",
+    "stateDetails": "State details",
+    "destination": "Local destination",
+    "localSimulator": "Local simulator",
+    "sharedSimulator": "Shared simulator",
+    "safety": "Local simulation only: no webhook, email or refund. The simulator is shared across all agents; its results resolve neither tickets nor handoffs.",
+    "events": "Events",
+    "references": "Linked references",
+    "resumeRequirements": "Resumption requirements",
+    "search": "Search an ID",
+    "technical": "Technical information"
+  },
+  "conversationChat": {
+    "sources": "Sources ({{count}})",
+    "reference": "Document {{document}} · Chunk {{chunk}}",
+    "backList": "View conversations",
+    "backChat": "Back to chat",
+    "latest": "Latest messages",
+    "unsent": "You have an unsent message. Send or clear it before switching or creating a conversation."
   }
 }

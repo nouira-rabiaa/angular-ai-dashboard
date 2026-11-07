@@ -87,4 +87,22 @@ describe('AgentTicketsComponent',()=>{
     panel.start();fixture.detectChanges();expect(c.handoffDirty()).toBe(true);expect(c.dirty()).toBe(true);c.newTicket();expect(c.selected()?.id).toBe('t');c.open(record({id:'other'}));expect(c.selected()?.id).toBe('t');panel.cancelDraft();expect(c.handoffDirty()).toBe(false);
   });
 
+  it('keeps ticket edits, selection and filters while opening secondary panels and changing language', async () => {
+    c.open(record());fixture.detectChanges();
+    c.edit.controls.priority.setValue('high');c.edit.markAsDirty();c.filters.search='NS-2026-1042';fixture.detectChanges();
+    const priority = fixture.nativeElement.querySelector('select[formControlName="priority"]');
+    const selected = c.selected();const reads = api.events.mock.calls.length;
+    const technical: HTMLDetailsElement = fixture.nativeElement.querySelector('.technical');
+    const audit: HTMLDetailsElement = fixture.nativeElement.querySelector('.editor > .audit');
+    expect(technical.open).toBe(false);expect(audit.open).toBe(false);
+    technical.open=true;audit.open=true;fixture.detectChanges();audit.open=false;
+    await TestBed.inject(UiLanguageService).use('en');fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('select[formControlName="priority"]')).toBe(priority);
+    expect(c.selected()).toBe(selected);expect(c.edit.controls.priority.value).toBe('high');expect(c.dirty()).toBe(true);
+    expect(c.filters.search).toBe('NS-2026-1042');expect(api.events).toHaveBeenCalledTimes(reads);
+    expect(fixture.nativeElement.querySelector('.detail-tags [data-status]').textContent).toContain('Open');
+    expect(fixture.nativeElement.querySelector('.detail-tags').textContent).toContain('Defective product');
+    expect(api.update).not.toHaveBeenCalled();expect(api.create).not.toHaveBeenCalled();
+  });
+
 });

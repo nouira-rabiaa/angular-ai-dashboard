@@ -1,45 +1,33 @@
-<section class="conversation" aria-labelledby="conversations-title">
-  <header><div><p class="eyebrow">{{ 'conversations.memoire_documentaire_locale' | transloco }}</p><h2 id="conversations-title">{{ 'conversations.conversations' | transloco }}</h2></div><button type="button" (click)="loadList()" [disabled]="loading() || sending()">{{ 'conversations.recharger' | transloco }}</button></header>
-  <p class="privacy">{{ 'conversations.echanges_enregistres_en_clair_dans_sqlite_sur' | transloco }}</p>
-  @if (error()) { <p class="error" role="alert">{{ error() | transloco }}</p> }
-  @if (agent.status !== 'active') { <p class="notice" role="status">{{ 'conversations.agent_inactif_historique_consultable_generation_desactivee' | transloco }}</p> }
-  <div class="conversation-layout">
-    <aside [attr.aria-label]="'conversations.conversations_enregistrees' | transloco">
-      <button type="button" class="primary" (click)="create()" [disabled]="sending() || loading() || agent.status !== 'active'">{{ 'conversations.nouvelle_conversation' | transloco }}</button>
-      @if (!loading() && !conversations().length) { <p class="empty">{{ 'conversations.aucun_echange_pour_cet_agent_creez_votre' | transloco }}</p> }
-      <nav [attr.aria-label]="'conversations.selection_de_conversation' | transloco">
-        @for (conversation of conversations(); track conversation.id) {
-          <div class="conversation-item"><button type="button" class="select" [attr.aria-pressed]="selected()?.id === conversation.id" (click)="open(conversation)" [disabled]="sending()"><strong>{{ conversation.title }}</strong><small>{{ conversation.updated_at | uiDate:'short' }}</small></button><button type="button" class="delete" [attr.aria-label]="'workspace.deleteConversation' | transloco: { title: conversation.title }" (click)="confirming.set(conversation)" [disabled]="sending()">{{ 'conversations.label' | transloco }}</button></div>
-        }
-      </nav>
-      @if (conversations().length < total()) { <button type="button" (click)="loadList(true)" [disabled]="loading() || sending()">{{ 'conversations.charger_d_autres_conversations' | transloco }}</button> }
-    </aside>
-    <div class="discussion">
-      @if (confirming(); as conversation) {
-        <div class="confirmation" role="group" [attr.aria-label]="'conversations.confirmer_la_suppression' | transloco"><p>{{ 'conversations.supprimer_definitivement_et_tous_ses_messages_de' | transloco: { value1: (conversation.title) } }}</p><button type="button" class="delete" (click)="remove()" [disabled]="sending()">{{ 'conversations.confirmer_la_suppression' | transloco }}</button><button type="button" (click)="confirming.set(null)" [disabled]="sending()">{{ 'conversations.annuler' | transloco }}</button></div>
-      }
-      @if (selected(); as conversation) {
-        <div class="message-heading"><h3>{{ conversation.title }}</h3><button type="button" (click)="ticketDraft()" [disabled]="sending() || loading()">{{ 'tickets.newFromConversation' | transloco }}</button></div>
-        @if (nextBefore()) { <button type="button" (click)="read(true)" [disabled]="loading() || sending()">{{ 'conversations.messages_precedents' | transloco }}</button> }
-        <div class="messages" role="region" [attr.aria-label]="'conversations.historique_des_messages' | transloco" tabindex="0" [attr.aria-busy]="loading()">
-          @for (message of messages(); track message.id) {
-            <article [class.user]="message.role === 'user'" [class.failed]="message.status === 'failed'">
-              <div class="message-heading"><strong>{{ message.role === 'user' ? ('conversations.vous' | transloco) : ('conversations.assistant' | transloco) }}</strong><small>{{ message.createdAt | uiDate:'shortTime' }}</small></div>
-              @if (message.status === 'pending') { <p>{{ 'conversations.generation_en_cours' | transloco }}</p> }
-              @else if (message.status === 'failed') { <p>{{ 'conversations.reponse_non_generee_vous_pouvez_envoyer_une' | transloco: { value1: (message.metadata.code || ('conversations.erreur_technique' | transloco)) } }}</p> }
-              @else { <p class="content">{{ message.content }}</p> }
-              @if (message.status === 'abstained') { <small class="notice">{{ 'conversations.abstention_les_documents_autorises_ne_permettent_pas' | transloco }}</small> }
-              @if (message.stale) { <small class="notice">{{ 'conversations.source_revoquee_ou_supprimee_historique_potentiellement_obsolete' | transloco }}</small> }
-              @for (source of message.sources; track source.label) {
-                <details><summary>[{{ source.label }}] {{ source.filename }}{{ source.pageNumber ? ('conversations.page' | transloco) + source.pageNumber : '' }}</summary><p class="content">{{ source.excerpt }}</p><small>{{ 'conversations.reference_documentaire_l_exactitude_de_chaque_affirmation' | transloco }}</small></details>
-              }
-            </article>
-          } @empty { @if (!loading()) { <p class="empty">{{ 'conversations.posez_une_question_sur_les_documents_autorises' | transloco }}</p> } }
-        </div>
-        <form (submit)="$event.preventDefault(); send()"><label for="conversation-question">{{ 'conversations.votre_message' | transloco }}</label><textarea id="conversation-question" [formControl]="question" rows="3" maxlength="2000" [readOnly]="sending()" aria-describedby="conversation-help"></textarea><div class="compose-footer"><small id="conversation-help">{{ 'conversations.2_000_nouvelle_recherche_a_chaque_tour' | transloco: { value1: (question.value.length) } }}</small><button type="submit" class="primary" [disabled]="question.invalid || sending() || loading() || agent.status !== 'active'">{{ sending() ? ('conversations.generation' | transloco) : ('conversations.envoyer' | transloco) }}</button></div></form>
-      } @else { <div class="empty"><h3>{{ 'conversations.votre_espace_d_echange' | transloco }}</h3><p>{{ 'conversations.selectionnez_une_conversation_ou_creez_en_une' | transloco }}</p></div> }
-      @if (loading()) { <p role="status">{{ 'conversations.chargement' | transloco }}</p> }
-      <p role="status" class="sr-only">{{ sending() ? ('conversations.generation_en_cours_2' | transloco) : '' }}</p>
+<section class="conversation" [class.show-list]="showList()" aria-labelledby="conversations-title">
+ <header class="chat-flex"><div class="section-heading chat-flex"><span class="studio-section-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 11a8 8 0 0 1-8 8H7l-5 3 1.5-6A8 8 0 0 1 11 3h2a8 8 0 0 1 8 8Z"/></svg></span><div><h2 class="chat-copy studio-title" id="conversations-title">{{ 'conversations.conversations' | transloco }}</h2></div></div><div class="header-actions chat-flex">@if(selected() || !showList()){<button type="button" class="studio-control mobile-switch" [attr.aria-expanded]="showList()" aria-controls="conversation-list-panel" (click)="showList.set(!showList())">{{ (showList()?'conversationChat.backChat':'conversationChat.backList') | transloco }}</button>}<button class="studio-control" type="button" (click)="loadList()" [disabled]="loading() || sending()">{{ 'conversations.recharger' | transloco }}</button></div></header>
+ <details class="context-help"><summary class="studio-focus">{{ 'conversationPremium.help' | transloco }}</summary><p class="chat-copy">{{ 'conversations.echanges_enregistres_en_clair_dans_sqlite_sur' | transloco }}</p><p class="chat-copy">{{ 'studioGuidance.conversations' | transloco }}</p><p class="chat-copy">{{ 'conversationPremium.businessNotice' | transloco }}</p></details>
+ @if(error()){<p class="chat-copy chat-feedback error" role="alert">{{ error() | transloco }}</p>}
+ @if(agent.status!=='active'){<p class="chat-copy chat-feedback notice" role="status">{{ 'conversations.agent_inactif_historique_consultable_generation_desactivee' | transloco }}</p>}
+ <div class="conversation-layout">
+  <aside class="chat-panel" id="conversation-list-panel" [attr.aria-label]="'conversations.conversations_enregistrees' | transloco"><div class="conversation-list"><h3 class="chat-copy studio-title">{{ 'conversations.conversations_enregistrees' | transloco }} <span class="count">{{ ui.number(total()) }}</span></h3>
+   <button type="button" class="studio-control primary new-conversation" (click)="newConversation()" [disabled]="sending() || loading() || agent.status!=='active'">{{ 'conversations.nouvelle_conversation' | transloco }}</button>
+   @if(!loading()&&!conversations().length){<p class="chat-copy chat-feedback empty">{{ 'conversations.aucun_echange_pour_cet_agent_creez_votre' | transloco }}</p>}
+   <nav [attr.aria-label]="'conversations.selection_de_conversation' | transloco">@for(conversation of conversations();track conversation.id){<div class="conversation-item"><button type="button" class="studio-control select" [attr.aria-pressed]="selected()?.id===conversation.id" (click)="selectConversation(conversation)" [disabled]="sending()"><strong>{{ conversation.title }}</strong><small>{{ conversation.updated_at | uiDate:'short' }}</small></button><button type="button" class="studio-control delete" [attr.aria-label]="'workspace.deleteConversation' | transloco:{title:conversation.title}" (click)="confirming.set(conversation); showList.set(false)" [disabled]="sending()">{{ 'conversations.label' | transloco }}</button></div>}</nav>
+   @if(conversations().length<total()){<button class="studio-control" type="button" (click)="loadList(true)" [disabled]="loading() || sending()">{{ 'conversations.charger_d_autres_conversations' | transloco }}</button>}
+  </div></aside>
+  <div class="chat-panel discussion" id="conversation-chat-panel">
+   @if(confirming();as conversation){<div class="chat-feedback confirmation" role="group" [attr.aria-label]="'conversations.confirmer_la_suppression' | transloco"><p class="chat-copy">{{ 'conversations.supprimer_definitivement_et_tous_ses_messages_de' | transloco:{value1:conversation.title} }}</p><button type="button" class="studio-control delete" (click)="remove()" [disabled]="sending()">{{ 'conversations.confirmer_la_suppression' | transloco }}</button><button class="studio-control" type="button" (click)="confirming.set(null)" [disabled]="sending()">{{ 'conversations.annuler' | transloco }}</button></div>}
+   @if(selected();as conversation){
+    <div class="chat-header chat-flex"><div class="section-heading chat-flex"><span class="agent-icon studio-section-icon studio-teal" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="4" y="7" width="16" height="13" rx="4"/><path d="M12 3v4M8 12v2m8-2v2"/></svg></span><div><h3 #chatTitle class="chat-copy studio-title" tabindex="-1">{{ conversation.title }}</h3></div></div><div class="chat-actions chat-flex"><button type="button" class="studio-control" (click)="latestMessages()">{{ 'conversationChat.latest' | transloco }}</button><button class="studio-control" type="button" (click)="ticketDraft()" [disabled]="sending() || loading()">{{ 'conversationPremium.prepareTicket' | transloco }}</button></div></div>
+    @if(nextBefore()){<button class="studio-control older" type="button" (click)="read(true)" [disabled]="loading() || sending()">{{ 'conversations.messages_precedents' | transloco }}</button>}
+    <div #messageViewport class="messages" role="region" [attr.aria-label]="'conversations.historique_des_messages' | transloco" tabindex="0" [attr.aria-busy]="loading()" (scroll)="onHistoryScroll()">
+     @for(message of messages();track message.id){<article [class.user]="message.role==='user'" [class.failed]="message.status==='failed'" [attr.aria-busy]="message.status==='pending'">
+      <div class="message-heading chat-flex"><strong>@if(message.role!=='user'){<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="7" width="16" height="13" rx="4"/><path d="M12 3v4M8 12v2m8-2v2"/></svg>}{{ (message.role==='user'?'conversations.vous':'conversations.assistant') | transloco }}</strong><small>{{ message.createdAt | uiDate:'shortTime' }}</small></div>
+      @if(message.status==='pending'){<p class="chat-copy">{{ 'conversations.generation_en_cours' | transloco }}</p>}@else if(message.status==='failed'){<p class="chat-copy">{{ 'conversations.reponse_non_generee_vous_pouvez_envoyer_une' | transloco:{value1:(message.metadata.code || ('conversations.erreur_technique' | transloco))} }}</p>}@else{<p class="chat-copy content">{{ message.content }}</p>}
+      @if(message.status==='abstained'){<small class="chat-feedback notice">{{ 'conversations.abstention_les_documents_autorises_ne_permettent_pas' | transloco }}</small>}
+      @if(message.stale){<small class="chat-feedback notice">{{ 'conversations.source_revoquee_ou_supprimee_historique_potentiellement_obsolete' | transloco }}</small>}
+      @if(message.sources.length){<details class="sources"><summary class="studio-focus">{{ 'conversationChat.sources' | transloco:{count:ui.number(message.sources.length)} }}</summary><div class="citations">@for(source of message.sources;track source.label){<details class="citation"><summary class="studio-focus">[{{ source.label }}] {{ source.filename }}{{ source.pageNumber?('conversations.page' | transloco)+source.pageNumber:'' }}</summary><p class="chat-copy content">{{ source.excerpt }}</p><small>{{ 'conversationChat.reference' | transloco:{document:source.documentId,chunk:source.chunkId} }}</small><small>{{ 'conversations.reference_documentaire_l_exactitude_de_chaque_affirmation' | transloco }}</small></details>}</div></details>}
+     </article>}@empty{@if(!loading()){<p class="chat-copy chat-feedback empty">{{ 'conversations.posez_une_question_sur_les_documents_autorises' | transloco }}</p>}}
     </div>
+    <form class="composer" (submit)="$event.preventDefault(); send()"><label for="conversation-question">{{ 'conversations.votre_message' | transloco }}</label><div class="compose-row"><textarea class="studio-control" id="conversation-question" [formControl]="question" rows="2" maxlength="2000" [readOnly]="sending()" aria-describedby="conversation-help"></textarea><button type="submit" class="studio-control primary" [disabled]="question.invalid || sending() || loading() || agent.status!=='active'"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m3 3 19 9-19 9 4-9-4-9Zm4 9h15"/></svg>{{ (sending()?'conversations.generation':'conversations.envoyer') | transloco }}</button></div><small id="conversation-help">{{ 'conversations.2_000_nouvelle_recherche_a_chaque_tour' | transloco:{value1:question.value.length} }}</small></form>
+   }@else{<div class="chat-feedback empty"><h3 class="chat-copy studio-title">{{ 'conversations.votre_espace_d_echange' | transloco }}</h3><p class="chat-copy">{{ 'conversations.selectionnez_une_conversation_ou_creez_en_une' | transloco }}</p></div>}
+   @if(loading()){<p class="chat-copy" role="status">{{ 'conversations.chargement' | transloco }}</p>}
+   <p role="status" class="chat-copy sr-only">{{ sending()?('conversations.generation_en_cours_2' | transloco):'' }}</p>
   </div>
+ </div>
 </section>

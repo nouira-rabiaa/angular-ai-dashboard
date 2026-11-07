@@ -3,7 +3,7 @@ import { UiDatePipe } from '../../i18n/ui-format.pipe';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UiLanguageService } from '../../i18n/ui-language.service';
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, EventEmitter, Input, OnChanges, Output, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, EventEmitter, Input, OnChanges, Output, afterRender, inject, signal, viewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgentService } from '../../services/agent.service';
@@ -32,16 +32,63 @@ export class AgentConversationsComponent implements OnChanges {
   readonly nextBefore = signal<number | null>(null);
   readonly total = signal(0);
   readonly question = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/\S/), Validators.maxLength(2000)] });
+  readonly showList = signal(true);
+  private readonly messageViewport = viewChild<ElementRef<HTMLElement>>('messageViewport');
+  private readonly chatTitle = viewChild<ElementRef<HTMLElement>>('chatTitle');
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  updateAvailableHeight(): void {
+    const host = this.host.nativeElement;
+    if (!host.getClientRects().length) return;
+    const layout = host.querySelector<HTMLElement>('.conversation-layout');
+    if (layout) host.style.setProperty('--chat-space', `${Math.max(320, window.innerHeight - layout.getBoundingClientRect().top - 20)}px`);
+  }
+  private focusChat = false;
+  private followLatest = true;
+  private scrollSnapshot?: { conversation: string; signature: string; ids: string[]; height: number; top: number };
+  selectConversation(conversation: SupportConversation): void {
+    if (this.sending()) return;
+    if (this.selected()?.id === conversation.id) { this.showList.set(false);this.focusChat = true;return; }
+    if (this.question.dirty && this.question.value.trim()) { this.error.set('conversationChat.unsent');return; }
+    this.open(conversation);this.focusChat = true;
+  }
+  newConversation(): void {
+    if (this.question.dirty && this.question.value.trim()) { this.error.set('conversationChat.unsent');return; }
+    this.focusChat = true;this.create();
+  }
+  onHistoryScroll(): void {
+    const element = this.messageViewport()?.nativeElement;if (!element) return;
+    this.followLatest = element.scrollHeight - element.clientHeight - element.scrollTop <= 48;
+    if (this.scrollSnapshot) { this.scrollSnapshot.height = element.scrollHeight;this.scrollSnapshot.top = element.scrollTop; }
+  }
+  latestMessages(): void {
+    const element = this.messageViewport()?.nativeElement;if (!element) return;
+    element.scrollTop = element.scrollHeight;this.followLatest = true;this.onHistoryScroll();
+  }
+  syncHistoryScroll(): void {
+    const conversation = this.selected();if (!conversation) { this.scrollSnapshot = undefined;return; }
+    const element = this.messageViewport()?.nativeElement;if (!element || !element.clientHeight) return;
+    if (this.focusChat) { this.chatTitle()?.nativeElement.focus({ preventScroll: true });this.focusChat = false; }
+    const messages = this.messages(), ids = messages.map(message => message.id);
+    const signature = messages.map(message => `${message.id}:${message.status}:${message.content.length}:${message.sources.length}:${message.stale}`).join('|');
+    const previous = this.scrollSnapshot, key = `${this.agent.id}:${conversation.id}`;
+    if (!previous || previous.conversation !== key) { element.scrollTop = element.scrollHeight;this.followLatest = true; }
+    else if (previous.signature !== signature) {
+      const prepended = previous.ids.length > 0 && ids.length > previous.ids.length && previous.ids.every((id, index) => id === ids[ids.length - previous.ids.length + index]);
+      if (prepended) element.scrollTop = previous.top + element.scrollHeight - previous.height;
+      else if (this.followLatest) element.scrollTop = element.scrollHeight;
+    }
+    this.scrollSnapshot = { conversation: key, signature, ids, height: element.scrollHeight, top: element.scrollTop };
+  }
   private generation = 0;
   private poll?: ReturnType<typeof setTimeout>;
   private retry?: { question: string; requestId: string; conversationId: string };
   private previousAgent = '';
 
-  constructor() { this.destroyRef.onDestroy(() => { this.generation++;clearTimeout(this.poll);this.busyChange.emit(false); }); }
+  constructor() { const resize = () => this.updateAvailableHeight();window.addEventListener('resize', resize);afterRender({ mixedReadWrite: () => { this.updateAvailableHeight();this.syncHistoryScroll(); } });this.destroyRef.onDestroy(() => { window.removeEventListener('resize', resize);this.generation++;clearTimeout(this.poll);this.busyChange.emit(false); }); }
   ngOnChanges(): void {
     if (this.previousAgent !== this.agent.id) {
       this.requestedSeen = null;this.loading.set(false);this.previousAgent = this.agent.id;this.generation++;clearTimeout(this.poll);this.retry = undefined;
-      this.selected.set(null);this.messages.set([]);this.conversations.set([]);this.confirming.set(null);this.question.reset();this.setSending(false);this.loadList();
+      this.showList.set(true);this.selected.set(null);this.messages.set([]);this.conversations.set([]);this.confirming.set(null);this.question.reset();this.setSending(false);this.loadList();
     } else this.openRequested();
   }
   ticketDraft() {
@@ -76,7 +123,7 @@ export class AgentConversationsComponent implements OnChanges {
   }
   open(conversation: SupportConversation): void {
     if (this.sending()) return;
-    this.generation++;clearTimeout(this.poll);this.retry = undefined;this.question.reset();this.selected.set(conversation);this.messages.set([]);this.nextBefore.set(null);this.read();
+    this.showList.set(false);this.generation++;clearTimeout(this.poll);this.retry = undefined;this.question.reset();this.selected.set(conversation);this.messages.set([]);this.nextBefore.set(null);this.read();
   }
   read(older = false): void {
     const conversation = this.selected();if (!conversation) return;
