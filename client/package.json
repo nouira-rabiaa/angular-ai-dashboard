@@ -12,7 +12,9 @@
     "watch": "ng build --watch --configuration development",
     "test": "jest",
     "check:i18n": "node scripts/check-i18n.mjs",
-    "prebuild": "npm run check:i18n"
+    "prebuild": "npm run check:i18n",
+    "build:showcase": "ng build --configuration production,showcase",
+    "start:showcase": "ng serve --configuration showcase --host 127.0.0.1 --port 4300"
   },
   "private": true,
   "dependencies": {

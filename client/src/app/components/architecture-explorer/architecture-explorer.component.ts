@@ -1,3 +1,4 @@
+import { PUBLIC_PRESENTATION } from '../../presentation-mode';
 import { UiStatusPipe } from '../../i18n/ui-format.pipe';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UiLanguageService } from '../../i18n/ui-language.service';
@@ -25,6 +26,7 @@ import {
   styleUrl: './architecture-explorer.component.scss'
 })
 export class ArchitectureExplorerComponent {
+  readonly publicPresentation = inject(PUBLIC_PRESENTATION);
   readonly ui = inject(UiLanguageService);
   readonly layers = ARCHITECTURE_LAYERS;
   readonly nodes = PREMIUM_NODES;

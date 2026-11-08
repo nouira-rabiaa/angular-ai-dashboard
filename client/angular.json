@@ -56,6 +56,22 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "showcase": {
+              "browser": "src/main.showcase.ts",
+              "tsConfig": "tsconfig.showcase.json",
+              "outputPath": "dist/showcase",
+              "styles": [
+                "src/showcase.scss"
+              ],
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "showcase-assets",
+                  "output": "assets/showcase"
+                }
+              ],
+              "index": "src/index.showcase.html"
             }
           },
           "defaultConfiguration": "production"
@@ -68,6 +84,9 @@
             },
             "development": {
               "buildTarget": "client:build:development"
+            },
+            "showcase": {
+              "buildTarget": "client:build:production,showcase"
             }
           },
           "defaultConfiguration": "development"

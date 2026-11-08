@@ -5,9 +5,15 @@
       <h1 id="guided-demo-title" class="mt-1 text-xl font-bold tracking-tight text-slate-950">{{ 'demo.guided_demo' | transloco }}</h1>
       <p class="mt-1 text-xs leading-5 text-slate-600">{{ (studioTour() ? 'studioTour.intro' : 'demo.decouvrez_les_parcours_reels_du_produit_aucun') | transloco }}</p>
     </div>
+    @if (publicPresentation) {
+    <a routerLink="/" class="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-500">
+      {{ 'showcase.home' | transloco }}
+    </a>
+    } @else {
     <a routerLink="/generator" class="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-500">
       {{ 'demo.quitter_la_demo' | transloco }}
     </a>
+    }
   </header>
 
   <div class="tour-switch" role="group" [attr.aria-label]="'studioTour.choose' | transloco"><button type="button" [attr.aria-pressed]="studioTour()" (click)="selectTour(true)">{{ 'studioTour.studio' | transloco }}</button><button type="button" [attr.aria-pressed]="!studioTour()" (click)="selectTour(false)">{{ 'studioTour.original' | transloco }}</button></div>
@@ -71,7 +77,8 @@
         </section>
       </div>
 
-      @if (currentStep().destinationRoute) {
+      @if (publicPresentation) { <p class="text-xs text-slate-600">{{ 'showcase.presentationOnly' | transloco }}</p> }
+      @if (!publicPresentation && currentStep().destinationRoute) {
         <div class="mt-3 flex flex-wrap items-center gap-3">
           <a [routerLink]="currentStep().destinationRoute" [queryParams]="currentStep().destinationSpace ? {space: currentStep().destinationSpace} : null" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'workspace.openFeature' | transloco: { title: (currentStep().title | transloco) }" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#6D45D8] px-4 text-xs font-semibold text-white outline-none transition hover:bg-[#5935bd] focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
             {{ 'demo.ouvrir_la_fonctionnalite' | transloco }} <span aria-hidden="true">↗</span>

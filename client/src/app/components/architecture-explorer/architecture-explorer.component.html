@@ -70,7 +70,8 @@
         <div><dt class="font-semibold text-slate-600">{{ 'architecture.present_dans_le_flux' | transloco }}</dt><dd class="mt-1 text-slate-700">{{ isNodeInFlow(selectedNodeId()) ? ('architecture.oui_flux_selectionne' | transloco) : ('architecture.non_autre_parcours' | transloco) }}</dd></div>
       </dl>
       <details class="related"><summary>{{ 'architecture.description_verifiee' | transloco }}</summary><p class="mt-2 leading-5">{{ selectedNode().description | transloco }}</p></details>
-      @if(destination();as space){<a class="studio-link" [routerLink]="'/agent-workspace'" [queryParams]="{space:space}" target="_blank" rel="noopener noreferrer">{{ 'architecturePremium.open' | transloco }} ↗</a>}
+      @if(!publicPresentation && destination();as space){<a class="studio-link" [routerLink]="'/agent-workspace'" [queryParams]="{space:space}" target="_blank" rel="noopener noreferrer">{{ 'architecturePremium.open' | transloco }} ↗</a>}
+      @if(publicPresentation){<p class="text-xs text-slate-600">{{ 'showcase.presentationOnly' | transloco }}</p>}
       <details class="related"><summary>{{ 'architecturePremium.related' | transloco }} · {{ relatedEdges().length }}</summary><ul>@for(edge of relatedEdges();track edge.id){<li>{{ nodeName(edge.sourceNodeId) | transloco }} → {{ nodeName(edge.targetNodeId) | transloco }}<p>{{ edge.description | transloco }}</p></li>}</ul></details>
     </aside>
   </section>

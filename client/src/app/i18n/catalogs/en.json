@@ -1357,5 +1357,71 @@
     "help": "About retrieval and forms",
     "open": "Open",
     "close": "Collapse"
+  },
+  "showcase": {
+    "skip": "Skip to content",
+    "home": "Home",
+    "capabilities": "Capabilities",
+    "scope": "Presentation scope",
+    "menu": "Menu",
+    "nav": "Showcase navigation",
+    "eyebrow": "Enterprise AI Dashboard & Support Agent Studio",
+    "title": "Clearer AI operations.",
+    "intro": "Discover a platform bringing together document retrieval, customer request management and estimated cost oversight.",
+    "discover": "Explore capabilities",
+    "consultative": "Read-only presentation · No AI inference runs from this site.",
+    "preview": "A look at the product",
+    "placeholder": "Approved real screenshot to be added",
+    "caption": "No screenshot or customer data is published in this first version.",
+    "finops": "FinOps Dashboard",
+    "finopsText": "Understand AI activity, estimated costs and projections when sufficient data is available.",
+    "generator": "AI Generator",
+    "generatorText": "Ask about documents, inspect sources and prepare forms in the local application.",
+    "studio": "Support Agent Studio",
+    "studioText": "Configure agents and structure conversations, tickets and local human handoffs.",
+    "limitsTitle": "Explore without changing data",
+    "limitsText": "This showcase provides no access to documents, conversations or business tools. Inference and operations are reserved for a guided demonstration.",
+    "footer": "A presentation of the local product, without a public AI service or data access.",
+    "language": "Language",
+    "error": "Language switching failed. French remains available.",
+    "presentationOnly": "Read-only presentation: business operations are available only during a guided demonstration."
+  },
+  "gallery": {
+    "title": "Explore the product interfaces",
+    "intro": "Explore seven real screenshots of the local application, containing fictional demonstration data. Enlarge an image to inspect the details.",
+    "enlarge": "Enlarge: {{title}}",
+    "zoom": "Enlarge screenshot",
+    "close": "Close",
+    "browse": "Explore the feature gallery",
+    "homeCaption": "FinOps Dashboard — local application",
+    "static": "Static screenshot · The illustrated actions run only in the local application.",
+    "overview": {
+      "title": "Dashboard — Overview",
+      "description": "AI activity, estimated costs and budget; projections may remain unavailable."
+    },
+    "history": {
+      "title": "Dashboard — AI history",
+      "description": "Recorded traces, durations, available token usage and cost estimates."
+    },
+    "simulator": {
+      "title": "Dashboard — FinOps simulator",
+      "description": "Parameters for a local budget scenario; this image does not run any calculation."
+    },
+    "generator": {
+      "title": "AI Generator",
+      "description": "A workspace for questions and forms, with document access and retrieval scope controls."
+    },
+    "configuration": {
+      "title": "Studio — Configuration",
+      "description": "Identity, mission and settings for a local demonstration agent."
+    },
+    "tickets": {
+      "title": "Studio — Tickets",
+      "description": "List and detail of fictional requests, with status, priority and category."
+    },
+    "automation": {
+      "title": "Studio — Local automation",
+      "description": "The binding and simulator are disabled in this screenshot; no external action is executed."
+    }
   }
 }

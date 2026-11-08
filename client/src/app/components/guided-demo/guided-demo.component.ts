@@ -1,3 +1,4 @@
+import { PUBLIC_PRESENTATION } from '../../presentation-mode';
 import { UiStatusPipe } from '../../i18n/ui-format.pipe';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UiLanguageService } from '../../i18n/ui-language.service';
@@ -28,6 +29,7 @@ const INITIAL_STATUSES: Record<GuidedDemoStepId, GuidedDemoStepStatus> = {
   styleUrl: './guided-demo.component.scss'
 })
 export class GuidedDemoComponent implements OnDestroy {
+  readonly publicPresentation = inject(PUBLIC_PRESENTATION);
   readonly ui = inject(UiLanguageService);
   private focusFrame: number | null = null;
   readonly studioTour = signal(true);

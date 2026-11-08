@@ -1357,5 +1357,71 @@
     "help": "À propos de la recherche et des formulaires",
     "open": "Ouvrir",
     "close": "Replier"
+  },
+  "showcase": {
+    "skip": "Aller au contenu",
+    "home": "Accueil",
+    "capabilities": "Fonctionnalités",
+    "scope": "Cadre de présentation",
+    "menu": "Menu",
+    "nav": "Navigation de la vitrine",
+    "eyebrow": "Enterprise AI Dashboard & Support Agent Studio",
+    "title": "Vos opérations IA, plus lisibles.",
+    "intro": "Découvrez une plateforme qui réunit recherche documentaire, suivi des demandes clients et pilotage des coûts estimés.",
+    "discover": "Découvrir les capacités",
+    "consultative": "Présentation consultative · Aucune inférence exécutée depuis ce site.",
+    "preview": "Un aperçu du produit",
+    "placeholder": "Capture réelle approuvée à intégrer",
+    "caption": "Aucune capture ni donnée client n’est publiée dans cette première version.",
+    "finops": "Dashboard FinOps",
+    "finopsText": "Comprendre l’activité IA, les coûts estimés et les projections lorsque les données sont suffisantes.",
+    "generator": "Générateur IA",
+    "generatorText": "Interroger des documents, consulter les sources et préparer des formulaires dans l’application locale.",
+    "studio": "Support Agent Studio",
+    "studioText": "Configurer des agents et structurer conversations, tickets et transferts humains locaux.",
+    "limitsTitle": "Découvrir, sans agir sur les données",
+    "limitsText": "Cette vitrine ne donne accès à aucun document, conversation ou outil métier. Les inférences et opérations sont réservées à une démonstration accompagnée.",
+    "footer": "Une présentation du produit local, sans service IA public ni accès aux données.",
+    "language": "Langue",
+    "error": "Le changement de langue a échoué. Le français reste disponible.",
+    "presentationOnly": "Présentation consultative : les opérations métier sont disponibles uniquement lors d’une démonstration accompagnée."
+  },
+  "gallery": {
+    "title": "Les interfaces, en images",
+    "intro": "Explorez sept captures réelles de l’application locale, avec des données de démonstration fictives. Agrandissez une image pour consulter les détails.",
+    "enlarge": "Agrandir : {{title}}",
+    "zoom": "Agrandir la capture",
+    "close": "Fermer",
+    "browse": "Découvrir la galerie des fonctionnalités",
+    "homeCaption": "Dashboard FinOps — application locale",
+    "static": "Capture statique · Les actions représentées s’exécutent uniquement dans l’application locale.",
+    "overview": {
+      "title": "Dashboard — Vue d’ensemble",
+      "description": "Activité IA, coûts estimés et budget ; une projection peut rester indisponible."
+    },
+    "history": {
+      "title": "Dashboard — Historique IA",
+      "description": "Traces enregistrées, durées, tokens disponibles et estimations de coût."
+    },
+    "simulator": {
+      "title": "Dashboard — Simulateur FinOps",
+      "description": "Paramètres d’un scénario budgétaire local ; aucun calcul n’est lancé depuis cette image."
+    },
+    "generator": {
+      "title": "Générateur IA",
+      "description": "Espace de questions et de formulaires, avec accès aux documents et à la portée de recherche."
+    },
+    "configuration": {
+      "title": "Studio — Configuration",
+      "description": "Identité, mission et paramètres d’un agent de démonstration local."
+    },
+    "tickets": {
+      "title": "Studio — Tickets",
+      "description": "Liste et détail de demandes fictives, avec statut, priorité et catégorie."
+    },
+    "automation": {
+      "title": "Studio — Automatisation locale",
+      "description": "Liaison et simulateur désactivés dans cette capture ; aucune action externe n’est exécutée."
+    }
   }
 }
