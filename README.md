@@ -1,66 +1,78 @@
-# 🚀 Enterprise AI Engine & RAG Dashboard
+# Enterprise AI Dashboard & Support Agent Studio
 
-> Conçu et développé par **Rabiaa NOUIRA**
+**Angular interfaces, document-assisted AI and local support workflows.**
 
-Dashboard Angular 19 et BFF Node.js/Express : RAG lexical avec citations, génération de formulaires et suivi/prévision des coûts IA. Démonstration locale sans authentification utilisateur. Le Support Agent Studio propose les configurations persistantes, les documents autorisés par agent, une prévisualisation RAG stricte et les conversations persistantes à mémoire bornée. La gestion des tickets apporte des tickets persistants avec classification déterministe et audit ; le transfert à un opérateur apporte le suivi déclaratif des escalades humaines locales, sans transfert externe.
+Designed and developed by **Rabiaa NOUIRA**.
 
-## 🏗️ Architecture & Technical Stack
+English · [Français](README.fr.md)
 
-- **Frontend :** Angular 19 standalone, Signals, Reactive Forms, Tailwind CSS, cinq routes chargées à la demande.
-- **Backend :** Express, Groq, Multer, pdf-parse, better-sqlite3.
-- **RAG :** PDF/TXT/CSV → texte → segments de 400 caractères maximum → SQLite FTS5 `MATCH`, classement BM25 → contexte Groq. Aucun embedding ni recherche vectorielle. Les citations valident des références de passages, pas l’exactitude factuelle des réponses.
-- **Observabilité :** tokens retournés par Groq, durées mesurées côté serveur et coûts estimés à partir des tarifs configurés. `/api/tokens` utilise séparément tiktoken; le service Transformers.js de sentiment n’est pas consommé par les parcours actuels.
+[Explore the showcase](https://angular-ai-dashboard.pages.dev) · [Interface gallery](https://angular-ai-dashboard.pages.dev/features) · [Guided demo](https://angular-ai-dashboard.pages.dev/guided-demo) · [Architecture explorer](https://angular-ai-dashboard.pages.dev/architecture)
 
-Voir [ARCHITECTURE](docs/ARCHITECTURE.md), [TECHNIQUES](docs/TECHNIQUES.md) et [FinOps](docs/FINOPS.md).
+> The public showcase is an interactive static presentation with real screenshots of the local application. It performs no AI inference and provides no access to the operational backend or local data.
 
-<a id="support-agent-studio--phases-5a--5b--5c--5d-1"></a>
+## What the project demonstrates
 
-## Support Agent Studio
+This portfolio project connects document retrieval, AI-assisted interfaces, customer support operations and estimated AI cost tracking in one bilingual application. The operational application runs locally; the public showcase lets visitors explore its capabilities without executing business actions.
 
-Dans **Support Agent Studio** (`/agent-workspace`), créez, modifiez et activez/désactivez des configurations sauvegardées dans SQLite. Activez `DASHBOARD_TELEMETRY_LOCAL_ONLY=true` pour les API locales de configuration. L'ancienne interface « Outils d'exploitation » a été supprimée. Le moteur backend est conservé comme capacité technique locale, sans raccordement automatique au Studio.
+| Capability | Implemented behaviour |
+| --- | --- |
+| AI Generator | PDF/TXT/CSV import, document-scoped questions, inspectable sources, execution details and AI-generated forms with explicit submission. |
+| Support Agent Studio | Agent configuration, authorised documents, independent testing and persistent conversations with bounded context. |
+| Support Ticket Management | Confirmed ticket creation, deterministic classification, search, filters, optimistic updates and an audit trail. |
+| Human Handoff | Local handoff requests, declared assignments, notes and resolution, independent of ticket status. |
+| Workflow Automation | Durable event receipts, explicit run preparation, manual recovery and a local simulator. |
+| FinOps Dashboard | Recorded usage, estimated costs, pricing coverage, conditional forecasts, a saved shared budget and scenario simulation. |
+| Product discovery | Interactive guided demo and architecture explorer; French/English interfaces. |
 
-Six espaces conservent le même design : **Configuration**, **Knowledge Base**, **Tester l’agent**, **Conversations**, **Tickets** et **Workflow Automation**. Associez explicitement des documents existants, puis envoyez une question à une configuration active. Le serveur filtre FTS5 dans SQL par agent et s'abstient si le contexte lexical ou les références sont insuffisants. Tester l’agent reste indépendant sans historique. Conversations conserve réellement les échanges dans SQLite avec mémoire utilisateur bornée, citations contrôlées et suppression confirmée. Le stockage local est en clair : ne saisissez pas de secrets. Limites : 50 conversations/agent, 200 messages/conversation, sans expiration automatique. La sauvegarde ne lance aucun appel IA et l'activation ne déploie pas un agent. Voir [périmètre, sécurité, tests et démonstration du Studio](docs/PHASE5_SUPPORT_AGENT.md).
+## Real application screenshots
 
-Les tickets se créent manuellement ou depuis une conversation, après confirmation. Catégories/priorités/statuts contrôlés, filtres, historique transactionnel, idempotence et protection des brouillons FR/EN ; aucun appel Groq pour les opérations Tickets. La suppression d’une conversation conserve les textes confirmés du ticket et retire ses liens. [Migration 006, API, limites et scénario fictif NovaShop NS-2026-1042](docs/PHASE5D_TICKETS.md).
+These are real screenshots of the local application using demonstration content, not generated mockups. Images capture a particular state; they are not live metrics or evidence of production deployment. Click an image to view it at full size.
 
-Le transfert à un opérateur intègre au détail Tickets les demandes confirmées, affectations à un opérateur local déclaré, notes, résolutions et annulations auditées. Le statut du ticket reste indépendant et aucune action externe n’est exécutée. [Migration 007, API, transitions et test manuel NovaShop](docs/PHASE5D_ESCALATIONS.md).
+### FinOps Dashboard
 
-## ✨ Key Features & Deep Dive
+[![Local FinOps Dashboard showing usage, estimated costs and forecast availability](client/showcase-assets/screenshots/dashboard-overview.png)](client/showcase-assets/screenshots/dashboard-overview.png)
 
-### 1. RAG Pipeline & Recherche Lexicale
+Usage and cost estimates remain distinct from billing. This capture shows an unavailable forecast because the required history is insufficient.
 
-Les passages sont persistés dans SQLite, avec une portée par document ou tous documents. Le serveur envoie jusqu’à quatre passages à Groq et renvoie les sources citées/non citées. Sans passage retrouvé, il demande une réponse générale, sans prétendre à un fondement documentaire. Les anciens libellés UI évoquant la vectorisation ne décrivent pas le pipeline réel.
+### AI Generator
 
-<a id="2-finops--prévision-des-dépenses--phase-4"></a>
+[![Local AI Generator with conversation area, document import and message composer](client/showcase-assets/screenshots/ai-generator.png)](client/showcase-assets/screenshots/ai-generator.png)
 
-### 2. FinOps & Prévision des dépenses
+The empty state shows the document and question workflow before any explicit AI request.
 
-Dans **Dashboard → Vue d’ensemble**, le suivi existant permet de filtrer les périodes, consulter les tokens/coûts par requête et l’historique journalier. Le panneau FinOps ajoute :
+### Support Agent Studio
 
-- Coût observé **estimé** du mois UTC, couverture tarifée et sous-totaux par modèle.
-- Projections sur 7 jours, 30 jours et fin de mois; comparaison graphique de l’historique et des coûts quotidiens projetés, avec tableau accessible.
-- Budget mensuel partagé persisté dans SQLite et alertes locales à **80 % / 100 %**, séparées entre observé et projeté.
-- Simulation sans appel IA : requêtes/jour, tokens moyens d’entrée/sortie, modèle aux tarifs configurés et budget de scénario.
-- États chargement, erreur, historique vide, **Données insuffisantes** et coûts indisponibles. Aucun tarif par défaut ni coût inconnu remplacé par zéro.
+[![Local Support Agent Studio configuration with identity, instructions and language controls](client/showcase-assets/screenshots/studio-configuration.png)](client/showcase-assets/screenshots/studio-configuration.png)
 
-**Formule :** moyenne journalière des coûts des jours UTC terminés (fenêtre maximale de 30 jours), puis multiplication par l’horizon. Minimum : 7 jours calendaires, 10 requêtes tarifées, 3 jours actifs et 100 % de couverture de coût dans l’échantillon. La fin de mois tient compte du mois civil et évite de compter deux fois le jour courant. Les détails, limites et règles de couverture figurent dans [FINOPS.md](docs/FINOPS.md).
+A demonstration agent configuration. An active configuration is not a publicly deployed agent.
 
-Les estimations ne sont **jamais** une facture. La couverture est limitée aux traces `/api/chat` persistées, sans garantie de couvrir tous les appels ou tentatives Groq. Aucune notification externe n’est envoyée.
+## Architecture
 
-### 3. Dynamic Form Generation & SQLite Persistence
+| Layer | Technology and role |
+| --- | --- |
+| Interface | Angular 19 standalone components, Signals, Reactive Forms, SCSS/Tailwind CSS v4 and Transloco. |
+| Backend | Node.js / Express BFF; validation, document processing and explicit Groq requests. |
+| Persistence | SQLite with additive migrations, conversations, tickets, handoffs and workflow audit records. |
+| Document retrieval | SQLite FTS5 lexical matching and BM25 ranking over extracted document chunks. |
+| AI provider | Groq, called by the backend through explicit user actions. |
+| Public presentation | Separate Angular showcase build with informational routes and no operational business API client. |
 
-La génération retourne un schéma JSON interprété par Angular. La soumission est une action distincte, persistée avec des paramètres SQL liés. Les formulaires ne récupèrent pas automatiquement le contexte RAG. Le moteur interne historique reste distinct du chat et du Studio de support ; il n’a plus d’interface utilisateur et nécessite le mode local explicitement activé.
+Document flow: **PDF/TXT/CSV → extracted text → chunks → FTS5/BM25 retrieval → context → explicit Groq request → answer and references**.
 
-## 🛡️ Best Practices & Engineering Standards
+Retrieval policies differ: the Generator can answer without document support when no relevant passage is found; the Studio applies stricter document-scoped abstention. Citations identify passages, not a guarantee of factual correctness.
 
-- Clé Groq côté serveur; pas de clé nécessaire pour les calculs FinOps ou leurs tests.
-- BFF lié au loopback; télémétrie et FinOps activés uniquement par configuration explicite. CORS n’est pas une authentification : ne pas exposer cette démonstration par tunnel ou reverse proxy public.
-- Paramètres numériques validés côté serveur. Budget partagé entre utilisateurs de la même base locale, sans isolation multi-utilisateur.
-- Aucune modification du pipeline FTS5/BM25 par le suivi et la prévision des coûts; migration additive `002_finops_budget.sql`.
+## Freelance capabilities illustrated
 
-## 🛠️ Getting Started Locally
+- Building and modernising Angular business interfaces, responsive layouts and bilingual user journeys.
+- Integrating document-assisted AI with server-side API access and inspectable sources.
+- Implementing persistent support workflows, confirmations, concurrency controls and audit trails.
+- Developing usage dashboards, cost estimation and automated regression checks.
 
-Utiliser Node.js 24 (comme la CI). Depuis la racine :
+These are capabilities demonstrated by this project, not claims of client engagements, commercial results or production certifications.
+
+## Run locally
+
+Use Node.js 24 to match the repository CI. From the repository root:
 
 ```bash
 npm ci
@@ -68,57 +80,72 @@ npm ci
 (cd server && npm ci)
 ```
 
-Configurer `server/.env` localement (ne pas le committer) :
+For the static showcase only, no backend or Groq key is needed:
+
+```bash
+cd client
+npm run start:showcase
+```
+
+Open <http://127.0.0.1:4300/>. Public presentation routes are `/`, `/features`, `/guided-demo` and `/architecture`.
+
+For the operational application, create a local, untracked `server/.env`:
 
 ```dotenv
-GROQ_API_KEY=<votre-cle-locale>
+GROQ_API_KEY=<your-local-key>
 DASHBOARD_TELEMETRY_LOCAL_ONLY=true
 HOST=127.0.0.1
 PORT=3000
 ```
 
-Ajouter `GROQ_MODEL_PRICING` avec les identifiants exacts et tarifs USD **vérifiés par vos soins** par million de tokens d’entrée/sortie, conformément à [la configuration](docs/FINOPS.md#configuration). Sans tarifs valides, les simulations sont indisponibles; les coûts historiques déjà persistés restent consultables. Redémarrer le BFF après une modification de configuration.
+Start `npm start` from `server` and from `client` in separate terminals. Open <http://localhost:4200/dashboard>. Backend startup creates/opens the local SQLite database and automatically applies pending migrations; back up an existing database before starting an updated version.
 
-Dans deux terminaux :
+Configure `GROQ_MODEL_PRICING` using verified model prices as described in [FinOps configuration](docs/FINOPS.md#configuration). Missing prices remain unavailable; they are not substituted with zero.
 
-```bash
-# Terminal backend
-cd server
-npm start
-```
+## Validation
 
 ```bash
-# Terminal frontend
-cd client
-npm start
-```
-
-Ouvrir `http://localhost:4200/dashboard`. SQLite est créé au démarrage dans le répertoire de travail du serveur; les migrations s’appliquent automatiquement. Aucun ancien fichier de données n’est nécessaire.
-
-Pour utiliser FinOps : consulter la couverture et les projections, enregistrer un budget positif (champ vide pour le désactiver), puis sélectionner un modèle tarifé et lancer une simulation. Le budget de scénario est indépendant du budget persistant. Le panneau FinOps utilise le mois courant et sa fenêtre fixe, indépendamment du filtre de période des métriques existantes.
-
-### Validation sans appels IA payants
-
-```bash
-(cd server && npm test)
+(cd client && npm run check:i18n)
 (cd client && npm test -- --runInBand)
 (cd client && npm run build)
+(cd client && npm run build:showcase)
+(cd server && npm test)
 git diff --check
 ```
 
-## 👨‍💻 Author
+Latest local frontend verification, 8 November 2026: **256 tests across 30 suites**, **1,269 matching translation keys**, and successful business/showcase production builds. The full suite passed under Node 24.20.0 with cache disabled and a 4 GB heap limit after an earlier native V8 crash. These are local verification results, not production certification or comprehensive responsive/accessibility certification. No tests were rerun for this README preparation.
 
-Rabiaa NOUIRA — Enterprise Full-Stack & AI Engineer
+## Scope and limitations
 
-## 📝 License
+- Local demonstration application, without multi-user authentication or tenant isolation. Do not expose the operational backend publicly; CORS is not authentication.
+- Local SQLite content is stored in clear text. Do not enter secrets or private customer data.
+- Lexical retrieval only: no embeddings or vector RAG.
+- Human Handoff is local and declarative; no external operator is contacted. Handoff and ticket statuses are independent.
+- Workflow execution is simulated locally: no operational n8n transport, webhook, refund or outbound email.
+- Agent activation saves local configuration; it does not deploy an agent.
+- Costs are estimates based on configured pricing and recorded `/api/chat` traces, not complete provider billing. Forecasts require sufficient data and coverage.
+- Generator conversation state is component-local; Studio conversations are persisted separately.
 
-MIT.
+## Technical documentation
 
-Workflow Automation dispose d’une [API et interface de gestion locale](docs/WORKFLOW_AUTOMATION_UI.md) : configuration confirmée, reçus, préparation et simulation manuelles, reprise et audit. Aucun n8n ou transport sortant. Les migrations 007/008 sont déjà appliquées à la base locale de recette ; toute préparation d’une autre base reste une opération séparée avec sauvegarde vérifiée.
+- [Architecture](docs/ARCHITECTURE.md)
+- [FinOps](docs/FINOPS.md)
+- [Observability](docs/OBSERVABILITY.md)
+- [Support Agent Studio](docs/PHASE5_SUPPORT_AGENT.md)
+- [Support Ticket Management](docs/PHASE5D_TICKETS.md)
+- [Human Handoff](docs/PHASE5D_ESCALATIONS.md)
+- [Local Workflow Engine](docs/WORKFLOW_LOCAL_ENGINE.md)
+- [Workflow Automation UI](docs/WORKFLOW_AUTOMATION_UI.md)
+- [Internationalisation](docs/I18N.md)
 
-Clôture locale documentée le 5 novembre 2026 : **215 tests Angular (29 suites),
-161 tests backend, build de production réussi et 1 030 clés FR/EN vérifiées**.
-Le propriétaire a validé manuellement Human Handoff et Workflow Automation dans
-Safari ; liaison et simulateur partagé désactivés à la fin. Cette validation locale
-ne vaut pas validation de production ni contrôle exhaustif du responsive.
-[Scénarios validés, état SQLite et limites](docs/PHASE5_SUPPORT_AGENT.md#cloture-locale-human-handoff-workflow).
+The documentation includes dated development history. Historical test counts and local database migration states should not be read as current production guarantees.
+
+<!-- Retained anchors for existing documentation links. -->
+<a id="support-agent-studio--phases-5a--5b--5c--5d-1"></a>
+<a id="2-finops--prévision-des-dépenses--phase-4"></a>
+
+## Author and licence
+
+**Rabiaa NOUIRA** — Full-stack Angular / Node.js development and document-assisted AI integration.
+
+© 2026 Rabiaa NOUIRA. All rights reserved.
