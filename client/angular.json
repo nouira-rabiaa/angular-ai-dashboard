@@ -71,7 +71,10 @@
                   "output": "assets/showcase"
                 }
               ],
-              "index": "src/index.showcase.html"
+              "index": {
+                "input": "src/index.showcase.html",
+                "output": "index.html"
+              }
             }
           },
           "defaultConfiguration": "production"
