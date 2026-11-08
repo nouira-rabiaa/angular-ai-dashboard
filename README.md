@@ -1,6 +1,6 @@
 # Enterprise AI Dashboard & Support Agent Studio
 
-**Angular interfaces, document-assisted AI and local support workflows.**
+**Full-Stack Angular 19 / TypeScript and Node.js / Express portfolio featuring Generative AI, LLM integration, Lexical RAG, document-assisted support AI Agents and AI FinOps.**
 
 Designed and developed by **Rabiaa NOUIRA**.
 
@@ -21,7 +21,7 @@ This portfolio project connects document retrieval, AI-assisted interfaces, cust
 | Support Ticket Management | Confirmed ticket creation, deterministic classification, search, filters, optimistic updates and an audit trail. |
 | Human Handoff | Local handoff requests, declared assignments, notes and resolution, independent of ticket status. |
 | Workflow Automation | Durable event receipts, explicit run preparation, manual recovery and a local simulator. |
-| FinOps Dashboard | Recorded usage, estimated costs, pricing coverage, conditional forecasts, a saved shared budget and scenario simulation. |
+| AI FinOps Dashboard | Recorded usage, estimated costs, pricing coverage, conditional forecasts, a saved shared budget and scenario simulation. |
 | Product discovery | Interactive guided demo and architecture explorer; French/English interfaces. |
 
 ## Real application screenshots
@@ -50,21 +50,24 @@ A demonstration agent configuration. An active configuration is not a publicly d
 
 | Layer | Technology and role |
 | --- | --- |
-| Interface | Angular 19 standalone components, Signals, Reactive Forms, SCSS/Tailwind CSS v4 and Transloco. |
+| Interface | Angular 19, TypeScript, standalone components, Signals, Reactive Forms, SCSS/Tailwind CSS v4 and Transloco. |
 | Backend | Node.js / Express BFF; validation, document processing and explicit Groq requests. |
 | Persistence | SQLite with additive migrations, conversations, tickets, handoffs and workflow audit records. |
-| Document retrieval | SQLite FTS5 lexical matching and BM25 ranking over extracted document chunks. |
-| AI provider | Groq, called by the backend through explicit user actions. |
+| Document retrieval | Lexical RAG using SQLite FTS5 matching and BM25 ranking over extracted document chunks. |
+| AI provider | LLM integration through the Groq API, called server-side following explicit user actions. |
 | Public presentation | Separate Angular showcase build with informational routes and no operational business API client. |
 
 Document flow: **PDF/TXT/CSV → extracted text → chunks → FTS5/BM25 retrieval → context → explicit Groq request → answer and references**.
 
 Retrieval policies differ: the Generator can answer without document support when no relevant passage is found; the Studio applies stricter document-scoped abstention. Citations identify passages, not a guarantee of factual correctness.
 
+Bounded agentic workflows: an internal LLM tool-calling loop uses two read-only dashboard tools, strict argument validation and execution limits. This internal engine is not connected to the Angular interface. It is separate from local support workflow automation, whose execution is simulated.
+
 ## Freelance capabilities illustrated
 
 - Building and modernising Angular business interfaces, responsive layouts and bilingual user journeys.
 - Integrating document-assisted AI with server-side API access and inspectable sources.
+- Prompt Engineering: system instructions, retrieved-context assembly, citation rules and document-scoped abstention policies.
 - Implementing persistent support workflows, confirmations, concurrency controls and audit trails.
 - Developing usage dashboards, cost estimation and automated regression checks.
 

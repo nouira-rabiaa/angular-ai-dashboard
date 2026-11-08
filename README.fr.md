@@ -1,6 +1,6 @@
 # Enterprise AI Dashboard & Support Agent Studio
 
-**Interfaces Angular, IA documentaire et parcours de support locaux.**
+**Portfolio Full-Stack Angular 19 / TypeScript et Node.js / Express : IA générative, intégration de LLM, RAG lexical, agents IA de support documentaire et FinOps IA.**
 
 Conçu et développé par **Rabiaa NOUIRA**.
 
@@ -21,7 +21,7 @@ Ce projet de portfolio réunit recherche documentaire, interfaces assistées par
 | Gestion des tickets | Création confirmée, classification déterministe, recherche, filtres, contrôle de version des modifications et piste d’audit. |
 | Transfert à un opérateur | Demandes locales, affectations déclarées, notes et résolution, indépendamment du statut du ticket. |
 | Automatisation des workflows | Reçus d’événements durables, préparation explicite des exécutions, reprise manuelle et simulateur local. |
-| Dashboard FinOps | Consommation enregistrée, coûts estimés, couverture tarifaire, prévisions conditionnelles, budget partagé enregistré et simulation de scénarios. |
+| Dashboard FinOps IA | Consommation enregistrée, coûts estimés, couverture tarifaire, prévisions conditionnelles, budget partagé enregistré et simulation de scénarios. |
 | Découverte du produit | Démo guidée et explorateur d’architecture interactifs ; interfaces français/anglais. |
 
 ## Captures réelles de l’application
@@ -50,21 +50,24 @@ Configuration d’un agent de démonstration. Une configuration active n’est p
 
 | Couche | Technologie et rôle |
 | --- | --- |
-| Interface | Angular 19 standalone, Signals, Reactive Forms, SCSS/Tailwind CSS v4 et Transloco. |
+| Interface | Angular 19, TypeScript, composants standalone, Signals, Reactive Forms, SCSS/Tailwind CSS v4 et Transloco. |
 | Backend | BFF Node.js / Express : validations, traitement documentaire et appels Groq explicites. |
 | Persistance | SQLite avec migrations additives, conversations, tickets, transferts et audit des workflows. |
-| Recherche documentaire | Recherche lexicale SQLite FTS5 et classement BM25 sur les segments de texte extraits. |
-| Fournisseur IA | Groq, appelé par le backend à la suite d’actions utilisateur explicites. |
+| Recherche documentaire | RAG lexical utilisant SQLite FTS5 et le classement BM25 sur les segments de texte extraits. |
+| Fournisseur IA | Intégration de LLM via l’API Groq, appelée côté serveur à la suite d’actions utilisateur explicites. |
 | Présentation publique | Build Angular showcase distinct, routes informatives et absence de client API métier opérationnel. |
 
 Flux documentaire : **PDF/TXT/CSV → texte extrait → segments → recherche FTS5/BM25 → contexte → appel Groq explicite → réponse et références**.
 
 Les politiques diffèrent : le Générateur peut répondre sans appui documentaire lorsqu’aucun passage pertinent n’est retrouvé ; le Studio applique une abstention plus stricte sur les documents autorisés. Les citations identifient des passages, sans garantir l’exactitude factuelle d’une réponse.
 
+Workflows agentiques bornés : une boucle interne d’appels d’outils par un LLM utilise deux outils de consultation du dashboard en lecture seule, avec validation stricte des arguments et limites d’exécution. Ce moteur interne n’est pas connecté à l’interface Angular. Il est distinct de l’automatisation locale des workflows de support, dont l’exécution est simulée.
+
 ## Compétences freelance illustrées
 
 - Création et modernisation d’interfaces métier Angular, responsive et bilingues.
 - Intégration d’IA documentaire avec appels API côté serveur et sources consultables.
+- Prompt Engineering : instructions système, assemblage du contexte documentaire, règles de citation et politiques d’abstention selon les documents autorisés.
 - Développement de parcours de support persistants, confirmations, contrôles de concurrence et pistes d’audit.
 - Réalisation de dashboards de consommation, estimations de coûts et contrôles automatisés de non-régression.
 
